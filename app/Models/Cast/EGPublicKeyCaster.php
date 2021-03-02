@@ -3,10 +3,9 @@
 
 namespace App\Models\Cast;
 
-use App\EGPublicKey;
+use App\Crypto\EGPublicKey;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
-use PHP\Math\BigInteger\BigInteger;
 
 /**
  * Class EGPublicKeyCaster
@@ -20,11 +19,15 @@ class EGPublicKeyCaster implements CastsAttributes
      * @param string $key
      * @param mixed $value
      * @param array $attributes
-     * @return EGPublicKey
+     * @return null|EGPublicKey
+     * @noinspection PhpMissingParamTypeInspection
      */
-    public function get($model, string $key, $value, array $attributes): EGPublicKey
+    public function get($model, string $key, $value, array $attributes): ?EGPublicKey
     {
-        $data = json_decode($value);
+        if (is_null($value)) {
+            return null;
+        }
+        $data = json_decode($value, true);
         return EGPublicKey::fromArray($data);
     }
 
@@ -33,10 +36,14 @@ class EGPublicKeyCaster implements CastsAttributes
      * @param string $key
      * @param EGPublicKey $value
      * @param array $attributes
-     * @return string
+     * @return null|string
+     * @noinspection PhpMissingParamTypeInspection
      */
-    public function set($model, string $key, $value, array $attributes): string
+    public function set($model, string $key, $value, array $attributes): ?string
     {
+        if (is_null($value)) {
+            return null;
+        }
         return json_encode($value->toArray());
     }
 
