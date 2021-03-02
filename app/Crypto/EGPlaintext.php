@@ -5,7 +5,6 @@ namespace App\Crypto;
 
 
 use phpseclib3\Math\BigInteger;
-use phpseclib3\Crypt\RSA\PublicKey;
 
 /**
  * Class EGPlaintext
@@ -25,6 +24,18 @@ class EGPlaintext
         $this->pk = $pk;
     }
 
+    /**
+     * @param string $plaintext ASCII only
+     * @param EGPublicKey $pk
+     * @return EGPlaintext
+     */
+    public static function fromString(string $plaintext, EGPublicKey $pk): EGPlaintext
+    {
+        $str = iconv("UTF-8", "ASCII", $plaintext);
+        $str = head(unpack('H*', $str));
+        return new EGPlaintext(new BigInteger($str, 16), $pk);
+    }
+
 
     /**
      * @return EGCiphertext
@@ -34,5 +45,13 @@ class EGPlaintext
         return $this->pk->encrypt($this->m);
     }
 
+    /**
+     * Returns the ASCII string
+     * @return false|string
+     */
+    public function toString()
+    {
+        return pack('H*', $this->m->toHex());
+    }
 
 }
