@@ -30,25 +30,25 @@ class EGPrivateKey
 
     /**
      * @param array $data
+     * @param bool $onlyXY
      * @return EGPrivateKey
      */
-    public static function fromArray(array $data): EGPrivateKey
+    public static function fromArray(array $data, bool $onlyXY = false): EGPrivateKey
     {
         return new EGPrivateKey(
-            EGPublicKey::fromArray($data['pk']),
+            EGPublicKey::fromArray($data['pk'], $onlyXY),
             new BigInteger($data['x'])
         );
     }
 
     /**
+     * @param bool $onlyXY
      * @return array
      */
-    public function toArray(): array
+    public function toArray(bool $onlyXY = false): array
     {
         return [
-            "pk" => [
-                $this->pk->toArray(),
-            ],
+            "pk" => $this->pk->toArray($onlyXY),
             "x" => $this->x->toString()
         ];
     }

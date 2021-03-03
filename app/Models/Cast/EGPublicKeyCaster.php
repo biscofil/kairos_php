@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
 class EGPublicKeyCaster implements CastsAttributes
 {
 
+    const ONLY_STORE_Y = true;
+
     /**
      * @param Model $model
      * @param string $key
@@ -28,7 +30,7 @@ class EGPublicKeyCaster implements CastsAttributes
             return null;
         }
         $data = json_decode($value, true);
-        return EGPublicKey::fromArray($data);
+        return EGPublicKey::fromArray($data, self::ONLY_STORE_Y);
     }
 
     /**
@@ -44,7 +46,8 @@ class EGPublicKeyCaster implements CastsAttributes
         if (is_null($value)) {
             return null;
         }
-        return json_encode($value->toArray());
+
+        return json_encode($value->toArray(self::ONLY_STORE_Y));
     }
 
 }

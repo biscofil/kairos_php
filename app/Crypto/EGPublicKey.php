@@ -31,10 +31,22 @@ class EGPublicKey
 
     /**
      * @param array $data
+     * @param bool $onlyY
      * @return EGPublicKey
      */
-    public static function fromArray(array $data): EGPublicKey
+    public static function fromArray(array $data, bool $onlyY = false): EGPublicKey
     {
+
+        if ($onlyY) {
+            // Copy from config
+            return new EGPublicKey(
+                new BigInteger(config('elgamal.g')),
+                new BigInteger(config('elgamal.p')),
+                new BigInteger(config('elgamal.q')),
+                new BigInteger($data['y'])
+            );
+        }
+
         return new EGPublicKey(
             new BigInteger($data['g']),
             new BigInteger($data['p']),
@@ -44,10 +56,16 @@ class EGPublicKey
     }
 
     /**
+     * @param bool $onlyY
      * @return array
      */
-    public function toArray(): array
+    public function toArray(bool $onlyY = false): array
     {
+
+        if ($onlyY) {
+            return ["y" => $this->y->toString()];
+        }
+
         return [
             "g" => $this->g->toString(),
             "p" => $this->p->toString(),
