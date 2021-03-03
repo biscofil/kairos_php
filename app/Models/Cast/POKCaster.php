@@ -3,39 +3,38 @@
 
 namespace App\Models\Cast;
 
-
-use App\Crypto\EGPrivateKey;
+use App\Crypto\DLogProof;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Contracts\Database\Eloquent\SerializesCastableAttributes;
 
 /**
- * Class EGPrivateKey
+ * Class POKCaster
  * @package App\Models\Cast
  */
-class EGPrivateKeyCaster implements CastsAttributes, SerializesCastableAttributes
+class POKCaster implements CastsAttributes, SerializesCastableAttributes
 {
 
     /**
      * @param ModelWithCryptoFields $model
      * @param string $key
-     * @param string|null $value
+     * @param mixed $value
      * @param array $attributes
-     * @return null|EGPrivateKey
+     * @return null|DLogProof
      * @noinspection PhpMissingParamTypeInspection
      */
-    public function get($model, string $key, $value, array $attributes): ?EGPrivateKey
+    public function get($model, string $key, $value, array $attributes): ?DLogProof
     {
         if (is_null($value)) {
             return null;
         }
         $data = json_decode($value, true);
-        return EGPrivateKey::fromArray($data, $model->onlyStoreXY($key));
+        return DLogProof::fromArray($data);
     }
 
     /**
      * @param ModelWithCryptoFields $model
      * @param string $key
-     * @param null|EGPrivateKey $value
+     * @param null|DLogProof $value
      * @param array $attributes
      * @return null|string
      * @noinspection PhpMissingParamTypeInspection
@@ -45,13 +44,15 @@ class EGPrivateKeyCaster implements CastsAttributes, SerializesCastableAttribute
         if (is_null($value)) {
             return null;
         }
-        return json_encode($value->toArray($model->onlyStoreXY($key)));
+
+        return json_encode($value->toArray());
     }
+
 
     /**
      * @param ModelWithCryptoFields $model
      * @param string $key
-     * @param EGPrivateKey|null $value
+     * @param DLogProof|null $value
      * @param array $attributes
      * @return null|array
      * @noinspection PhpMissingParamTypeInspection
@@ -64,4 +65,5 @@ class EGPrivateKeyCaster implements CastsAttributes, SerializesCastableAttribute
         }
         return $value->toArray();
     }
+
 }

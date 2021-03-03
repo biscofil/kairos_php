@@ -63,7 +63,6 @@ class EGPrivateKey
         return $ciphertext->alpha->modPow($this->x, $this->pk->p);
     }
 
-
     /**
      * Decrypt a ciphertext. Optional parameter decides whether to encode the message into the proper subgroup.
      * @param EGCiphertext $ciphertext
@@ -91,5 +90,38 @@ class EGPrivateKey
         } else {
             return new EGPlaintext($m, $this->pk);
         }
+    }
+
+    /**
+     * @param BigInteger $commitment
+     * @return BigInteger
+     */
+    public static function DLogChallengeGenerator(BigInteger $commitment): BigInteger
+    {
+        $string_to_hash = $commitment->toString();
+        // compute sha1 of the commitment
+        return new BigInteger(sha1(utf8_encode($string_to_hash)), 16);
+    }
+
+    /**
+     * Generate a PoK of the secret key
+     * Prover generates w, a random integer modulo q, and computes commitment = g^w mod p.
+     * Verifier provides challenge modulo q.
+     * Prover computes response = w + x*challenge mod q, where x is the secret key.
+     * @param callable $challenge_generator
+     * @return DLogProof
+     */
+    public function proveSecretKey(callable $challenge_generator): DLogProof
+    {
+        $w = BigInteger::randomRange(BI1(), $this->pk->q->subtract(BI1()));
+        $commitment = $this->pk->g->modPow($w, $this->pk->p);
+
+        /** @var BigInteger $challenge */
+        $challenge = $challenge_generator($commitment);
+        $challenge = $challenge->modPow(BI1(), $this->pk->q);
+
+        $response = $w->add($this->x->multiply($challenge)->powMod(BI1(), $this->pk->q));
+
+        return new DLogProof($commitment, $challenge, $response);
     }
 }

@@ -3,7 +3,6 @@
 
 namespace App\Crypto;
 
-
 use phpseclib3\Math\BigInteger;
 
 /**
@@ -53,5 +52,4 @@ class EGPlaintext
     {
         return pack('H*', $this->m->toHex());
     }
-
 }

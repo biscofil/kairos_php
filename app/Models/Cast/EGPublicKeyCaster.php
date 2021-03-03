@@ -5,21 +5,19 @@ namespace App\Models\Cast;
 
 use App\Crypto\EGPublicKey;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\Database\Eloquent\SerializesCastableAttributes;
 
 /**
  * Class EGPublicKeyCaster
  * @package App\Models\Cast
  */
-class EGPublicKeyCaster implements CastsAttributes
+class EGPublicKeyCaster implements CastsAttributes, SerializesCastableAttributes
 {
 
-    const ONLY_STORE_Y = true;
-
     /**
-     * @param Model $model
+     * @param ModelWithCryptoFields $model
      * @param string $key
-     * @param mixed $value
+     * @param static|null $value
      * @param array $attributes
      * @return null|EGPublicKey
      * @noinspection PhpMissingParamTypeInspection
@@ -30,13 +28,13 @@ class EGPublicKeyCaster implements CastsAttributes
             return null;
         }
         $data = json_decode($value, true);
-        return EGPublicKey::fromArray($data, self::ONLY_STORE_Y);
+        return EGPublicKey::fromArray($data, $model->onlyStoreXY($key));
     }
 
     /**
-     * @param Model $model
+     * @param ModelWithCryptoFields $model
      * @param string $key
-     * @param EGPublicKey $value
+     * @param EGPublicKey|null $value
      * @param array $attributes
      * @return null|string
      * @noinspection PhpMissingParamTypeInspection
@@ -47,7 +45,25 @@ class EGPublicKeyCaster implements CastsAttributes
             return null;
         }
 
-        return json_encode($value->toArray(self::ONLY_STORE_Y));
+        return json_encode($value->toArray($model->onlyStoreXY($key)));
+    }
+
+
+    /**
+     * @param ModelWithCryptoFields $model
+     * @param string $key
+     * @param EGPublicKey|null $value
+     * @param array $attributes
+     * @return null|array
+     * @noinspection PhpMissingParamTypeInspection
+     * @noinspection PhpMissingReturnTypeInspection
+     */
+    public function serialize($model, string $key, $value, array $attributes)
+    {
+        if (is_null($value)) {
+            return null;
+        }
+        return $value->toArray();
     }
 
 }

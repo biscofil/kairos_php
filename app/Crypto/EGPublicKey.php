@@ -3,6 +3,7 @@
 
 namespace App\Crypto;
 
+
 use phpseclib3\Math\BigInteger;
 
 /**
@@ -153,6 +154,27 @@ class EGPublicKey
         /** @var BigInteger $r */
         list($ciphertext, $r) = $this->encrypt_return_r($plaintext);
         return $ciphertext;
+    }
+
+    /**
+     * verify the proof of knowledge of the secret key g^response = commitment * y^challenge
+     * @param DLogProof $dlog_proof
+     * @param callable $challenge_generator
+     * @return bool
+     */
+    public function verifySecretKeyProof(DLogProof $dlog_proof, callable $challenge_generator): bool
+    {
+
+        $left_side = $this->g->modPow($dlog_proof->response, $this->p);
+        $right_side = $dlog_proof->commitment
+            ->multiply($this->y->modPow($dlog_proof->challenge, $this->p))
+            ->modPow(BI1(), $this->p);
+
+        /** @var BigInteger $expected_challenge */
+        $expected_challenge = $challenge_generator($dlog_proof->commitment)->modPow(BI1(), $this->q);
+
+        return $left_side->equals($right_side) && $dlog_proof->challenge->equals($expected_challenge);
+
     }
 
 }
