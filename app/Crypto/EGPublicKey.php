@@ -33,26 +33,27 @@ class EGPublicKey
     /**
      * @param array $data
      * @param bool $onlyY
+     * @param int $base
      * @return EGPublicKey
      */
-    public static function fromArray(array $data, bool $onlyY = false): EGPublicKey
+    public static function fromArray(array $data, bool $onlyY = false, int $base = 16): EGPublicKey
     {
 
         if ($onlyY) {
             // Copy from config
             return new EGPublicKey(
-                new BigInteger(config('elgamal.g')),
-                new BigInteger(config('elgamal.p')),
-                new BigInteger(config('elgamal.q')),
-                new BigInteger($data['y'])
+                new BigInteger(config('elgamal.g'), config('elgamal.base')),
+                new BigInteger(config('elgamal.p'), config('elgamal.base')),
+                new BigInteger(config('elgamal.q'), config('elgamal.base')),
+                new BigInteger($data['y'], $base)
             );
         }
 
         return new EGPublicKey(
-            new BigInteger($data['g']),
-            new BigInteger($data['p']),
-            new BigInteger($data['q']),
-            new BigInteger($data['y'])
+            new BigInteger($data['g'], $base),
+            new BigInteger($data['p'], $base),
+            new BigInteger($data['q'], $base),
+            new BigInteger($data['y'], $base)
         );
     }
 
@@ -64,14 +65,14 @@ class EGPublicKey
     {
 
         if ($onlyY) {
-            return ["y" => $this->y->toString()];
+            return ["y" => $this->y->toHex()];
         }
 
         return [
-            "g" => $this->g->toString(),
-            "p" => $this->p->toString(),
-            "q" => $this->q->toString(),
-            "y" => $this->y->toString()
+            "g" => $this->g->toHex(),
+            "p" => $this->p->toHex(),
+            "q" => $this->q->toHex(),
+            "y" => $this->y->toHex()
         ];
     }
 

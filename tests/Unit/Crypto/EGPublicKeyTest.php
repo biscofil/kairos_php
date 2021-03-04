@@ -18,8 +18,8 @@ class EGPublicKeyTest extends TestCase
      */
     public function combine()
     {
-        $a = EGPublicKey::fromArray(['g' => 1, 'p' => 8, 'q' => 1, 'y' => 3]);
-        $b = EGPublicKey::fromArray(['g' => 1, 'p' => 8, 'q' => 1, 'y' => 3]);
+        $a = EGPublicKey::fromArray(['g' => 1, 'p' => 8, 'q' => 1, 'y' => 3], false, 10);
+        $b = EGPublicKey::fromArray(['g' => 1, 'p' => 8, 'q' => 1, 'y' => 3], false, 10);
         $c = $a->combine($b);
         $this->assertTrue($c->g->equals($a->g));
         $this->assertTrue($c->p->equals($a->p));
@@ -34,6 +34,7 @@ class EGPublicKeyTest extends TestCase
     {
 
         $public_key = EGPublicKey::fromArray([
+
             "g" => "148874922249631876342824215371860408013040080177434923044817373825719339375687244738471060299150" .
                 "401507840318822060902869386614644588964942152739895478892011448573526110585722365787343195051280426" .
                 "023728645704265508552014481117465798718112491147816743090626934424423686974499706482326218800017095" .
@@ -59,7 +60,8 @@ class EGPublicKeyTest extends TestCase
                 "3097637285398930939053519740161800951969919919363918957443760123942318654776896587722506934259929156" .
                 "8553531898311866946794219098159757863910613990638321482803567988874500375273062501767042802869136499" .
                 "8327599884945835202"
-        ]);
+
+        ], false, 10);
 
         $dlog_proof = DLogProof::fromArray([
 
@@ -75,9 +77,11 @@ class EGPublicKeyTest extends TestCase
 
             "response" => "21309276677749107072903080798730520004739468970991152035961621996336930759480"
 
-        ]);
+        ], 10);
 
-        $this->assertTrue($public_key->verifySecretKeyProof($dlog_proof, [EGPrivateKey::class, 'DLogChallengeGenerator']));
+        $this->assertTrue(
+            $public_key->verifySecretKeyProof($dlog_proof, [EGPrivateKey::class, 'DLogChallengeGenerator'])
+        );
 
     }
 

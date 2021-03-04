@@ -29,9 +29,9 @@ class EGKeyPair
     public static function generate(): EGKeyPair
     {
 
-        $g = new BigInteger(config('elgamal.g'));
-        $p = new BigInteger(config('elgamal.p'));
-        $q = new BigInteger(config('elgamal.q'));
+        $g = new BigInteger(config('elgamal.g'), config('elgamal.base'));
+        $p = new BigInteger(config('elgamal.p'), config('elgamal.base'));
+        $q = new BigInteger(config('elgamal.q'), config('elgamal.base'));
 
         $x = BigInteger::randomRange(new BigInteger(1), $q->subtract(BI1()));
         $y = $g->modPow($x, $p);

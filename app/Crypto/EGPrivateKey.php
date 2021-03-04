@@ -31,13 +31,14 @@ class EGPrivateKey
     /**
      * @param array $data
      * @param bool $onlyXY
+     * @param int $base
      * @return EGPrivateKey
      */
-    public static function fromArray(array $data, bool $onlyXY = false): EGPrivateKey
+    public static function fromArray(array $data, bool $onlyXY = false, int $base = 16): EGPrivateKey
     {
         return new EGPrivateKey(
-            EGPublicKey::fromArray($data['pk'], $onlyXY),
-            new BigInteger($data['x'])
+            EGPublicKey::fromArray($data['pk'], $onlyXY, $base),
+            new BigInteger($data['x'], $base)
         );
     }
 
@@ -49,7 +50,7 @@ class EGPrivateKey
     {
         return [
             "pk" => $this->pk->toArray($onlyXY),
-            "x" => $this->x->toString()
+            "x" => $this->x->toHex()
         ];
     }
 

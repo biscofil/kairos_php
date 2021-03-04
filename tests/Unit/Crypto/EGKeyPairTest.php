@@ -32,16 +32,9 @@ class EGKeyPairTest extends TestCase
 
         $cipher = $msg->encrypt();
 
-//        dump($cipher->alpha->toHex());
-//        dump(base64_encode($cipher->alpha->toBytes()));
-
         $out = $pair->sk->decrypt($cipher)->toString();
 
         $this->assertEquals($plain, $out);
-
-//        $out = json_decode($out);
-
-//        dump($out);
 
     }
 

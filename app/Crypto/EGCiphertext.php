@@ -25,4 +25,31 @@ class EGCiphertext
         $this->beta = $beta;
     }
 
+    /**
+     * @param array $data
+     * @param bool $onlyY
+     * @return EGCiphertext
+     */
+    public static function fromArray(array $data, bool $onlyY = false): EGCiphertext
+    {
+        return new EGCiphertext(
+            EGPublicKey::fromArray($data['pk'], $onlyY),
+            new BigInteger($data['alpha'], 16),
+            new BigInteger($data['beta'], 16)
+        );
+    }
+
+    /**
+     * @param bool $onlyY
+     * @return array
+     */
+    public function toArray(bool $onlyY = false): array
+    {
+        return [
+            'pk' => $this->pk->toArray($onlyY),
+            'alpha' => $this->alpha->toHex(),
+            'beta' => $this->beta->toHex()
+        ];
+    }
+
 }

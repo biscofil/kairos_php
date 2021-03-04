@@ -34,16 +34,16 @@ class DLogProof
 
     /**
      * @param array $data
+     * @param int $base
      * @return DLogProof
      */
-    public static function fromArray(array $data): DLogProof
+    public static function fromArray(array $data, int $base = 16): DLogProof
     {
         return new DLogProof(
-            new BigInteger($data['commitment']),
-            new BigInteger($data['challenge']),
-            new BigInteger($data['response'])
+            new BigInteger($data['commitment'], $base),
+            new BigInteger($data['challenge'], $base),
+            new BigInteger($data['response'], $base)
         );
-
     }
 
     /**
@@ -52,9 +52,9 @@ class DLogProof
     public function toArray(): array
     {
         return [
-            "commitment" => $this->commitment->toString(),
-            "challenge" => $this->challenge->toString(),
-            "response" => $this->response->toString()
+            "commitment" => $this->commitment->toHex(),
+            "challenge" => $this->challenge->toHex(),
+            "response" => $this->response->toHex()
         ];
     }
 
