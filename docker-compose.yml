@@ -1,0 +1,61 @@
+version: '3'
+services:
+
+  # APACHE2 + PHP Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app
+    restart: unless-stopped
+    tty: true
+    environment:
+      DB_HOST: db
+      DB_USERNAME: root
+      DB_PASSWORD: your_mysql_root_password
+      DB_DATABASE: laravel
+    ports:
+      - "80:80"
+      - "9000:9000" #php, for debug
+      - "9001:9001" #php, for debug
+      - "9003:9003" #php, for debug
+    volumes:
+      - ./000-default.conf:/etc/apache2/sites-available/000-default.conf
+#      - ./laravel-worker.conf:/etc/supervisor/conf.d/laravel-worker.conf
+      - .:/var/www/html
+    networks:
+      - app-network
+
+  # MySQL Service
+  db:
+    image: mysql:5.7.22
+    container_name: db
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_ROOT_PASSWORD: your_mysql_root_password
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    networks:
+      - app-network
+
+#  redis:
+#    container_name: laravel-redis
+#    image: redis:4-alpine
+#    ports:
+#      - 16379:6379
+#    volumes:
+#      - redis:/data
+
+networks:
+  app-network:
+    driver: bridge
+
+#volumes:
+#  redis:
+#    driver: "local"
+#  dbdata:
+#    driver: local
