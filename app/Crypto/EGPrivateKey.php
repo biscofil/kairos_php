@@ -125,4 +125,27 @@ class EGPrivateKey
 
         return new DLogProof($commitment, $challenge, $response);
     }
+
+    /**
+     * @param EGPrivateKey|null $b
+     * @return EGPrivateKey
+     * @throws \Exception
+     */
+    public function combine(?EGPrivateKey $b): EGPrivateKey
+    {
+
+        if (is_null($b)) {
+            return $this;
+        }
+
+        $this->pk->ensureSameCryptosystem($b->pk);
+
+        // sum of x mod (p-1)
+
+        return new EGPrivateKey(
+            $this->pk,
+            $this->x->add($b->x)->powMod(BI1(), $this->pk->p->subtract(BI1()))
+        );
+    }
+
 }
