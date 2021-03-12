@@ -8,7 +8,7 @@ export default class Utils {
      * @param val
      * @return {[]}
      */
-    array_remove_value(arr, val) {
+    static array_remove_value(arr, val) {
         let new_arr = [];
         arr.forEach(function (v, i) {
             if (v !== val) {
@@ -23,8 +23,8 @@ export default class Utils {
      * @param obj
      * @return {{}}
      */
-    object_sort_keys(obj) {
-        var new_obj = {};
+    static object_sort_keys(obj) {
+        let new_obj = {};
         // TODO Object.keys(obj)
         _(_.keys(obj)).each(function (k) {
             new_obj[k] = obj[k];
@@ -39,7 +39,7 @@ export default class Utils {
      * @param max : number
      * @returns {EGPlaintext[]}
      */
-    generatePlaintexts(pk, min, max) {
+    static generatePlaintexts(pk, min, max) {
         let last_plaintext = 1n;
 
         // an array of plaintexts
@@ -58,5 +58,38 @@ export default class Utils {
         }
 
         return plaintexts;
+    }
+
+    /**
+     * a utility function for jsonifying a list of lists of items
+     * @param lol
+     * @return {null|*}
+     */
+    static jsonify_list_of_lists(lol) {
+        if (!lol) {
+            return null;
+        }
+        return lol.map(function (sublist) {
+            return sublist.map(function (item) {
+                return item.toJSONObject();
+            });
+        });
+    }
+
+    /**
+     * a utility function for doing the opposite with an item-level de-jsonifier
+     * @param lol
+     * @param item_dejsonifier
+     * @return {null|*}
+     */
+    static dejsonify_list_of_lists(lol, item_dejsonifier) {
+        if (!lol) {
+            return null;
+        }
+        return lol.map(function (sublist) {
+            return sublist.map(function (item) {
+                return item_dejsonifier(item);
+            });
+        });
     }
 }
