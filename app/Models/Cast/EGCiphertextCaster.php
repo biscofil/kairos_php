@@ -4,15 +4,16 @@
 namespace App\Models\Cast;
 
 
-use App\Crypto\EGPrivateKey;
+use App\Crypto\EGCiphertext;
+use App\Models\Voter;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Contracts\Database\Eloquent\SerializesCastableAttributes;
 
 /**
- * Class EGPrivateKeyCaster
+ * Class EGCiphertextCaster
  * @package App\Models\Cast
  */
-class EGPrivateKeyCaster implements CastsAttributes, SerializesCastableAttributes
+class EGCiphertextCaster implements CastsAttributes, SerializesCastableAttributes
 {
 
     /**
@@ -20,22 +21,26 @@ class EGPrivateKeyCaster implements CastsAttributes, SerializesCastableAttribute
      * @param string $key
      * @param string|null $value
      * @param array $attributes
-     * @return null|EGPrivateKey
+     * @return null|EGCiphertext
      * @noinspection PhpMissingParamTypeInspection
      */
-    public function get($model, string $key, $value, array $attributes): ?EGPrivateKey
+    public function get($model, string $key, $value, array $attributes): ?EGCiphertext
     {
         if (is_null($value)) {
             return null;
         }
         $data = json_decode($value, true);
-        return EGPrivateKey::fromArray($data, $model->onlyStoreXY($key));
+        // use the attribute to get the public key y of the election
+        $data['pk'] = [
+            'y' => Voter::findOrFail($attributes['voter_id'])->election->public_key->y->toHex()
+        ];
+        return EGCiphertext::fromArray($data, true);
     }
 
     /**
      * @param ModelWithCryptoFields $model
      * @param string $key
-     * @param null|EGPrivateKey $value
+     * @param null|EGCiphertext $value
      * @param array $attributes
      * @return null|string
      * @noinspection PhpMissingParamTypeInspection
@@ -45,13 +50,15 @@ class EGPrivateKeyCaster implements CastsAttributes, SerializesCastableAttribute
         if (is_null($value)) {
             return null;
         }
-        return json_encode($value->toArray($model->onlyStoreXY($key)));
+        $out = $value->toArray(true);
+        unset($out['pk']);
+        return json_encode($out);
     }
 
     /**
      * @param ModelWithCryptoFields $model
      * @param string $key
-     * @param EGPrivateKey|null $value
+     * @param EGCiphertext|null $value
      * @param array $attributes
      * @return null|array
      * @noinspection PhpMissingParamTypeInspection

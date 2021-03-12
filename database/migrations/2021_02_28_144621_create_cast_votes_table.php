@@ -25,9 +25,8 @@ class CreateCastVotesTable extends Migration
             $table->text('vote');
             $table->string('hash');
 
-            $table->timestamp('cast_at');
-            $table->timestamp('verified_at')->nullable();
-            $table->timestamp('invalidated_at')->nullable();
+            $table->timestamp('verified_at')->nullable()->default(null);
+            $table->timestamp('invalidated_at')->nullable()->default(null);
 
             $table->timestamps();
 

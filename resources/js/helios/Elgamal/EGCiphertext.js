@@ -27,17 +27,17 @@ export default class EGCiphertext {
      * @returns {string}
      */
     toString() {
-        return this.alpha.toString() + ',' + this.beta.toString();
+        return this.alpha.toString(16) + ',' + this.beta.toString(16);
     }
 
     /**
-     *
+     * Returns the dict of hex
      * @returns {{alpha: string, beta: string}}
      */
     toJSONObject() {
         return {
-            alpha: this.alpha.toString(),
-            beta: this.beta.toString()
+            alpha: this.alpha.toString(16),
+            beta: this.beta.toString(16)
         }
     }
 

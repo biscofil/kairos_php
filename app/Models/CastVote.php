@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Crypto\EGCiphertext;
+use App\Models\Cast\EGCiphertextCaster;
+use App\Models\Cast\ModelWithCryptoFields;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,31 +14,36 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Class CastVote
  * @package App\Models
  * @property int id
- * @property string vote
+ * @property EGCiphertext vote
  * @property string ip
- * @property Carbon cast_at
  * @property string hash
  * @property int voter_id
  * @property Voter voter
+ * @property Carbon|null created_at
+ * @property Carbon|null updated_at
  * @property Carbon|null verified_at
  * @property Carbon|null invalidated_at
  */
 class CastVote extends Model
 {
     use HasFactory;
+    use ModelWithCryptoFields;
 
     protected $fillable = [
         'vote',
         'ip',
-        'cast_at',
         'hash',
         'verified_at',
         'invalidated_at',
     ];
 
+    protected $dates = [
+        'verified_at',
+        'invalidated_at',
+    ];
+
     protected $casts = [
-        'verified_at' => 'datetime',
-        'invalidated_at' => 'datetime',
+        'vote' => EGCiphertextCaster::class,
     ];
 
     /**

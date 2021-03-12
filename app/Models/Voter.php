@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @property int|null last_vote_cast_id
  * @property CastVote|null lastVoteCast
+ * @method static self make()
+ * @method static self findOrFail($id)
  */
 class Voter extends Model
 {
