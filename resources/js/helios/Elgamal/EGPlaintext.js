@@ -1,5 +1,6 @@
 import {modInv, modPow, randBetween} from "bigint-crypto-utils";
 import EGCiphertext from "./EGCiphertext";
+import Utils from "../Utils/Utils";
 
 export default class EGPlaintext {
 
@@ -72,6 +73,20 @@ export default class EGPlaintext {
         let beta = (modPow(this.pk.y, r, this.pk.p) * this.m) % this.pk.p;
 
         return new EGCiphertext(alpha, beta, this.pk);
+    }
+
+    /**
+     *
+     * @param message : Object
+     * @returns {BigInt}
+     */
+    static getBigIntFromDict(message) {
+        const iconv = require('iconv-lite');
+        let buffer = iconv.encode(JSON.stringify(message), 'ASCII');
+        console.log(buffer);
+        let hexBuffer = Utils.byteArrayToHex(buffer);
+        console.log(hexBuffer);
+        return BigInt("0x" + hexBuffer);
     }
 
 }
