@@ -133,6 +133,7 @@ class Election extends Model
 
     protected $appends = [
         'is_auth_user_admin',
+        'is_auth_user_trustee',
         'trustee_count',
         'voter_count',
         'cast_votes_count',
@@ -155,7 +156,7 @@ class Election extends Model
     // ############################################ Attributes
 
     /**
-     * If the user is logged in, it returns a bool that indicates if the user if the creator of the election,
+     * If the user is logged in, it returns a bool that indicates if the user is the creator of the election,
      * null if not logged
      * @return bool|null
      * @noinspection PhpUnused
@@ -166,6 +167,16 @@ class Election extends Model
             return getAuthUser()->id == $this->admin_id;
         }
         return null;
+    }
+    /**
+     * If the user is logged in, it returns a bool that indicates if the user is a trustee of the election,
+     * null if not logged
+     * @return bool|null
+     * @noinspection PhpUnused
+     */
+    public function getIsAuthUserTrusteeAttribute(): ?bool
+    {
+        return !is_null($this->getAuthTrustee());
     }
 
     /**

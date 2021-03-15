@@ -21,6 +21,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * @property string provider
  * @property string provider_id
  * @method static self|Builder inRandomOrder()
+ * @method static self create(array $data)
  */
 class User extends Authenticatable implements JWTSubject
 {
