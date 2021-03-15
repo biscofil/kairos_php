@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [Controller::class, 'home']);
 
-Route::get('auth/profile', [AuthController::class, 'check']);
+Route::get('settings_auth', [Controller::class, 'settings_auth']);
 Route::post('auth/after/{provider}', [AuthController::class, 'providerLogin']);
 
 // auth middleware
