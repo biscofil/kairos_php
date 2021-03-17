@@ -5,6 +5,7 @@ use App\Http\Controllers\CastVoteController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\ElectionController;
+use App\Http\Controllers\P2PController;
 use App\Http\Controllers\TrusteeController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,8 @@ use Illuminate\Support\Facades\Route;
 //Route::middleware('auth:api')->get('auth/profile', function (Request $request) {
 //    return $request->user();
 //});
+
+Route::post('/p2p', [P2PController::class, 'receive']);
 
 Route::get('/', [Controller::class, 'home']);
 
