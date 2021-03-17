@@ -25,7 +25,7 @@ class GoogleAuthProvider extends AuthProvider
                 'code' => $authCode,
                 'client_id' => config('services.google.client_id'),
                 'client_secret' => config('services.google.client_secret'),
-                'redirect_uri' => 'http://localhost/api/auth/after/google',
+                'redirect_uri' => url('api/auth/after/google'),
                 'grant_type' => 'authorization_code'
             ]
         ]);
