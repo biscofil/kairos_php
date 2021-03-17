@@ -19,6 +19,15 @@ class AuthController extends Controller
 
     /**
      * @param string $provider
+     * @return string
+     */
+    public function providerLoginOK(string $provider): string
+    {
+        return "OK ($provider), modal should close";
+    }
+
+    /**
+     * @param string $provider
      * @param Request $request
      * @return JsonResponse
      * @throws Exception

@@ -29,6 +29,7 @@ Route::post('/p2p', [P2PController::class, 'receive']);
 Route::get('/', [Controller::class, 'home']);
 
 Route::get('settings_auth', [Controller::class, 'settings_auth']);
+Route::get('auth/after/{provider}', [AuthController::class, 'providerLoginOK']);
 Route::post('auth/after/{provider}', [AuthController::class, 'providerLogin']);
 
 // auth middleware
