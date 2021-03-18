@@ -1,61 +1,44 @@
 version: '3'
 services:
-
-  # APACHE2 + PHP Service
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: app
     restart: unless-stopped
     tty: true
+    depends_on:
+      - db
+    links:
+      - 'db:db'
     environment:
+      APP_NAME: '${DOMAIN}'
+      APP_URL: 'http://${DOMAIN}'
+      CACHE_DRIVER: database
+      CACHE_PREFIX: l_
       DB_HOST: db
       DB_USERNAME: root
       DB_PASSWORD: your_mysql_root_password
       DB_DATABASE: laravel
-    ports:
-      - "80:80"
-      - "9000:9000" #php, for debug
-      - "9001:9001" #php, for debug
-      - "9003:9003" #php, for debug
     volumes:
-      - ./000-default.conf:/etc/apache2/sites-available/000-default.conf
-#      - ./laravel-worker.conf:/etc/supervisor/conf.d/laravel-worker.conf
-      - .:/var/www/html
+      - './000-default.conf:/etc/apache2/sites-available/000-default.conf'
+      - '.:/var/www/html'
+      - /var/www/html/bootstrap/cache
     networks:
-      - app-network
-
-  # MySQL Service
+      put_net:
+        ipv4_address: '${APP_IP}'
   db:
-    image: mysql:5.7.22
-    container_name: db
+    image: 'mysql:5.7.22'
     restart: unless-stopped
     tty: true
-    ports:
-      - "3306:3306"
     environment:
       MYSQL_DATABASE: laravel
       MYSQL_ROOT_PASSWORD: your_mysql_root_password
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
     networks:
-      - app-network
-
-#  redis:
-#    container_name: laravel-redis
-#    image: redis:4-alpine
-#    ports:
-#      - 16379:6379
-#    volumes:
-#      - redis:/data
-
+      put_net:
+        ipv4_address: '${DB_IP}'
 networks:
-  app-network:
-    driver: bridge
-
-#volumes:
-#  redis:
-#    driver: "local"
-#  dbdata:
-#    driver: local
+  put_net:
+    external:
+      name: my-bridge-network
