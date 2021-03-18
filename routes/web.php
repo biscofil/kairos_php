@@ -14,5 +14,31 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/{all}', [SPAController::class, 'home'])->where('all', '^(?!api).*$');
+Route::get('/', [SPAController::class, 'home']);
+Route::get('/about', [SPAController::class, 'home']);
+Route::get('/docs', [SPAController::class, 'home']);
+Route::get('/faq', [SPAController::class, 'home']);
+Route::get('/privacy', [SPAController::class, 'home']);
+Route::get('/auth/why', [SPAController::class, 'home']);
+Route::get('/voted-elections', [SPAController::class, 'home']);
+Route::get('/administered-elections', [SPAController::class, 'home']);
+Route::get('/stats/elections', [SPAController::class, 'home']);
+Route::get('/stats/recent-votes', [SPAController::class, 'home']);
+Route::get('/stats/problem-elections', [SPAController::class, 'home']);
+Route::get('/stats', [SPAController::class, 'home']);
+Route::get('/new-election', [SPAController::class, 'home']);
+Route::get('/elections/{slug}/vote', [SPAController::class, 'home']);
+Route::get('/elections/{slug}/vote', [SPAController::class, 'home']);
+Route::get('/elections/{slug}/verifier', [SPAController::class, 'home']);
+Route::get('/elections/{slug}/edit', [SPAController::class, 'home']);
+Route::get('/elections/{slug}/extend', [SPAController::class, 'home']);
+Route::get('/elections/{slug}/questions', [SPAController::class, 'home']);
+Route::get('/elections/{slug}/voters/email', [SPAController::class, 'home']);
+Route::get('/elections/{slug}/voters', [SPAController::class, 'home']);
+Route::get('/elections/{slug}/trustee', [SPAController::class, 'home']);
+Route::get('/elections/{slug}/trustees', [SPAController::class, 'home']);
+Route::get('/elections/{slug}/audited-ballots', [SPAController::class, 'home']);
+Route::get('/elections/{slug}', [SPAController::class, 'home']);
+Route::get('/', [SPAController::class, 'home']);
 
+Route::get('/{all}', [SPAController::class, 'home_404'])->where('all', '^(?!api).*$');
