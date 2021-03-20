@@ -14,12 +14,12 @@ use Illuminate\Support\Facades\Log;
 class AddMeToYourPeers extends P2PMessage
 {
 
-    protected $name = 'add_me_to_your_peers';
+    public const name = 'add_me_to_your_peers';
 
     /**
-     * @return P2PMessage|null
+     * @return array
      */
-    public function onMessageReceived(): ?P2PMessage
+    public function onRequestReceived(): array
     {
 
         $host = $this->from;
@@ -36,9 +36,8 @@ class AddMeToYourPeers extends P2PMessage
             Log::debug("Host $host added as peer");
         }
 
-        return $this->getDefaultResponse();
+        return [];
 
     }
-
 
 }

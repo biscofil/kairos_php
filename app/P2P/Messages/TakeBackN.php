@@ -17,7 +17,7 @@ use Illuminate\Validation\ValidationException;
 class TakeBackN extends P2PMessage
 {
 
-    protected $name = 'take_back_n_in_m_seconds';
+    public const name = 'take_back_n_in_m_seconds';
 
     private $n;
     private $m;
@@ -48,7 +48,7 @@ class TakeBackN extends P2PMessage
         $data = Validator::make($messageData, [
             'n' => ['required', 'integer'],
             'm' => ['required', 'integer'],
-        ])->validated();
+        ])->validate();
 
         return new static($data['n'], $data['m'], $messageData['sender'], config('app.url'));
     }
@@ -65,15 +65,15 @@ class TakeBackN extends P2PMessage
     }
 
     /**
-     * @return P2PMessage|null
+     * @return array
      */
-    public function onMessageReceived(): ?P2PMessage
+    public function onRequestReceived(): array
     {
         // TODO call job for task
         Log::debug(config('app.url') . " > TakeBackN message received from " . $this->from);
         Log::debug(config('app.url') . " > " . $this->n);
 
-        return $this->getDefaultResponse();
+        return [];
     }
 
 

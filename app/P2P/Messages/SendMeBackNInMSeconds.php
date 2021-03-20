@@ -19,7 +19,7 @@ use Illuminate\Validation\ValidationException;
 class SendMeBackNInMSeconds extends P2PMessage
 {
 
-    protected $name = 'send_me_back_n_in_m_seconds';
+    public const name = 'send_me_back_n_in_m_seconds';
 
     private $n;
     private $m;
@@ -42,7 +42,7 @@ class SendMeBackNInMSeconds extends P2PMessage
         $data = Validator::make($messageData, [
             'n' => ['required', 'integer'],
             'm' => ['required', 'integer'],
-        ])->validated();
+        ])->validate();
 
         return new static($data['n'], $data['m'], $messageData['sender'], config('app.url'));
     }
@@ -59,9 +59,9 @@ class SendMeBackNInMSeconds extends P2PMessage
     }
 
     /**
-     * @return P2PMessage|null
+     * @return array
      */
-    public function onMessageReceived(): ?P2PMessage
+    public function onRequestReceived(): array
     {
 
         Log::debug(config('app.url') . " > SendMeBackNInMSeconds request received from " . $this->from);
@@ -73,7 +73,7 @@ class SendMeBackNInMSeconds extends P2PMessage
             $this->from // Sender is now destination
         ));
 
-        return $this->getDefaultResponse();
+        return [];
 
     }
 

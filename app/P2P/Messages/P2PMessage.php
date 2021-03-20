@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use ReflectionClass;
 
 /**
  * Class P2PMessage
@@ -22,7 +23,6 @@ abstract class P2PMessage
 
     public $from;
     public $to;
-    protected $name;
 
     /**
      * P2PMessage constructor.
@@ -44,45 +44,47 @@ abstract class P2PMessage
      * @throws Exception
      * @noinspection PhpMissingReturnTypeInspection
      */
-    public static final function parse(array $messageData, bool $isResponse = false): ?P2PMessage
+    public static final function fromRequestData(array $messageData, bool $isResponse = false): array
     {
 
         $data = Validator::make($messageData, [
             'message' => ['required', 'string'], // TODO check not self
             'sender' => ['required', 'string']
-        ])->validated();
+        ])->validate();
 
         $message = $data['message'];
+        $className = self::getClass($message);
 
+        $r = new \ReflectionClass($className);
+        /** @var static $instance */
+        $instance = $r->newInstanceWithoutConstructor();
+        $messageObj = $instance->fromRequest($messageData);
+
+        return $messageObj->onRequestReceived();
+
+    }
+
+    /**
+     * @param string $message
+     * @return string
+     * @throws Exception
+     */
+    protected static function getClass(string $message): string
+    {
         switch ($message) {
-
-            case MessageReceived::$name: // response
-                return MessageReceived::fromRequest($messageData)->onMessageReceived();
-
+            case AddMeToYourPeers::name:
+                return AddMeToYourPeers::class;
             // ###########################
-
-            case AddMeToYourPeers::$name:
-                return AddMeToYourPeers::fromRequest($messageData)->onMessageReceived();
-
-            // ###########################
-
-            case WillYouBeAElectionTrusteeForMyElection::$name:
-                return WillYouBeAElectionTrusteeForMyElection::fromRequest($messageData)->onMessageReceived();
-
-            case OkIWillBeAnElectionTrustee::$name:
-                return OkIWillBeAnElectionTrustee::fromRequest($messageData)->onMessageReceived();
-
+            case WillYouBeAElectionTrusteeForMyElection::name:
+                return WillYouBeAElectionTrusteeForMyElection::class;
             //####################################### MOCK
-            case SendMeBackNInMSeconds::$name:
-                return SendMeBackNInMSeconds::fromRequest($messageData)->onMessageReceived();
-
-            case TakeBackN::$name:
-                return TakeBackN::fromRequest($messageData)->onMessageReceived();
-
+            case SendMeBackNInMSeconds::name:
+                return SendMeBackNInMSeconds::class;
+            case TakeBackN::name:
+                return TakeBackN::class;
             default:
                 Log::error("Unknown message name $message");
                 throw new Exception("Unknown message name $message");
-
         }
     }
 
@@ -100,15 +102,18 @@ abstract class P2PMessage
      * Sends the message in a blocking way, should only be called by queues and not during requests
      * @return array
      */
-    public function getRequestData(): array{
+    public function getRequestData(): array
+    {
         return [];
     }
 
+    // #############################################################
+
     /**
      * Sends the message in a blocking way, should only be called by queues (and tasks) and not during requests
-     * @throws ValidationException
+     * @throws ValidationException|\ReflectionException
      */
-    public final function sendSync(): bool
+    public final function sendSync(): void
     {
         $url = "http://" . $this->to . '/api/p2p';
 
@@ -116,39 +121,33 @@ abstract class P2PMessage
 
         //$this->ping($url);
 
+        $messageName = (new ReflectionClass(get_class($this)))->getConstant('name');
+
         $data = array_merge_recursive($this->getRequestData(), [
             'sender' => "http://" . $this->from,
-            'message' => $this->name
+            'message' => $messageName // TODO check
         ]);
 
-        // ############################################## Response
+        $response = Http::post($url, $data);  // ############################################## Response
 
-        $response = Http::post($url, $data);
-
-        Log::debug("I received a response with status  " . $response->status());
+        Log::debug("I received a response with status " . $response->status());
 
         if ($response->status() >= 200 && $response->status() < 300) {
 
             $json = $response->json();
             Log::debug($json);
 
-            // TODO async?
-            if ($json !== []) { // TODO const, class
-
-                $newRequestData = array_merge($json, ['sender' => $this->to]);
-                Log::debug($newRequestData);
-
-                Log::debug("SELF::PARSE");
-                self::parse($newRequestData, true); // TODO async?
-
-                //response()->json(is_null($out) ? [] : $out->getRequestData()); // TODO duplicate
-                return true;
-            } else {
-                return true;
+            try {
+                $this->onResponseReceived($response->json());
+            } catch (\Exception $e) {
+                Log::error($e->getMessage());
+                Log::error($e->getFile());
+                Log::error($e->getLine());
+                throw $e;
             }
+
         } else {
             Log::error($response->body());
-            return false;
         }
 
     }
@@ -156,15 +155,31 @@ abstract class P2PMessage
     /**
      * @return mixed
      */
-    public final function sendAsync()
+    public final function sendAsync(): void
     {
-        return SendP2PMessage::dispatch($this);
+        SendP2PMessage::dispatch($this);
     }
 
+    // #############################################################
+    // #############################################################
+
+    // The output of onRequestReceived() should match the input of onResponseReceived();
+
     /**
-     * @return P2PMessage|null
+     * @return array
      */
-    public abstract function onMessageReceived(): ?P2PMessage;
+    public abstract function onRequestReceived(): array;
+
+    /**
+     * @param array $data
+     * @return void
+     */
+    public function onResponseReceived(array $data): void
+    {
+    }
+
+    // #############################################################
+    // #############################################################
 
     /**
      * @param string $ip
@@ -184,14 +199,5 @@ abstract class P2PMessage
         dump($health);
         return boolval($health);
     }
-
-    /**
-     * @return MessageReceived
-     */
-    protected function getDefaultResponse(): MessageReceived
-    {
-        return new MessageReceived($this->to, $this->from);
-    }
-
 
 }

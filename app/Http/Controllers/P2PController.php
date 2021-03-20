@@ -45,8 +45,7 @@ class P2PController extends Controller
 
         try {
 
-            $out = P2PMessage::parse($request->all());
-            $out = is_null($out) ? [] : $out->getRequestData();
+            $out = P2PMessage::fromRequestData($request->all());
             Log::debug("Responding with");
             Log::debug($out);
             return response()->json($out);
