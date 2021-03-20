@@ -8,6 +8,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class SendP2PMessage
@@ -36,6 +38,8 @@ class SendP2PMessage implements ShouldQueue
      */
     public function handle()
     {
+        Log::debug("SendP2PMessage > SENDING....");
         $this->message->sendSync();
+        Log::debug("SendP2PMessage > SENT");
     }
 }

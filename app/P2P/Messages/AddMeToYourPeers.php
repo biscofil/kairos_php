@@ -4,8 +4,7 @@
 namespace App\P2P\Messages;
 
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use App\Models\PeerServer;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -15,36 +14,30 @@ use Illuminate\Support\Facades\Log;
 class AddMeToYourPeers extends P2PMessage
 {
 
-    const NAME = 'add_me_to_your_peers';
-
-    public function __construct(string $from, string $to)
-    {
-        $this->from = $from;
-        $this->to = $to;
-    }
-
-    public static function fromRequest(Request $request)
-    {
-        $data = $request->validate([
-            'sender' => ['required', 'url'],
-        ]);
-        return new static($data['sender'], config('app.url'));
-    }
+    protected $name = 'add_me_to_your_peers';
 
     /**
-     *
+     * @return P2PMessage|null
      */
-    public function getRequestData(): array
+    public function onMessageReceived(): ?P2PMessage
     {
-        return [
-            'message' => self::NAME
-        ];
-    }
 
-    public function onMessageReceived()
-    {
-        Log::debug(config('app.url') . " > Hello message received from " . $this->from);
-        return true;
+        $host = $this->from;
+
+        Log::debug("AddMeToYourPeers message received");
+
+        if (PeerServer::query()->where('ip', '=', $host)->count() == 0) {
+
+            $peer = new PeerServer();
+            $peer->ip = $host;
+            $peer->name = "server " . $host;
+            $peer->save();
+
+            Log::debug("Host $host added as peer");
+        }
+
+        return $this->getDefaultResponse();
+
     }
 
 

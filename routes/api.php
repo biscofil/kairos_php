@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Route;
 //    return $request->user();
 //});
 
+Route::get('/p2p', [P2PController::class, 'list']);
 Route::post('/p2p', [P2PController::class, 'receive']);
 
 Route::get('/', [Controller::class, 'home']);

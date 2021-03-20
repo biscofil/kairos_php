@@ -4,8 +4,9 @@
 namespace App\P2P\Messages;
 
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Class TakeBackN
@@ -16,47 +17,63 @@ use Illuminate\Support\Facades\Log;
 class TakeBackN extends P2PMessage
 {
 
-    const NAME = 'take_back_n_in_m_seconds';
+    protected $name = 'take_back_n_in_m_seconds';
 
     private $n;
     private $m;
 
+    /**
+     * TakeBackN constructor.
+     * @param int $n
+     * @param int $m
+     * @param string $from
+     * @param string $to
+     * @throws \Exception
+     */
     public function __construct(int $n, int $m, string $from, string $to)
     {
-        $this->from = $from;
-        $this->to = $to;
+        parent::__construct($from, $to);
         $this->n = $n;
         $this->m = $m;
     }
 
-    public static function fromRequest(Request $request)
+    /**
+     * @param array $messageData
+     * @return static
+     * @throws ValidationException
+     * @throws \Exception
+     */
+    public static function fromRequest(array $messageData): P2PMessage
     {
-        $data = $request->validate([
-            'sender' => ['required', 'url'],
+        $data = Validator::make($messageData, [
             'n' => ['required', 'integer'],
             'm' => ['required', 'integer'],
-        ]);
-        return new static($data['n'], $data['m'], $data['sender'], config('app.url'));
+        ])->validated();
+
+        return new static($data['n'], $data['m'], $messageData['sender'], config('app.url'));
     }
 
     /**
-     *
+     * @return array
      */
     public function getRequestData(): array
     {
         return [
-            'message' => self::NAME,
             'n' => $this->n,
             'm' => $this->m
         ];
     }
 
-    public function onMessageReceived()
+    /**
+     * @return P2PMessage|null
+     */
+    public function onMessageReceived(): ?P2PMessage
     {
         // TODO call job for task
         Log::debug(config('app.url') . " > TakeBackN message received from " . $this->from);
         Log::debug(config('app.url') . " > " . $this->n);
-        return true;
+
+        return $this->getDefaultResponse();
     }
 
 

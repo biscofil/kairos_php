@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\P2P\Messages\SendMeBackNInMSeconds;
+use App\P2P\Messages\AddMeToYourPeers;
 use Illuminate\Console\Command;
 
 class SendMessage extends Command
@@ -12,7 +12,7 @@ class SendMessage extends Command
      *
      * @var string
      */
-    protected $signature = 'send:message';
+    protected $signature = 'send:message {to}';
 
     /**
      * The console command description.
@@ -35,20 +35,20 @@ class SendMessage extends Command
      * Execute the console command.
      *
      * @return int
+     * @throws \Exception
      */
     public function handle()
     {
-        dump("I AM " . config('app.url'));
+        $myHost = config('app.url');
+        dump("I AM " . $myHost);
 
-        if (str_contains(config('app.url'), "0")) {
-            $host = str_replace('0', '1', config('app.url'));
-        } else {
-            $host = str_replace('1', '0', config('app.url'));
-        }
+        $to = $this->argument('to');
 
-        dump("Sending message to " . $host);
+        dump("Sending message to " . $to);
 
-        (new SendMeBackNInMSeconds(rand(999, 9999), 5, config('app.url'), $host))->sendAsync();
+//        (new WillYouBeAElectionTrusteeForMyElection(Election::first(), $myHost, $to))->sendSync();
+//        (new AddMeToYourPeers($myHost, $to))->sendAsync();
+        (new AddMeToYourPeers($myHost, $to))->sendSync();
 
         return 0;
     }

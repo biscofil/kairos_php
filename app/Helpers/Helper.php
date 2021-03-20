@@ -38,3 +38,24 @@ function randomBIgt(BigInteger $gt): BigInteger
 {
     return BigInteger::randomRange(BI1(), $gt->subtract(BI1()));
 }
+
+/**
+ * @param string $url
+ * @return string
+ * @throws Exception
+ */
+function extractDomain(string $url): string
+{
+
+    $domain = parse_url($url, PHP_URL_HOST);
+    if (!is_null($domain)) {
+        return $domain;
+    }
+
+    $domain = filter_var($url, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME);
+    if ($domain !== false) {
+        return $domain;
+    }
+
+    throw new \Exception("Can't extract domain from URL : $url");
+}

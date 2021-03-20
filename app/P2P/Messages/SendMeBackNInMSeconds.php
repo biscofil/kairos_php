@@ -6,8 +6,9 @@ namespace App\P2P\Messages;
 
 use App\Jobs\RunP2PTask;
 use App\P2P\Tasks\WaitAndRespond;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Class SendMeBackNInMSeconds
@@ -18,46 +19,49 @@ use Illuminate\Support\Facades\Log;
 class SendMeBackNInMSeconds extends P2PMessage
 {
 
-    const NAME = 'send_me_back_n_in_m_seconds';
+    protected $name = 'send_me_back_n_in_m_seconds';
 
     private $n;
     private $m;
 
     public function __construct(int $n, int $m, string $from, string $to)
     {
+        parent::__construct($from, $to);
         $this->n = $n;
         $this->m = $m;
-        $this->from = $from;
-        $this->to = $to;
     }
 
     /**
-     * @param Request $request
-     * @return mixed|static
+     * @param array $messageData
+     * @return static
+     * @throws ValidationException
+     * @throws \Exception
      */
-    public static function fromRequest(Request $request)
+    public static function fromRequest(array $messageData): P2PMessage
     {
-        $data = $request->validate([
-            'sender' => ['required', 'url'],
+        $data = Validator::make($messageData, [
             'n' => ['required', 'integer'],
             'm' => ['required', 'integer'],
-        ]);
-        return new static($data['n'], $data['m'], $data['sender'], config('app.url'));
+        ])->validated();
+
+        return new static($data['n'], $data['m'], $messageData['sender'], config('app.url'));
     }
 
     /**
-     *
+     * @return array
      */
     public function getRequestData(): array
     {
         return [
-            'message' => self::NAME,
             'n' => $this->n,
             'm' => $this->m
         ];
     }
 
-    public function onMessageReceived()
+    /**
+     * @return P2PMessage|null
+     */
+    public function onMessageReceived(): ?P2PMessage
     {
 
         Log::debug(config('app.url') . " > SendMeBackNInMSeconds request received from " . $this->from);
@@ -69,7 +73,7 @@ class SendMeBackNInMSeconds extends P2PMessage
             $this->from // Sender is now destination
         ));
 
-        return true;
+        return $this->getDefaultResponse();
 
     }
 
