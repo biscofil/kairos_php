@@ -30,3 +30,5 @@ RUN curl --silent --show-error https://getcomposer.org/installer | php -- --inst
 RUN a2enmod rewrite
 
 RUN apt-get install -y --no-install-recommends supervisor
+
+RUN a2enmod ssl
