@@ -32,3 +32,8 @@ RUN a2enmod rewrite
 RUN apt-get install -y --no-install-recommends supervisor
 
 RUN a2enmod ssl
+
+RUN apt-get install -y libgmp-dev re2c libmhash-dev libmcrypt-dev file
+RUN ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/local/include/
+RUN docker-php-ext-configure gmp
+RUN docker-php-ext-install gmp
