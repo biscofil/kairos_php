@@ -1,44 +1,40 @@
 version: '3'
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+
+  webserver:
+    image: registry.gitlab.com/biscofil/thelios:latest
     restart: unless-stopped
     tty: true
     depends_on:
-      - db
+      - database_server
     links:
-      - 'db:db'
-    environment:
-      APP_NAME: '${DOMAIN}'
-      APP_URL: 'http://${DOMAIN}'
-      CACHE_DRIVER: database
-      CACHE_PREFIX: l_
-      DB_HOST: db
-      DB_USERNAME: root
-      DB_PASSWORD: your_mysql_root_password
-      DB_DATABASE: laravel
+      - "database_server:database_server"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "9000:9000" #php, for debug
+      - "9001:9001" #php, for debug
+      - "9003:9003" #php, for debug
+      - "6001:6001" #websocket
     volumes:
+      - './letsencrypt:/home/letsencrypt'
       - './000-default.conf:/etc/apache2/sites-available/000-default.conf'
       - '.:/var/www/html'
-      - /var/www/html/bootstrap/cache
-    networks:
-      put_net:
-        ipv4_address: '${APP_IP}'
-  db:
-    image: 'mysql:5.7.22'
+#      - /var/www/html/bootstrap/cache
+    user: "${U_ID}:${G_ID}"
+
+  database_server:
+    image: mysql:8
     restart: unless-stopped
     tty: true
-    environment:
-      MYSQL_DATABASE: laravel
-      MYSQL_ROOT_PASSWORD: your_mysql_root_password
-      SERVICE_TAGS: dev
-      SERVICE_NAME: mysql
-    networks:
-      put_net:
-        ipv4_address: '${DB_IP}'
-networks:
-  put_net:
-    external:
-      name: my-bridge-network
+    ports:
+      - "3306:3306"
+    env_file:
+      - db.env
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    user: "${U_ID}:${G_ID}"
+
+#  redis:
+#    image: "redis:alpine"
+#      user: "${U_ID}:${G_ID}"
