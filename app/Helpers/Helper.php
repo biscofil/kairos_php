@@ -59,3 +59,22 @@ function extractDomain(string $url): string
 
     throw new \Exception("Can't extract domain from URL : $url");
 }
+
+/**
+ * @param string $ip
+ * @param int $port
+ * @return bool
+ */
+function ping(string $ip, int $port = 80): bool
+{
+    $url = $ip . ':' . $port;
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $data = curl_exec($ch);
+    $health = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    dump($health);
+    return boolval($health);
+}
