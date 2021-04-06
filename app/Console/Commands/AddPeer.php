@@ -5,21 +5,21 @@ namespace App\Console\Commands;
 use App\P2P\Messages\AddMeToYourPeers;
 use Illuminate\Console\Command;
 
-class SendMessage extends Command
+class AddPeer extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'send:message {to}';
+    protected $signature = 'add:peer {to}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Add a peer server';
 
     /**
      * Create a new command instance.
@@ -40,11 +40,11 @@ class SendMessage extends Command
     public function handle()
     {
         $myHost = config('app.url');
-        dump("I AM " . $myHost);
+        $this->info("I AM " . $myHost);
 
         $to = $this->argument('to');
 
-        dump("Sending message to " . $to);
+        $this->info("Sending message to " . $to);
 
 //        (new WillYouBeAElectionTrusteeForMyElection(Election::first(), $myHost, $to))->sendSync();
 //        (new AddMeToYourPeers($myHost, $to))->sendAsync();
