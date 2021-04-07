@@ -21,12 +21,25 @@ function getAuthUser(): User
 }
 
 /**
+ *
+ * Returns a new Big Integer
+ * @param int|string $i
+ * @param int $base
+ * @return BigInteger
+ */
+function BI($i, int $base = 10): BigInteger
+{
+    return new BigInteger($i, $base);
+}
+
+
+/**
  * Returns 1 as Big Integer
  * @return BigInteger
  */
 function BI1(): BigInteger
 {
-    return new BigInteger(1);
+    return BI(1);
 }
 
 /**
