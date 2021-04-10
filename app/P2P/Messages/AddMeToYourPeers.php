@@ -5,6 +5,7 @@ namespace App\P2P\Messages;
 
 
 use App\Models\PeerServer;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -17,9 +18,9 @@ class AddMeToYourPeers extends P2PMessage
     public const name = 'add_me_to_your_peers';
 
     /**
-     * @return array
+     * @return JsonResponse
      */
-    public function onRequestReceived(): array
+    public function onRequestReceived(): JsonResponse
     {
 
         $host = $this->from;
@@ -29,6 +30,7 @@ class AddMeToYourPeers extends P2PMessage
         if (PeerServer::query()->where('ip', '=', $host)->count() == 0) {
 
             $peer = new PeerServer();
+            // TODO resolve domain, store both IP and host
             $peer->ip = $host;
             $peer->name = "server " . $host;
             $peer->save();
@@ -36,7 +38,7 @@ class AddMeToYourPeers extends P2PMessage
             Log::debug("Host $host added as peer");
         }
 
-        return [];
+        return new JsonResponse([]);
 
     }
 

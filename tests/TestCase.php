@@ -17,7 +17,6 @@ abstract class TestCase extends BaseTestCase
      */
     public function assertResponseStatusCode(int $expectedCode, TestResponse $response): void
     {
-
         if (env('TESTING_DUMP_RESPONSE', false)) {
             if ($response->getStatusCode() !== $expectedCode) {
                 try {
@@ -27,7 +26,6 @@ abstract class TestCase extends BaseTestCase
                 }
             }
         }
-
         $this->assertEquals($expectedCode, $response->getStatusCode());
     }
 

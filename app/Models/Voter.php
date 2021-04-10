@@ -27,6 +27,8 @@ class Voter extends Model
 {
     use HasFactory;
 
+    // ############################################# RELATIONS
+
     /**
      * @return BelongsTo
      */
@@ -34,7 +36,6 @@ class Voter extends Model
     {
         return $this->belongsTo(Election::class, 'election_id');
     }
-
 
     /**
      * @return BelongsTo
@@ -51,7 +52,6 @@ class Voter extends Model
     {
         return $this->hasMany(CastVote::class, 'voter_id');
     }
-
 
     /**
      * @return BelongsTo

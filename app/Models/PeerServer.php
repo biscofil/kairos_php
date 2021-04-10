@@ -42,6 +42,15 @@ class PeerServer extends Model
     ];
 
     /**
+     * @param string $domain
+     * @return PeerServer|null
+     */
+    public static function fromDomain(string $domain): ?PeerServer
+    {
+        return self::withDomain($domain)->first();
+    }
+
+    /**
      * @param Builder $builder
      * @param string $domain
      * @return Builder

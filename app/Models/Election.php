@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use App\Crypto\EGKeyPair;
-use App\Crypto\EGPrivateKey;
-use App\Crypto\EGPublicKey;
-use App\Models\Cast\EGPrivateKeyCaster;
-use App\Models\Cast\EGPublicKeyCaster;
+use App\Enums\CryptoSystemEnum;
 use App\Models\Cast\ModelWithCryptoFields;
+use App\Models\Cast\PrivateKeyCasterCryptosystem;
+use App\Models\Cast\PublicKeyCasterCryptosystem;
+use App\Voting\CryptoSystems\PublicKey;
+use App\Voting\CryptoSystems\SecretKey;
 use Carbon\Carbon;
 use Database\Factories\ElectionFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,7 +15,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 /**
@@ -23,24 +28,26 @@ use Illuminate\Support\Str;
  * @package App\Models
  * @property int id
  * @property string uuid
- * @property string name
  * @property string slug
+ * @property string name
  * @property string description
  * @property string help_email
  * @property string info_url
+ *
  * @property bool is_private
  * @property bool is_featured
  * @property null|array questions
  *
- * @property string eligibility
- * @property int|null category_id
- * @property Category|null category
+ * @property int|null peer_server_id
+ * @property PeerServer|null peerServerAuthor
  *
- * @property int admin_id
+ * @property int|null admin_id
  * @property User admin
  *
- * @property null|EGPublicKey public_key
- * @property null|EGPrivateKey private_key
+ * @property int delta_t_l
+ * @property CryptoSystemEnum cryptosystem
+ * @property null|PublicKey public_key
+ * @property null|SecretKey private_key
  *
  * @property null|Carbon frozen_at
  * @property null|Carbon archived_at
@@ -50,6 +57,8 @@ use Illuminate\Support\Str;
  * @property bool use_voter_alias
  * @property bool use_advanced_audit_features
  * @property bool randomize_answer_order
+ * @property CastVote[] votes
+ * @property-read bool has_system_trustee
  *
  * @method static self create(array $data)
  * @method static self make(array $data)
@@ -57,6 +66,8 @@ use Illuminate\Support\Str;
  * @method static self findOrFail($id)
  * @method static ElectionFactory factory()
  * @method static self|Builder featured()
+ * @method static self|Builder ofThisServer()
+ * @method static first()
  */
 class Election extends Model
 {
@@ -65,8 +76,11 @@ class Election extends Model
 
     protected $fillable = [
         'uuid',
-        'name',
         'slug',
+        //
+        'peer_server_id',
+        //
+        'name',
         'description',
         'help_email',
         'info_url',
@@ -74,7 +88,9 @@ class Election extends Model
         'is_featured',
         'questions',
         //
+        'cryptosystem',
         'public_key', 'private_key',
+        'delta_t_l',
         //
         'is_registration_open', // TODO
         'use_voter_alias',
@@ -95,20 +111,19 @@ class Election extends Model
         //
         'frozen_at',
         'archived_at',
-        //
-        'eligibility',
-        'category_id'
     ];
 
     protected $casts = [
         'id' => 'int',
-        'public_key' => EGPublicKeyCaster::class,
-        'private_key' => EGPrivateKeyCaster::class,
-        'questions' => 'json',
+        //
+        'delta_t_l' => 'int',
+        'cryptosystem' => CryptoSystemEnum::class,
+        'public_key' => PublicKeyCasterCryptosystem::class,
+        'private_key' => PrivateKeyCasterCryptosystem::class,
+        'questions' => 'array',
         //
         'is_private' => 'bool',
         'is_featured' => 'bool',
-        // TODO 'eligibility' => ,
         'use_voter_alias' => 'bool',
         'use_advanced_audit_features' => 'bool',
         'randomize_answer_order' => 'bool',
@@ -153,7 +168,7 @@ class Election extends Model
         return 'slug';
     }
 
-    // ############################################ Attributes
+    // ############################################ Attributes ############################################
 
     /**
      * If the user is logged in, it returns a bool that indicates if the user is the creator of the election,
@@ -168,6 +183,7 @@ class Election extends Model
         }
         return null;
     }
+
     /**
      * If the user is logged in, it returns a bool that indicates if the user is a trustee of the election,
      * null if not logged
@@ -252,7 +268,7 @@ class Election extends Model
                 if (is_null($trustee->public_key)) {
                     $issues[] = [
                         'type' => 'trustee keypairs',
-                        'action' => 'have trustee ' . $trustee->user->name . ' generate a keypair'
+                        'action' => 'have trustee # ' . $trustee->id . ' generate a keypair'
                     ];
                 }
 
@@ -269,7 +285,7 @@ class Election extends Model
         return $issues;
     }
 
-    // ############################################ Scopes
+    // ############################################ Scopes ############################################
 
     /**
      * @param Builder $builder
@@ -280,7 +296,17 @@ class Election extends Model
         return $builder->where('is_featured', '=', 1);
     }
 
-    // ############################################ Relations
+    /**
+     * @param Builder $builder
+     * @return Builder
+     * @noinspection PhpUnused
+     */
+    public function scopeOfThisServer(Builder $builder): Builder
+    {
+        return $builder->whereNull('peer_server_id');
+    }
+
+    // ############################################ Relations ############################################
 
     /**
      * @return BelongsTo|User
@@ -307,67 +333,23 @@ class Election extends Model
     }
 
     /**
-     * @return BelongsTo|Category
+     * @return HasManyThrough|CastVote
      */
-    public function category(): BelongsTo
+    public function votes(): HasManyThrough
     {
-        return $this->belongsTo(Category::class, 'category_id');
+        return $this->hasManyThrough(CastVote::class, Voter::class);
+    }
+
+    /**
+     * Returns the peer server who sent us the election
+     * @return BelongsTo|PeerServer
+     */
+    public function peerServerAuthor(): BelongsTo
+    {
+        return $this->belongsTo(PeerServer::class, 'peer_server_id');
     }
 
     // ############################################
-
-    /**
-     * Returns a public key which is the combination (product) of the public keys of the trustees
-     * @return EGPublicKey
-     * @throws \Exception
-     */
-    public function generateCombinedPublicKey(): EGPublicKey
-    {
-        return $this->trustees()->get()->reduce(function (?EGPublicKey $carry, Trustee $trustee): EGPublicKey {
-            return $trustee->public_key->combine($carry);
-        });
-    }
-
-    /**
-     * @return EGPrivateKey
-     * @throws \Exception
-     */
-    public function generateCombinedPrivateKey(): EGPrivateKey
-    {
-        /** @var EGPrivateKey $out */
-        $out = $this->trustees()->get()->reduce(function (?EGPrivateKey $carry, Trustee $trustee): EGPrivateKey {
-            return $trustee->private_key->combine($carry);
-        });
-        $out->pk = $this->public_key;
-        return $out;
-    }
-
-    /**
-     * @return string
-     */
-    public function generateVotersHash(): string
-    {
-        return "";
-        // TODO Sort email addresses of voters and hash them
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function freeze()
-    {
-
-        $this->frozen_at = now();
-
-        // generate combined public key
-        $this->public_key = $this->generateCombinedPublicKey();
-
-        # generate voters hash
-        // TODO $this->generateVotersHash();
-
-        $this->save();
-
-    }
 
     /**
      * Returns the Trustee corresponding to the auth user
@@ -381,6 +363,65 @@ class Election extends Model
         return $this->trustees()
             ->where('user_id', '=', getAuthUser()->id)
             ->first();
+    }
+
+    /**
+     * @param User $user
+     * @return Trustee
+     */
+    public function createUserTrustee(User $user): Trustee
+    {
+        $trustee = Trustee::make();
+        $trustee->uuid = (string)Str::uuid();
+        $trustee->user()->associate($user);
+        $trustee->election()->associate($this);
+        $trustee->save();
+        return $trustee;
+    }
+
+    /**
+     * @param PeerServer $server
+     * @return Trustee
+     */
+    public function createPeerServerTrustee(PeerServer $server): Trustee
+    {
+        Log::debug("Creating peer server trustee for election " . $this->id);
+        $trustee = Trustee::make();
+        $trustee->uuid = (string)Str::uuid();
+        $trustee->peerServer()->associate($server);
+        $trustee->election()->associate($this);
+        $trustee->save();
+        return $trustee;
+    }
+
+    /**
+     * @return Trustee
+     */
+    public function createSystemTrustee(): Trustee
+    {
+
+        //EGKeyPair::generate();
+        $keyPair = $this->cryptosystem->getCryptoSystemClass()->generateKeypair();
+
+        $trustee = Trustee::make();
+        $trustee->uuid = (string)Str::uuid();
+        $trustee->public_key = $keyPair->pk;
+        $trustee->computePublicKeyHash();
+        $trustee->private_key = $keyPair->sk; // todo WHY?
+        // TODO proof $trustee->pok = $trustee->private_key->generateDLogProof([EGPrivateKey::class, 'DLogChallengeGenerator']);
+        $trustee->election()->associate($this);
+        $trustee->save();
+        return $trustee;
+    }
+
+    // ############################################
+
+    /**
+     * @return string
+     */
+    public function generateVotersHash(): string
+    {
+        return ""; // TODO Sort email addresses of voters and hash them
     }
 
     /**
@@ -399,20 +440,6 @@ class Election extends Model
 
     /**
      * @param User $user
-     * @return Trustee
-     */
-    public function createTrustee(User $user): Trustee
-    {
-        $trustee = Trustee::make();
-        $trustee->uuid = (string)Str::uuid();
-        $trustee->user()->associate($user);
-        $trustee->election()->associate($this);
-        $trustee->save();
-        return $trustee;
-    }
-
-    /**
-     * @param User $user
      * @return Voter
      */
     public function createVoter(User $user): Voter
@@ -424,31 +451,25 @@ class Election extends Model
         return $voter;
     }
 
-    /**
-     * @return Trustee
-     */
-    public function createSystemTrustee(): Trustee
-    {
-
-        $keyPair = EGKeyPair::generate();
-
-        $trustee = Trustee::make();
-        $trustee->uuid = (string)Str::uuid();
-        $trustee->public_key = $keyPair->pk;
-        $trustee->computePublicKeyHash();
-        $trustee->private_key = $keyPair->sk;
-        $trustee->pok = $trustee->private_key->proveSecretKey([EGPrivateKey::class, 'DLogChallengeGenerator']);
-        $trustee->election()->associate($this);
-        $trustee->save();
-        return $trustee;
-    }
+    // ############################################
 
     /**
-     * @return bool
+     * @throws \Exception
      */
-    public function hasOpenRegistration(): bool
+    public function freeze()
     {
-        return true; // TODO eligibility
+
+        $this->frozen_at = now();
+
+        // Elgamal: generate combined public key, RSA: nothing
+        $this->cryptosystem->getCryptoSystemClass()->onElectionFreeze($this);
+
+        # generate voters hash
+        // TODO $this->voter_hash = $this->generateVotersHash();
+
+        $this->save();
+
+        $this->setupOutputTables();
     }
 
     /**
@@ -478,16 +499,95 @@ class Election extends Model
 
         $e->name = "Copy of " . $this->name;
         $e->slug = $e->uuid;
+        $e->cryptosystem = $this->cryptosystem;
+        $e->delta_t_l = $this->delta_t_l;
         $e->description = $this->description;
         $e->help_email = $this->help_email;
         $e->info_url = $this->info_url;
-        // TODO $e->is_registration_open =
         $e->use_voter_alias = $this->use_voter_alias;
         $e->use_advanced_audit_features = $this->use_advanced_audit_features;
         $e->randomize_answer_order = $this->randomize_answer_order;
 
         $e->save();
         return $e;
+    }
+
+    /**
+     *
+     */
+    public function setupOutputTables()
+    {
+
+        // TODO create DB / TABLES
+
+        $questions_table_name = 'questions_election_' . $this->id;
+        $output_table_name = 'tally_election_' . $this->id;
+
+        Schema::dropIfExists($output_table_name); // TODO remove
+        Schema::dropIfExists($questions_table_name);
+
+        Schema::create($questions_table_name, function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('q_name');
+            $table->timestamps();
+        });
+
+        $qID = DB::table($questions_table_name)->insertGetId([ // TODO
+            'q_name' => 'first question'
+        ]);
+
+        Schema::create($output_table_name, function (Blueprint $table) use ($questions_table_name) {
+            $table->increments('id');
+            for ($i = 0; $i < 5; $i++) {
+                $table->unsignedInteger('question_' . $i)->nullable();
+                $table->foreign('question_' . $i)->references('id')->on($questions_table_name);
+            }
+            $table->timestamps();
+        });
+
+//        foreach ($this->votes as $vote) {
+//            DB::table($output_table_name)->insert([
+//                'question_1' => $qID // TODO
+//            ]);
+//        }
+
+    }
+
+    /**
+     * We can sort trustees with peer servers from their IP/domain
+     * @return Trustee[]|Builder[]|\Illuminate\Database\Eloquent\Collection
+     */
+    public function getPeerIdMapping()
+    {
+        return $this->trustees()->peerServers()
+            ->with('peerServer')
+            ->get()
+            ->sortBy(function (Trustee $trustee) {
+                return $trustee->peerServer->ip;
+            });
+    }
+
+    // ############################################
+
+    /**
+     * @param PeerServer $server
+     * @return Trustee|null
+     */
+    public function getTrusteeFromPeerServer(PeerServer $server): ?Trustee
+    {
+        return $this->trustees()
+            ->where('peer_server_id', '=', $server->id)
+            ->first();
+    }
+
+    /**
+     * @param string $uuid
+     * @return Election|null
+     * @noinspection PhpIncompatibleReturnTypeInspection
+     */
+    public static function findFromUuid(string $uuid): ?Election
+    {
+        return self::query()->where('uuid', '=', $uuid)->first();
     }
 
 }

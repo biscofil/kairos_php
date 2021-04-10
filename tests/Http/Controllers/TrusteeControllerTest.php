@@ -21,7 +21,7 @@ class TrusteeControllerTest extends TestCase
         /** @var Election $election */
         $election = Election::factory()->withAdmin($trustee_user)->withUUID()->create();
 
-        $election->createTrustee($trustee_user);
+        $election->createUserTrustee($trustee_user);
 
         $response = $this->actingAs($trustee_user)
             ->json('GET', 'api/elections/' . $election->slug . '/trustee/home');

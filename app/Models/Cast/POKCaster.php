@@ -3,12 +3,12 @@
 
 namespace App\Models\Cast;
 
-use App\Crypto\DLogProof;
+use App\Voting\CryptoSystems\ElGamal\DLogProof;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Contracts\Database\Eloquent\SerializesCastableAttributes;
 
 /**
- * Class POKCaster
+ * Class POKCaster TODO dynamic caster
  * @package App\Models\Cast
  */
 class POKCaster implements CastsAttributes, SerializesCastableAttributes
@@ -47,7 +47,6 @@ class POKCaster implements CastsAttributes, SerializesCastableAttributes
 
         return json_encode($value->toArray());
     }
-
 
     /**
      * @param ModelWithCryptoFields $model

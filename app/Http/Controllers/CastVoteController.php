@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Crypto\EGCiphertext;
 use App\Models\CastVote;
 use App\Models\Election;
+use App\Voting\CryptoSystems\CipherText;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use phpseclib3\Math\BigInteger;
 
+/**
+ * Class CastVoteController
+ * @package App\Http\Controllers
+ */
 class CastVoteController extends Controller
 {
 
@@ -29,28 +32,23 @@ class CastVoteController extends Controller
     public function store(Election $election, Request $request): CastVote
     {
         $data = $request->validate([
-            'vote' => ['required', 'array'], // "alpha,beta" in hex
-            'vote.alpha' => ['required', 'string'], // "alpha,beta" in hex
-            'vote.beta' => ['required', 'string'], // "alpha,beta" in hex
+            'vote' => ['required', 'array']
         ]);
 
-        // TODO Cache::put(); put encrypted vote in cache
-        // TODO encrypted_vote = request.session['encrypted_vote']
+        /** @var CipherText $skClass */
+        $skClass = $election->cryptosystem->getCryptoSystemClass()::CipherTextClass;
+
+        $voteArray = $skClass::validate($data['vote']);
 
         $voter = $election->getAuthVoter();
 
-        $vote = new EGCiphertext(
-            $election->public_key,
-            new BigInteger($data['vote']['alpha'], 16),
-            new BigInteger($data['vote']['beta'], 16)
-        );
+        /** @var CipherText $vote */
+        $vote = $skClass::fromArray($voteArray, false, $election->public_key);
 
-        $vote_fingerprint = base64_encode(hash('sha256', "$ vote")); // TODO
-
-        $cast_vote = new CastVote(); // vote = legacy/EncryptedVote obj
+        $cast_vote = new CastVote();
         $cast_vote->vote = $vote;
         $cast_vote->voter()->associate($voter);
-        $cast_vote->hash = $vote_fingerprint;
+        $cast_vote->hash = $vote->getFingerprint();
         $cast_vote->ip = \request()->ip();
         $cast_vote->save();
 

@@ -53,10 +53,6 @@ class EditCreateElectionRequest extends FormRequest
             'help_email' => ['required', 'email'],
             'info_url' => ['required', 'url'],
             //
-//            'is_registration_open' => ['nullable', 'bool'],
-            'eligibility' => ['required', 'string', new In(['open', 'email_list', 'category'])],
-            'category_id' => ['nullable', 'required_if:eligibility,category', 'exists:categories,id'],
-            //
             'use_voter_alias' => ['nullable', 'bool'],
             'use_advanced_audit_features' => ['nullable', 'bool'],
             'randomize_answer_order' => ['nullable', 'bool'],
@@ -75,7 +71,6 @@ class EditCreateElectionRequest extends FormRequest
         $election = Election::make($data);
         $election->uuid = (string)Str::uuid();
         $election->admin()->associate(getAuthUser());
-        $election->category_id = $election->eligibility == 'category' ? $election->category_id : null;
         $election->save();
         return $election;
     }
@@ -88,7 +83,6 @@ class EditCreateElectionRequest extends FormRequest
         $data = $this->validated();
         $election = $this->electionToUpdate;
         $election->update($data);
-        $election->category_id = $election->eligibility == 'category' ? $election->category_id : null;
         return $election;
     }
 }

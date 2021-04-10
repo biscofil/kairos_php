@@ -3,7 +3,7 @@ FROM php:7.4-apache
 
 RUN apt-get update
 
-RUN apt-get install -y --no-install-recommends apt-utils libzip-dev \
+RUN apt-get install -y --no-install-recommends apt-utils libzip-dev zip unzip \
     libmcrypt-dev zlib1g-dev libicu-dev g++ supervisor ca-certificates
 
 RUN docker-php-ext-configure intl
@@ -41,3 +41,9 @@ RUN pecl install redis
 RUN addgroup app_user_g -u 1000
 RUN useradd -m -r -u 1000 -g app_user_g app_user
 USER app_user
+
+#CMD ["php", "artisan", "queue:work", "&"]
+#CMD ["apache2-foreground"]
+
+#RUN bash -c "php artisan queue:work & apache2-foreground"
+#RUN nohup bash -c "cd /var/www/html && php artisan queue:work &" && sleep 1 && apache2-foreground

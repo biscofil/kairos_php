@@ -5,46 +5,49 @@ namespace App\P2P\Messages;
 
 use App\Jobs\SendP2PMessage;
 use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use ReflectionClass;
+use ReflectionException;
 
 /**
  * Class P2PMessage
  * @package App\P2P\Messages
  * @property string $from
- * @property string $to
+ * @property string[] $to // TODO allow multicast
  * @property string $name
  */
 abstract class P2PMessage
 {
 
-    public $from;
-    public $to;
+    protected string $from;
+    protected array $to;
 
     /**
-     * P2PMessage constructor.
      * @param string $from
-     * @param string $to
+     * @param string[]|string $to
      * @throws Exception
      */
-    public function __construct(string $from, string $to)
+    public function __construct(string $from, $to)
     {
         $this->from = extractDomain($from);
-        $this->to = extractDomain($to);
+        $this->to = array_map(function (string $domain) {
+            return extractDomain($domain);
+        }, (array)$to);
     }
 
     /**
      * @param array $messageData
-     * @param bool $isResponse // TODO
-     * @return P2PMessage|null
+     * @return JsonResponse
+     * @throws ReflectionException
      * @throws ValidationException
      * @throws Exception
      * @noinspection PhpMissingReturnTypeInspection
      */
-    public static final function fromRequestData(array $messageData, bool $isResponse = false): array
+    public static final function fromRequestData(array $messageData): JsonResponse
     {
 
         $data = Validator::make($messageData, [
@@ -55,16 +58,17 @@ abstract class P2PMessage
         $message = $data['message'];
         $className = self::getClass($message);
 
-        $r = new \ReflectionClass($className);
+        $sender = extractDomain($data['sender']);
+
+        $r = new ReflectionClass($className);
         /** @var static $instance */
         $instance = $r->newInstanceWithoutConstructor();
-        $messageObj = $instance->fromRequest($messageData);
-
+        $messageObj = $instance->fromRequest($sender, $messageData);
         return $messageObj->onRequestReceived();
-
     }
 
     /**
+     * Returns the class given its name
      * @param string $message
      * @return string
      * @throws Exception
@@ -77,11 +81,8 @@ abstract class P2PMessage
             // ###########################
             case WillYouBeAElectionTrusteeForMyElection::name:
                 return WillYouBeAElectionTrusteeForMyElection::class;
-            //####################################### MOCK
-            case SendMeBackNInMSeconds::name:
-                return SendMeBackNInMSeconds::class;
-            case TakeBackN::name:
-                return TakeBackN::class;
+            case ThisIsMyMixSet::name:
+                return ThisIsMyMixSet::class;
             default:
                 Log::error("Unknown message name $message");
                 throw new Exception("Unknown message name $message");
@@ -89,20 +90,30 @@ abstract class P2PMessage
     }
 
     /**
+     * @return string
+     */
+    protected static function me(): string
+    {
+        return config('app.url');
+    }
+
+    /**
+     * @param string $sender
      * @param array $messageData
      * @return static
      * @throws Exception
      */
-    public static function fromRequest(array $messageData): P2PMessage
+    public static function fromRequest(string $sender, array $messageData): P2PMessage
     {
-        return new static($messageData['sender'], config('app.url'));
+        return new static($sender, self::me());
     }
 
     /**
      * Sends the message in a blocking way, should only be called by queues and not during requests
+     * @param string $to
      * @return array
      */
-    public function getRequestData(): array
+    public function getRequestData(string $to): array
     {
         return [];
     }
@@ -111,44 +122,54 @@ abstract class P2PMessage
 
     /**
      * Sends the message in a blocking way, should only be called by queues (and tasks) and not during requests
-     * @throws ValidationException|\ReflectionException
+     * @throws ReflectionException
      */
     public final function sendSync(): void
     {
-        $url = "http://" . $this->to . '/api/p2p';
-
-        Log::debug($this->from . " > I am sending a message to " . $url);
-
-        //$this->ping($url);
 
         $messageName = (new ReflectionClass(get_class($this)))->getConstant('name');
 
-        $data = array_merge_recursive($this->getRequestData(), [
-            'sender' => "http://" . $this->from,
-            'message' => $messageName // TODO check
-        ]);
+        $result = [];
 
-        $response = Http::post($url, $data);  // ############################################## Response
+        foreach ($this->to as $destPeerServer) { // foreach destination server
 
-        Log::debug("I received a response with status " . $response->status());
+            $url = "https://" . $destPeerServer . '/api/p2p';
 
-        if ($response->status() >= 200 && $response->status() < 300) {
+            Log::debug("Sending a message to " . $url);
 
-            $json = $response->json();
-            Log::debug($json);
+            $data = array_merge_recursive($this->getRequestData($destPeerServer), [
+                'sender' => "https://" . $this->from,
+                'message' => $messageName // TODO check
+            ]);
 
-            try {
-                $this->onResponseReceived($response->json());
-            } catch (\Exception $e) {
-                Log::error($e->getMessage());
-                Log::error($e->getFile());
-                Log::error($e->getLine());
-                throw $e;
+            $response = Http::withOptions([
+                'verify' => false, // TODO remove
+            ])->post($url, $data);  // ############################################## Response
+
+            Log::debug("I received a response with status " . $response->status());
+
+            $result[$destPeerServer] = $response->status();
+
+            if ($response->status() >= 200 && $response->status() < 300) {
+
+                $json = $response->json();
+                Log::debug($json);
+
+                try {
+                    $this->onResponseReceived($destPeerServer, $response->json());
+                } catch (Exception $e) {
+                    Log::error($e->getMessage());
+                    Log::error($e->getFile());
+                    Log::error($e->getLine());
+                }
+
+            } else {
+                Log::error($response->body());
             }
-
-        } else {
-            Log::error($response->body());
         }
+
+        /** @noinspection PhpParamsInspection */
+        Log::debug($result);
 
     }
 
@@ -166,38 +187,17 @@ abstract class P2PMessage
     // The output of onRequestReceived() should match the input of onResponseReceived();
 
     /**
-     * @return array
+     * @return JsonResponse
      */
-    public abstract function onRequestReceived(): array;
+    public abstract function onRequestReceived(): JsonResponse;
 
     /**
+     * @param string $destPeerServer
      * @param array $data
      * @return void
      */
-    public function onResponseReceived(array $data): void
+    public function onResponseReceived(string $destPeerServer, array $data): void
     {
-    }
-
-    // #############################################################
-    // #############################################################
-
-    /**
-     * @param string $ip
-     * @param int $port
-     * @return bool
-     */
-    private function ping(string $ip, int $port = 80): bool
-    {
-        $url = $ip . ':' . $port;
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $data = curl_exec($ch);
-        $health = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        dump($health);
-        return boolval($health);
     }
 
 }

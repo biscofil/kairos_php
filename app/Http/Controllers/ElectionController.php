@@ -43,10 +43,10 @@ class ElectionController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param Request $request
-     * @return Response
+     * @param EditCreateElectionRequest $request
+     * @return Election
      */
-    public function store(EditCreateElectionRequest $request)
+    public function store(EditCreateElectionRequest $request): Election
     {
         return $request->store();
     }
@@ -55,11 +55,11 @@ class ElectionController extends Controller
      * @param Election $election
      * @return Election
      */
-    public function show(Election $election)
+    public function show(Election $election): Election
     {
+        $election->load('trustees.peerServer');
         return $election;
     }
-
 
     /**
      * @param Request $request
@@ -110,7 +110,6 @@ class ElectionController extends Controller
         $election->setFeatured($data['featured']);
         return $election;
     }
-
 
     /**
      * @param Election $election

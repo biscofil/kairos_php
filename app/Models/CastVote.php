@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Crypto\EGCiphertext;
-use App\Models\Cast\EGCiphertextCaster;
+use App\Voting\CryptoSystems\ElGamal\EGCiphertext;
+use App\Models\Cast\ThresholdBroadcastCasterCryptosystem;
 use App\Models\Cast\ModelWithCryptoFields;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -43,7 +43,7 @@ class CastVote extends Model
     ];
 
     protected $casts = [
-        'vote' => EGCiphertextCaster::class,
+        'vote' => ThresholdBroadcastCasterCryptosystem::class,  // TODO
     ];
 
     /**

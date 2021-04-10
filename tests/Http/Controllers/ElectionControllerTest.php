@@ -29,7 +29,11 @@ class ElectionControllerTest extends TestCase
         /** @var Election $election */
 
         $data = Election::factory()->make()->toArray();
-        $response = $this->actingAs($user)->json('POST', 'api/elections', $data);
+
+        $response = $this->actingAs($user)
+            ->json('POST', 'api/elections', $data);
+        $this->assertResponseStatusCode(201, $response);
+
         $election = Election::findOrFail($response->json('id'));
 
         $data = $election->toArray();

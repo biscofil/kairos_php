@@ -2,13 +2,13 @@
 
 namespace Tests\Http\Controllers;
 
-use App\Crypto\EGCiphertext;
-use App\Crypto\EGKeyPair;
-use App\Crypto\EGPlaintext;
 use App\Models\CastVote;
 use App\Models\Election;
 use App\Models\User;
 use App\Models\Voter;
+use App\Voting\BallotEncodings\JsonBallotEncoding;
+use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
+use App\Voting\CryptoSystems\RSA\RSAPlaintext;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -26,6 +26,10 @@ class CastVoteControllerTest extends TestCase
 
         /** @var Election $election */
         $election = Election::factory()->withAdmin($user)->withUUID()->frozen()->create();
+        $election->cryptosystem = 'rsa';
+        $election->createSystemTrustee();
+        $election->cryptosystem->getCryptoSystemClass()->onElectionFreeze($election); // generateCombinedPublicKey
+        $election->save();
 
         $voter = new Voter();
         $voter->user_id = $user->id;
@@ -45,28 +49,24 @@ class CastVoteControllerTest extends TestCase
                 Str::random(10),
             ]
         ];
-        $plain = json_encode($votePlain);
 
         // encrypt it
-        $msg = EGPlaintext::fromString($plain, $keyPair->pk);
-        $cipher = $msg->encrypt();
+        $plaintext = (JsonBallotEncoding::encode($votePlain, RSAPlaintext::class))[0];
+        $cipher = $keyPair->pk->encrypt($plaintext);
 
-        $voteEncrypted = json_encode($cipher->toArray()); // alpha is discarded
-        $data = ["vote" => $voteEncrypted];
+        $data = ["vote" => $cipher->toArray(true)];
 
         $response = $this->actingAs($user)
             ->json('POST', 'api/elections/' . $election->slug . '/cast', $data);
-        $this->assertResponseStatusCode(200, $response);
+        $this->assertResponseStatusCode(201, $response);
 
         $this->assertEquals(1, $voter->votes()->count());
 
         /** @var CastVote $voteCast */
         $voteCast = $voter->votes()->first();
 
-        $voteEncryptedDB = EGCiphertext::fromArray(json_decode($voteCast->vote, true));
-        $out = $keyPair->sk->decrypt($voteEncryptedDB)->toString();
-
-        $this->assertEquals($plain, $out);
+        $out = $keyPair->sk->decrypt($voteCast->vote);
+        $this->assertEquals($votePlain, JsonBallotEncoding::decode($out));
 
     }
 }

@@ -31,7 +31,9 @@ class P2PController extends Controller
         $nodes[] = [
             "id" => "_me",
             "name" => parse_url(config('app.url'), PHP_URL_HOST),
-            "gps" => null // TODO
+            "gps" => [
+                'coordinates' => [12.3155, 45.4408] // TODO
+            ]
         ];
         return $nodes;
     }
@@ -45,10 +47,7 @@ class P2PController extends Controller
 
         try {
 
-            $out = P2PMessage::fromRequestData($request->all());
-            Log::debug("Responding with");
-            Log::debug($out);
-            return response()->json($out);
+            return P2PMessage::fromRequestData($request->all());
 
         } catch (\Exception $e) {
 

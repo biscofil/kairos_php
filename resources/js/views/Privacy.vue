@@ -51,7 +51,7 @@
                     <li> Helios uses SSL to transmit data between your browser and our servers.</li>
                     <li>
                         In addition, Helios uses end-to-end encryption so that, even after SSL decryption, your vote is
-                        <em>still</em> encrypted with the election key. Helios servers never see your vote.
+                        <span>still</span> encrypted with the election key. Helios servers never see your vote.
                     </li>
                     <li>
                         In the normal process of a Helios election, your individual vote is never decrypted: encrypted
@@ -70,7 +70,7 @@
                     <li>
                         Helios may, at your election administrators' discretion, serve as a trustee of your election.
                         This does
-                        <em>not</em> give Helios any power to decrypt your vote. In fact, it is probably preferable,
+                        <span>not</span> give Helios any power to decrypt your vote. In fact, it is probably preferable,
                         since without
                         Helios's collaboration, the remaining trustees cannot decrypt individual votes. It is our policy
                         that

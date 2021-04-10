@@ -4,10 +4,12 @@
 namespace App\P2P\Messages;
 
 
-use App\Crypto\EGKeyPair;
-use App\Crypto\EGPublicKey;
+use App\Http\Requests\EditCreateElectionRequest;
 use App\Models\Election;
 use App\Models\PeerServer;
+use App\Voting\CryptoSystems\PublicKey;
+use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -21,7 +23,7 @@ class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
 
     public const name = 'will_you_be_a_election_trustee_for_my_election';
 
-    public $electionData;
+    public array $electionData;
 
     // #######################################################################################
     // ##################################### REQUEST #########################################
@@ -29,39 +31,43 @@ class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
 
     /**
      * WillYouBeAElectionTrusteeForMyElection constructor.
-     * @param array $electionData
+     * @param array $mixSet
      * @param string $from
      * @param string $to
-     * @throws \Exception
+     * @throws Exception
      */
-    public function __construct(array $electionData, string $from, string $to)
+    public function __construct(array $mixSet, string $from, string $to)
     {
         parent::__construct($from, $to);
-        $this->electionData = $electionData;
+        $this->electionData = $mixSet;
     }
 
     /**
+     * @param string $sender
      * @param array $messageData
      * @return static
-     * @throws \Exception
+     * @throws Exception
      */
-    public static function fromRequest(array $messageData): P2PMessage
+    public static function fromRequest(string $sender, array $messageData): P2PMessage
     {
         $data = Validator::make($messageData, [
             'election' => ['required', 'array']
         ])->validate();
 
+        $electionData = $data['election'];
+
         return new WillYouBeAElectionTrusteeForMyElection(
-            $data['election'],
-            $messageData['sender'],
+            $electionData,
+            $sender,
             config('app.url')
         );
     }
 
     /**
+     * @param string $to
      * @return array
      */
-    public function getRequestData(): array
+    public function getRequestData(string $to): array
     {
         return [
             'election' => $this->electionData,
@@ -75,12 +81,23 @@ class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
     /**
      * This code is for the server to which we are sending the request to
      * he has to respond with its public key
-     * @return array
+     * @return JsonResponse
      */
-    public function onRequestReceived(): array
+    public function onRequestReceived(): JsonResponse
     {
 
         Log::debug("WillYouBeAElectionTrusteeForMyElection message received");
+
+        // validate the sent data
+        $errors = Validator::make($this->electionData,
+            (new EditCreateElectionRequest())->rules()
+        )->errors()->toArray();
+
+        if (count($errors)) {
+            return new JsonResponse([
+                'errors' => $errors
+            ], 402);
+        }
 
         $host = $this->from;
 
@@ -90,43 +107,51 @@ class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
         $election->peerServerAuthor()->associate(PeerServer::withDomain($host)->firstOrFail());
         $election->save();
 
-        $keyPair = EGKeyPair::generate();
-        $keyPair->storeToFile('election_' . $election->id);
+        if($election->delta_t_l === 0){
+            // no slack : l-l theshold
+        }else{
+            // t-l threshold
+        }
+
+        $keyPair = $election->cryptosystem->getCryptoSystemClass()->generateKeypair(); // TODO remove for threshold
+        $keyPair->storeToFile('election_' . $election->id . '.keypair.json'); // TODO remove for threshold
 
         Log::info("I now have a copy of the election of $host");
 
-        return [
-            'public_key' => json_encode($keyPair->pk->toArray())
-        ];
+        return new JsonResponse([
+            'public_key' => json_encode($keyPair->pk->toArray()) // TODO remove for threshold
+        ]);
 
     }
 
     /**
      * We parse the public key and we assign it to the trustee
+     * @param string $destPeerServer
      * @param array $data
+     * @throws Exception
      */
-    public function onResponseReceived(array $data): void
+    public function onResponseReceived(string $destPeerServer, array $data): void
     {
 
-        $server = PeerServer::withDomain($this->to)->firstOrFail();
+        $server = PeerServer::withDomain($destPeerServer)->firstOrFail();
 
         $election = Election::findOrFail($this->electionData['id']);
 
-        $trustee = $election->trustees()
-            ->where('peer_server_id', '=', $server->id)
-            ->first();
+        $trustee = $election->getTrusteeFromPeerServer($server);
 
         if ($trustee) {
 
-            $public_key = EGPublicKey::fromArray(json_decode($data['public_key'], true));
+            /** @var PublicKey $pkClass */
+            $pkClass = $election->cryptosystem->getCryptoSystemClass()::PublicKeyClass;
+            $public_key = $pkClass::fromArray(json_decode($data['public_key'], true));
             $trustee->setPublicKey($public_key);
             $trustee->save();
 
-            Log::info("Server $this->to added as trustee");
+            Log::info("Server $destPeerServer added as trustee");
 
         } else {
 
-            Log::error("Server $this->to NOT added as trustee");
+            Log::error("Server $destPeerServer NOT added as trustee");
 
         }
 

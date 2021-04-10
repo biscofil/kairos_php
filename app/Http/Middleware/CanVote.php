@@ -25,9 +25,9 @@ class CanVote
             $voter = $election->getAuthVoter();
 
             // auto-register this person if the election is openreg
-            if (is_null($voter) && $election->hasOpenRegistration()) {
-                $voter = $election->createVoter(getAuthUser());
-            }
+//            if (is_null($voter) && $election->hasOpenRegistration()) {
+//                $voter = $election->createVoter(getAuthUser());
+//            }
 
             if (is_null($voter)) {
                 return response()->json(["error" => "not a registered voter"], 403);

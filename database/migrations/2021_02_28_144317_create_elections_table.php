@@ -18,29 +18,28 @@ class CreateElectionsTable extends Migration
             $table->id();
 
             $table->uuid('uuid')->unique();
+            $table->string('slug')->unique();
+
+            $table->unsignedBigInteger('peer_server_id')->nullable(); // Null if created by this server
+            $table->foreign('peer_server_id')->references('id')->on('peer_servers');
 
             $table->string('name');
-            $table->string('slug')->unique();
             $table->text('description');
             $table->string('help_email');
             $table->string('info_url');
 
-            $table->unsignedBigInteger('admin_id');
+            $table->unsignedBigInteger('admin_id')->nullable(); // null if sent (P2P)
             $table->foreign('admin_id')->references('id')->on('users');
-
-            // $table->enum('election_type',['election', 'referendum']);
 
             $table->boolean('is_private')->default(false);
             $table->boolean('is_featured')->default(false);
 
-            $table->json('questions')->nullable();
+            $table->text('questions')->nullable();
 
+            $table->string('cryptosystem', 20);
+            $table->unsignedSmallInteger('delta_t_l')->default(0);
             $table->text('public_key')->nullable();
             $table->text('private_key')->nullable();
-
-            $table->enum('eligibility', ['open', 'email_list', 'category'])->default('open');
-            $table->unsignedBigInteger('category_id')->nullable();
-            $table->foreign('category_id')->references('id')->on('categories');
 
             $table->boolean('use_voter_alias')->default(false);
             $table->boolean('use_advanced_audit_features')->default(false);

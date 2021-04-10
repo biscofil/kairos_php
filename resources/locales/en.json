@@ -1,0 +1,6 @@
+{
+    "log_in": "Log in",
+    "election_editor_name" : "the pretty name for your election, e.g. My Club 2010 Election",
+    "election_editor_slug" : "no spaces, will be part of the URL for your election, e.g. my-club-2010",
+    "election_editor_use_voter_aslias" : "If selected, voter identities will be replaced with aliases, e.g. \"V12\", in the ballot tracking center"
+}

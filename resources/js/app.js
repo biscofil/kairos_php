@@ -8,7 +8,6 @@ import VueToastr2 from 'vue-toastr-2/dist/vue-toastr-2';
 import Toastr from 'toastr';
 import VModal from 'vue-js-modal/dist';
 import VueAxios from 'vue-axios';
-
 import vue_moment from "vue-moment";
 
 require('./bootstrap');
@@ -33,16 +32,8 @@ const app = new Vue({
     store,
 
     data: {
-        //user: null,
         login_box: null,
-        /*voter: {
-            alias: false,
-            name: "NAME",
-            election: {
-                name: "ELECTIONN"
-            }
-        },*/
-        settings: null
+        settings: null,
     },
 
     created() {

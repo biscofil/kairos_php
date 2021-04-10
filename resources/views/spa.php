@@ -31,7 +31,7 @@
                 <!-- Right Nav Section -->
                 <ul class="right">
                     <template v-if="$store.getters.isLogged && $store.getters.user.is_admin">
-                        <li><router-link :to="{ name: 'stats@home' } ">Admin</router-link></li>
+                        <li><router-link :to="{ name: 'admin@home' } ">Admin</router-link></li>
                         <li class="divider"></li>
                     </template>
                     <li><a href="http://heliosvoting.org">About Helios</a></li>

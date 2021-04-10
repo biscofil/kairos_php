@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -17,6 +16,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * @property int id
  * @property string name
  * @property boolean is_admin
+ * @property boolean can_create_election
  * @property string email
  * @property string provider
  * @property string provider_id
@@ -38,6 +38,7 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'provider',
         'provider_id',
+        'can_create_election'
     ];
 
     /**
@@ -91,14 +92,6 @@ class User extends Authenticatable implements JWTSubject
     }
 
     // ############################## RELATIONS ######################################
-
-    /**
-     * @return BelongsToMany
-     */
-    public function categories(): BelongsToMany
-    {
-        return $this->belongsToMany(Category::class, 'user_categories');
-    }
 
     /**
      * @return HasMany|Election

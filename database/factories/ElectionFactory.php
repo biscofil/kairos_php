@@ -32,9 +32,6 @@ class ElectionFactory extends Factory
             'is_private' => $this->faker->boolean,
             'is_featured' => $this->faker->boolean,
             //
-            'eligibility' => 'open',
-            'category_id' => null,
-            //
             // 'is_registration_open' => $this->faker->boolean,
             'use_voter_alias' => $this->faker->boolean,
             'use_advanced_audit_features' => $this->faker->boolean,

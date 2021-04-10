@@ -37,7 +37,7 @@ class Kernel extends HttpKernel
      * @var array
      */
     protected $middleware = [
-        RefreshAndReturnToken::class,
+        //RefreshAndReturnToken::class,
         TrustProxies::class,
         PreventRequestsDuringMaintenance::class,
         ValidatePostSize::class,
