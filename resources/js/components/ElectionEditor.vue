@@ -1,5 +1,5 @@
 <template>
-    <div v-if="categories">
+    <div>
         <p v-if="errors" style="color: red;">
             {{ errors }}
         </p>
@@ -82,7 +82,6 @@ export default {
             post: new Election(),
             election_types: null,
             errors: null,
-            categories: null
         }
     },
 
@@ -102,14 +101,6 @@ export default {
                     self.help_email = response.data.help_email;
                     self.is_private = response.data.is_private;
                 }
-            })
-            .catch(e => {
-                self.$toastr.error("Error");
-            });
-
-        this.$http.get(BASE_URL + '/api/categories')
-            .then(response => {
-                self.categories = response.data
             })
             .catch(e => {
                 self.$toastr.error("Error");

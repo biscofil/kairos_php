@@ -80,16 +80,6 @@ Route::get('/elections', [ElectionController::class, 'index']);
 Route::get('/elections/{election}', [ElectionController::class, 'show']);
 Route::get('/elections/{election}/trustees', [TrusteeController::class, 'index']);
 
-// #######################################
-// ########################### CATEGORIES
-// #######################################
-
-Route::get('/categories', [CategoriesController::class, 'index']);
-Route::middleware(['auth:api', 'admin'])->group(function () {
-    Route::post('/categories', [CategoriesController::class, 'store']);
-    Route::delete('/categories/{category}', [CategoriesController::class, 'destroy']);
-});
-
 //Route::fallback(function () {
 //    return response()->json([
 //        "error" => "not found"
