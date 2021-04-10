@@ -1,11 +1,16 @@
 <template>
     <div>
-        <d3-network v-if="nodes"
-                    ref='net' id="net"
-                    :net-nodes="nodes"
-                    :net-links="links"
-                    :options="options"
-                    @node-click='onNodeClicked'/>
+<!--        <d3-network v-if="nodes"-->
+<!--                    ref='net' id="net"-->
+<!--                    :net-nodes="nodes"-->
+<!--                    :net-links="links"-->
+<!--                    :options="options"-->
+<!--                    @node-click='onNodeClicked'/>-->
+
+        <GlobusMap
+            :nodes="nodes"
+            :links="links"></GlobusMap>
+
     </div>
 </template>
 
@@ -54,11 +59,12 @@ export default {
                             return server.tid !== "_me";
                         });
                         self.nodes = response.data.map(server => {
-                            return {
-                                id: server.id,
-                                name: server.name + (server.id === "_me" ? " (Me)" : ""),
-                                svgSym: text
-                            };
+                            return server;
+                            // return {
+                            //     id: server.id,
+                            //     name: server.name + (server.id === "_me" ? " (Me)" : ""),
+                            //     svgSym: text
+                            // };
                         });
                     });
             })

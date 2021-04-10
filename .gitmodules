@@ -1,0 +1,3 @@
+[submodule "resources/js/github/openglobus"]
+	path = resources/js/github/openglobus
+	url = https://github.com/openglobus/openglobus
