@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Voting\CryptoSystems\RSA\RSAKeyPair;
 use phpseclib3\Math\BigInteger;
 
 /**
@@ -31,7 +32,6 @@ function BI($i, int $base = 10): BigInteger
 {
     return new BigInteger($i, $base);
 }
-
 
 /**
  * Returns 1 as Big Integer
@@ -70,7 +70,7 @@ function extractDomain(string $url): string
         return $domain;
     }
 
-    throw new \Exception("Can't extract domain from URL : $url");
+    throw new Exception("Can't extract domain from URL : $url");
 }
 
 /**
@@ -90,4 +90,15 @@ function ping(string $ip, int $port = 80): bool
     curl_close($ch);
     dump($health);
     return boolval($health);
+}
+
+/**
+ * @return RSAKeyPair
+ */
+function getJwtRSAKeyPair(): RSAKeyPair
+{
+    return RSAKeyPair::fromPemFiles(
+        config('jwt.keys.private'),
+        config('jwt.keys.public')
+    );
 }
