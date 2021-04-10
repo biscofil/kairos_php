@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Http;
  * @property int election_id
  * @property Election election
  * @property Point|null gps
+ * @property string|null country_code
  * @method static find(array $array)
  * @method static self firstOrFail()
  * @method static self|Builder withDomain(string $domain)
@@ -32,7 +33,8 @@ class PeerServer extends Model
     protected $fillable = [
         'name',
         'ip',
-        'gps'
+        'gps',
+        'country_code'
     ];
 
     protected $spatialFields = [
@@ -67,24 +69,19 @@ class PeerServer extends Model
      */
     public function getGps(): bool
     {
-        // works with domains too
-        $url = "http://ip-api.com/php/{$this->ip}?fields=status,lat,lon";
-
+        /** @noinspection HttpUrlsUsage */
+        $url = "http://ip-api.com/php/{$this->ip}?fields=status,lat,lon,countryCode"; // works with both ip/domain
         $response = Http::get($url);
-
-        if (!$response->status() === 200) {
+        if (!($response->status() === 200)) {
             return false;
         }
-
         $data = unserialize($response->body());
-
         if ($data["status"] === "success") {
             $this->gps = new Point($data["lat"], $data["lon"]);
+            $this->country_code = $data["countryCode"];
             return $this->save();
         }
-
         return false;
-
     }
 
 }

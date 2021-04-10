@@ -22,6 +22,7 @@ class CreatePeerServersTable extends Migration
             $table->ipAddress('ip');
 
             $table->point('gps')->nullable();
+            $table->string('country_code',5)->nullable();
 
             $table->timestamps();
 
