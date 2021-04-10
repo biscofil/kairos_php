@@ -39,7 +39,7 @@ export default {
         });
 
         this.pointLayer = new Vector("points", {
-            'relativeToGround': true,
+            'clampToGround': true,
             'visibility': true
         });
 
@@ -49,6 +49,9 @@ export default {
             // "terrain": new GlobusTerrain(),
             "layers": [osm, this.pointLayer]
         });
+
+        this.globe.planet.setHeightFactor(0);
+        this.globe.planet.setRatioLod(0.8);
 
         // this.globe.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
     },
@@ -94,12 +97,22 @@ export default {
             this.nodes.forEach(node1 => {
                 this.nodes.forEach(node2 => {
                     if (node1.id !== node2.id && node1.gps && node2.gps) {
+
+                        let p1 = new LonLat(node1.gps.coordinates[0], node1.gps.coordinates[1]);
+                        let p2 = new LonLat(node2.gps.coordinates[0], node2.gps.coordinates[1]);
+
+                        let path = [p1];
+                        for (let i = 1; i <= 10; i++) {
+                            let c = i / 10;
+                            path.push(new LonLat(
+                                p1.lon + ((p2.lon - p1.lon) * c),
+                                p1.lat + ((p2.lat - p1.lat) * c)
+                            ));
+                        }
+
                         entities.push(new Entity({
                             'polyline': {
-                                'pathLonLat': [[
-                                    new LonLat(node1.gps.coordinates[0], node1.gps.coordinates[1]),
-                                    new LonLat(node2.gps.coordinates[0], node2.gps.coordinates[1])
-                                ]],
+                                'pathLonLat': [path],
                                 'color': "#ff3b3b",
                                 'thickness': 4,
                             }
