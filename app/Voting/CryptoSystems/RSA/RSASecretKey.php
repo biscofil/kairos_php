@@ -4,11 +4,8 @@
 namespace App\Voting\CryptoSystems\RSA;
 
 
-use App\Voting\CryptoSystems\CipherText;
 use App\Voting\CryptoSystems\Plaintext;
 use App\Voting\CryptoSystems\SecretKey;
-use Illuminate\Http\Request;
-use phpseclib3\Crypt\PublicKeyLoader;
 use phpseclib3\Crypt\RSA\PrivateKey;
 
 /**
@@ -28,6 +25,19 @@ class RSASecretKey extends SecretKey
         $this->value = $sk;
     }
 
+    /**
+     * @param RSACiphertext $cipherText
+     * @return Plaintext
+     */
+    public function decrypt($cipherText): Plaintext
+    {
+        return $this->value->decrypt($cipherText);
+    }
+
+    // ####################################################################################################
+    // ####################################################################################################
+    // ####################################################################################################
+
     public static function fromArray(array $data, bool $onlyXY = false, int $base = 16): RSASecretKey
     {
         $sk = PrivateKey::load($data['v']); // TODO
@@ -45,13 +55,31 @@ class RSASecretKey extends SecretKey
         ];
     }
 
+    // ####################################################################################################
+    // ####################################################################################################
+    // ####################################################################################################
+
     /**
-     * @param RSACiphertext $cipherText
-     * @return Plaintext
+     * @param string $filePath
+     * @param string $type Example: "PKCS8"
+     * @return bool
      */
-    public function decrypt($cipherText): Plaintext
+    public function toPemFile(string $filePath, string $type = "PKCS8"): bool
     {
-        return $this->value->decrypt($cipherText);
+        $content = $this->value->toString($type);
+        return file_put_contents($filePath, $content);
+    }
+
+    /**
+     * @param string $filePath
+     * @param string $type Example: "PKCS8"
+     * @return RSASecretKey
+     */
+    public static function fromPemFile(string $filePath, string $type = "PKCS8"): RSASecretKey
+    {
+        $sk = file_get_contents($filePath);
+        $sk = PrivateKey::loadFormat($type, $sk);
+        return new static($sk);
     }
 
 }

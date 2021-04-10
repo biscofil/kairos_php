@@ -31,6 +31,10 @@ class RSAKeyPair implements KeyPair
         return new static(new RSAPublicKey($pk), new RSASecretKey($sk));
     }
 
+    // ####################################################################################################
+    // ####################################################################################################
+    // ####################################################################################################
+
     /**
      * @param string $filePath Example: "/home/private_key.json"
      */
@@ -49,6 +53,34 @@ class RSAKeyPair implements KeyPair
         $content = Storage::get($filePath);
         $sk = RSASecretKey::fromArray(json_decode($content));
         $pk = $sk->value->getPublicKey();
+        return new static($pk, $sk);
+    }
+
+    // ####################################################################################################
+    // ####################################################################################################
+    // ####################################################################################################
+
+    /**
+     * @param string $skFilePath
+     * @param string $pkFilePath
+     * @param string $type Example: "PKCS8"
+     * @return bool
+     */
+    public function toPemFiles(string $skFilePath, string $pkFilePath, $type = "PKCS8"): bool
+    {
+        return $this->sk->toPemFile($skFilePath, $type) && $this->pk->toPemFile($pkFilePath, $type);
+    }
+
+    /**
+     * @param string $skFilePath
+     * @param string $pkFilePath
+     * @param string $type Example: "PKCS8"
+     * @return RSAKeyPair
+     */
+    public static function fromPemFiles(string $skFilePath, string $pkFilePath, string $type = "PKCS8"): RSAKeyPair
+    {
+        $sk = RSASecretKey::fromPemFile($skFilePath, $type);
+        $pk = RSAPublicKey::fromPemFile($pkFilePath, $type);
         return new static($pk, $sk);
     }
 }

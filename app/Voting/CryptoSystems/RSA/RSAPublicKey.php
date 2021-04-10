@@ -30,6 +30,10 @@ class RSAPublicKey implements PublicKey
         $this->value = $pk;
     }
 
+    // ######################################################################################################
+    // ######################################################################################################
+    // ######################################################################################################
+
     /**
      * @param array $data
      * @param bool $onlyY
@@ -52,6 +56,37 @@ class RSAPublicKey implements PublicKey
             'v' => $this->value->toString('PKCS8') // TODO
         ];
     }
+
+    // ######################################################################################################
+    // ######################################################################################################
+    // ######################################################################################################
+
+    /**
+     * @param string $filePath
+     * @param string $type Example: "PKCS8"
+     * @return bool
+     */
+    public function toPemFile(string $filePath, string $type = "PKCS8"): bool
+    {
+        $content = $this->value->toString($type);
+        return file_put_contents($filePath, $content);
+    }
+
+    /**
+     * @param string $filePath
+     * @param string $type Example: "PKCS8"
+     * @return RSAPublicKey
+     */
+    public static function fromPemFile(string $filePath, string $type = "PKCS8"): RSAPublicKey
+    {
+        $pk = file_get_contents($filePath);
+        $pk = phpsecRSA::loadFormat($type, $pk);
+        return new static($pk);
+    }
+
+    // ######################################################################################################
+    // ######################################################################################################
+    // ######################################################################################################
 
     /**
      * @return string
@@ -81,5 +116,6 @@ class RSAPublicKey implements PublicKey
     {
         //TODO
     }
+
 
 }
