@@ -2,6 +2,9 @@ version: '3'
 services:
 
   webserver:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
     image: registry.gitlab.com/biscofil/thelios:latest
     restart: unless-stopped
     tty: true
@@ -22,6 +25,16 @@ services:
       - '.:/var/www/html'
 #      - /var/www/html/bootstrap/cache
     user: "${U_ID}:${G_ID}"
+
+  php-queue:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+    image: registry.gitlab.com/biscofil/thelios:latest
+    restart: always
+    command: php artisan queue:work
+    volumes:
+      - '.:/var/www/html'
 
   database_server:
     image: mysql:8
