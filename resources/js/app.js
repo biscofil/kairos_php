@@ -23,7 +23,7 @@ Vue.use(VueRouter);
 Vue.use(VueAxios, axios);
 Vue.use(vue_moment);
 
-window.BASE_URL = 'http://localhost';
+window.BASE_URL = window.location.protocol + "//" + window.location.host; // or take it from .env with process.env.MIX_APP_URL
 
 const app = new Vue({
     el: '#app',
@@ -38,7 +38,7 @@ const app = new Vue({
 
     created() {
         let self = this;
-        this.$http.get('http://localhost/api/settings_auth')
+        this.$http.get(BASE_URL + '/api/settings_auth')
             .then(response => {
                 //settings
                 self.settings = response.data.settings;
