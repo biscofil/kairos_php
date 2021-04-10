@@ -6,6 +6,11 @@ use App\Models\Election;
 use Closure;
 use Illuminate\Http\Request;
 
+/**
+ * Class CanVote
+ * @package App\Http\Middleware
+ * @deprecated
+ */
 class CanVote
 {
     /**

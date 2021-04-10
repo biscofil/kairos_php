@@ -24,6 +24,8 @@ class CreatePeerServersTable extends Migration
             $table->point('gps')->nullable();
             $table->string('country_code',5)->nullable();
 
+            $table->text('jwt_public_key')->nullable();
+
             $table->timestamps();
 
         });

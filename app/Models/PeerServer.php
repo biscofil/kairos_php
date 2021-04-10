@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Http\Middleware\AuthenticateWithElectionCreatorJwt;
+use App\Models\Cast\ModelWithCryptoFields;
+use App\Models\Cast\PublicKeyCasterCryptosystem;
+use App\Voting\CryptoSystems\RSA\RSAPublicKey;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
 use Illuminate\Database\Eloquent\Builder;
@@ -9,6 +13,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Http;
+use Lcobucci\JWT\Parser;
+use Lcobucci\JWT\Signer\Key;
+use Lcobucci\JWT\Signer\Rsa\Sha256;
 
 /**
  * Class PeerServer
@@ -21,24 +28,36 @@ use Illuminate\Support\Facades\Http;
  * @property Election election
  * @property Point|null gps
  * @property string|null country_code
+ *
+ * @property RSAPublicKey|null jwt_public_key
+ *
  * @method static find(array $array)
  * @method static self firstOrFail()
  * @method static self|Builder withDomain(string $domain)
  */
 class PeerServer extends Model
 {
+
+    use ModelWithCryptoFields;
     use SpatialTrait;
     use HasFactory;
 
     protected $fillable = [
         'name',
         'ip',
+        //
         'gps',
-        'country_code'
+        'country_code',
+        //
+        'jwt_public_key'
     ];
 
     protected $spatialFields = [
         'gps',
+    ];
+
+    protected $casts = [
+        'jwt_public_key' => PublicKeyCasterCryptosystem::class
     ];
 
     /**
@@ -91,6 +110,32 @@ class PeerServer extends Model
             return $this->save();
         }
         return false;
+    }
+
+    /**
+     * @param string $tokenStrReceived
+     * @return int|null
+     */
+    public function checkJwtTokenAndReturnUserID(string $tokenStrReceived): ?int
+    {
+        $signer = new Sha256();
+
+        $token = (new Parser())->parse($tokenStrReceived);
+
+        $publicKey = new Key($this->jwt_public_key->toArray()['v']);
+
+        if (!$token->verify($signer, $publicKey)) {
+            return null;
+        }
+
+        $claims = $token->getClaims();
+
+        if (!array_key_exists(AuthenticateWithElectionCreatorJwt::UserIdClaimName, $claims)) {
+            return null;
+        }
+
+        return intval($claims[AuthenticateWithElectionCreatorJwt::UserIdClaimName]);
+
     }
 
 }

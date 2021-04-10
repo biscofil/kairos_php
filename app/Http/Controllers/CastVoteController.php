@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\AuthenticateWithElectionCreatorJwt;
 use App\Models\CastVote;
 use App\Models\Election;
 use App\Voting\CryptoSystems\CipherText;
@@ -40,19 +41,17 @@ class CastVoteController extends Controller
 
         $voteArray = $skClass::validate($data['vote']);
 
-        $voter = $election->getAuthVoter();
+        $userID = $request->get(AuthenticateWithElectionCreatorJwt::UserIdClaimName);
 
         /** @var CipherText $vote */
         $vote = $skClass::fromArray($voteArray, false, $election->public_key);
 
         $cast_vote = new CastVote();
         $cast_vote->vote = $vote;
-        $cast_vote->voter()->associate($voter);
+        $cast_vote->voter_id = $userID; // TODO user ID vs voter ID
         $cast_vote->hash = $vote->getFingerprint();
         $cast_vote->ip = \request()->ip();
         $cast_vote->save();
-
-        $voter->lastVoteCast()->associate($cast_vote)->save();
 
 //        VerifyVote::dispatch($cast_vote);
 

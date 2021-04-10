@@ -70,9 +70,10 @@ Route::middleware('auth:api')->group(function () {
         });
     });
 
-    Route::middleware(['frozen', 'can_vote'])->group(function () {
-        Route::post('/elections/{election}/cast', [CastVoteController::class, 'store']);
-    });
+});
+
+Route::middleware(['frozen', 'authenticate_with_election_creator_jwt'])->group(function () { // , 'can_vote'
+    Route::post('/elections/{election}/cast', [CastVoteController::class, 'store']);
 });
 
 Route::get('/elections', [ElectionController::class, 'index']);

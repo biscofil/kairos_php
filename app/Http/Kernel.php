@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\AuthenticateWithElectionCreatorJwt;
 use App\Http\Middleware\CanVote;
 use App\Http\Middleware\ElectionFrozen;
 use App\Http\Middleware\ElectionNotFrozen;
@@ -12,7 +13,6 @@ use App\Http\Middleware\MustBeElectionAdmin;
 use App\Http\Middleware\NoElectionIssues;
 use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use App\Http\Middleware\RedirectIfAuthenticated;
-use App\Http\Middleware\RefreshAndReturnToken;
 use App\Http\Middleware\TrimStrings;
 use App\Http\Middleware\TrustProxies;
 use Fruitcake\Cors\HandleCors;
@@ -71,6 +71,7 @@ class Kernel extends HttpKernel
      */
     protected $routeMiddleware = [
         'auth' => Authenticate::class,
+        'authenticate_with_election_creator_jwt' => AuthenticateWithElectionCreatorJwt::class,
         'auth.basic' => AuthenticateWithBasicAuth::class,
         'cache.headers' => SetCacheHeaders::class,
         'can' => Authorize::class,

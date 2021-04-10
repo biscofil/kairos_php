@@ -48,7 +48,7 @@ class AddPeer extends Command
 
 //        (new WillYouBeAElectionTrusteeForMyElection(Election::first(), $myHost, $to))->sendSync();
 //        (new AddMeToYourPeers($myHost, $to))->sendAsync();
-        (new AddMeToYourPeers($myHost, $to))->sendSync();
+        (new AddMeToYourPeers($myHost, $to, getJwtRSAKeyPair()->pk))->sendSync();
 
         return 0;
     }
