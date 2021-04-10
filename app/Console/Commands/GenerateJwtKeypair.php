@@ -1,22 +1,18 @@
-<?php /** @noinspection PhpUnused */
+<?php
 
 namespace App\Console\Commands;
 
-use App\Crypto\EGKeyPair;
+use App\Voting\CryptoSystems\RSA\RSAKeyPair;
 use Illuminate\Console\Command;
 
-/**
- * Class GeneratePrivateKey
- * @package App\Console\Commands
- */
-class GeneratePrivateKey extends Command
+class GenerateJwtKeypair extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'generate:secret_key';
+    protected $signature = 'generate:jwt-keypair';
 
     /**
      * The console command description.
@@ -42,12 +38,21 @@ class GeneratePrivateKey extends Command
      */
     public function handle()
     {
-        $keyPair = EGKeyPair::generate();
-        file_put_contents(base_path('private_key.json'),
-            json_encode($keyPair->sk->toArray(), JSON_PRETTY_PRINT));
 
-        file_put_contents(base_path('public_key.json'),
-            json_encode($keyPair->pk->toArray()), JSON_PRETTY_PRINT);
-        return 0;
+        $keyPair = RSAKeyPair::generate();
+
+        $result = $keyPair->toPemFiles(
+            config('jwt.keys.private'),
+            config('jwt.keys.public')
+        );
+
+        if ($result) {
+            $this->info("KeyPair exported");
+            return 0;
+        } else {
+            $this->error("Error exporting KeyPair");
+            return 1;
+        }
+
     }
 }
