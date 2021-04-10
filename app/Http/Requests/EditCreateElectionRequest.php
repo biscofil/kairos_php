@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Election;
+use App\Voting\CryptoSystems\CryptoSystem;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\In;
@@ -47,6 +48,9 @@ class EditCreateElectionRequest extends FormRequest
     public function rules()
     {
         return [
+
+            'cryptosystem' => ['required', 'string', new In(array_keys(CryptoSystem::CryptoSystems))],
+
             'name' => ['required', 'string'],
             'slug' => ['required', 'string'],
             'description' => ['required', 'string'],
@@ -81,6 +85,7 @@ class EditCreateElectionRequest extends FormRequest
     public function update(): Election
     {
         $data = $this->validated();
+        unset($data['cryptosystem']); // can't be changed
         $election = $this->electionToUpdate;
         $election->update($data);
         return $election;

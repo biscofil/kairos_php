@@ -2,8 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
 use App\Models\User;
+use App\Voting\CryptoSystems\CryptoSystem;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -21,8 +23,10 @@ class ElectionFactory extends Factory
      */
     public function definition()
     {
-
+        $cryptosystems = [CryptoSystemEnum::RSA(), CryptoSystemEnum::ElGamal()];
         return [
+            'cryptosystem' => CryptoSystemEnum::ElGamal(), //$cryptosystems[array_rand($cryptosystems)],
+            //
             'name' => $this->faker->name,
             'slug' => $this->faker->slug,
             'description' => $this->faker->paragraph,
@@ -69,7 +73,9 @@ class ElectionFactory extends Factory
 
     /**
      * Indicate that the election is frozen
+     * @param User $user
      * @return self
+     * @noinspection PhpMissingReturnTypeInspection
      */
     public function withAdmin(User $user)
     {
