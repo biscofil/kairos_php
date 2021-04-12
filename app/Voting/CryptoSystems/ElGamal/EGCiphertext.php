@@ -4,8 +4,11 @@
 namespace App\Voting\CryptoSystems\ElGamal;
 
 use App\Voting\CryptoSystems\CipherText;
-use Illuminate\Http\Request;
+use Exception;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use phpseclib3\Math\BigInteger;
+use RuntimeException;
 
 /**
  * Class EGCiphertext
@@ -32,14 +35,16 @@ class EGCiphertext implements CipherText
     // ##################################################################################
 
     /**
-     * @param Request $request
+     * @param array $data
      * @return array
+     * @throws ValidationException
      */
-    public static function validate(Request $request): array{
-        return $request->validate([
+    public static function validate(array $data): array
+    {
+        return Validator::make($data, [
             'alpha' => ['required', 'string'], // TODO hex?
             'beta' => ['required', 'string'], //  TODO hex?
-        ]);
+        ])->validated();
     }
 
     /**
@@ -186,13 +191,13 @@ class EGCiphertext implements CipherText
     /**
      * @param EGCiphertext $b
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      * @noinspection PhpMissingParamTypeInspection
      */
     public function equals($b): bool
     {
         if (!$b instanceof EGCiphertext) {
-            throw new \RuntimeException("EGCiphertext::equals > invalid type, must be EGCiphertext");
+            throw new RuntimeException("EGCiphertext::equals > invalid type, must be EGCiphertext");
         }
         $this->pk->ensureSameCryptosystem($b->pk);
         return $this->alpha->equals($b->alpha) && $this->beta->equals($b->beta);

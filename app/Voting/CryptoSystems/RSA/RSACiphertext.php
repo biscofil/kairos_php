@@ -87,10 +87,10 @@ class RSACiphertext implements CipherText
     }
 
     /**
-     * @param Request $request
+     * @param array $data
      * @return array
      */
-    public static function validate(Request $request): array{
+    public static function validate(array $data): array{
         return []; // TODO
     }
 

@@ -42,9 +42,9 @@ interface CipherText
     public function equals($b): bool;
 
     /**
-     * @param Request $request
+     * @param array $data
      * @return array
      */
-    public static function validate(Request $request): array;
+    public static function validate(array $data): array;
 
 }
