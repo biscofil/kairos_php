@@ -80,7 +80,7 @@ class AddMeToYourPeers extends P2PMessage
             $peer->ip = $host; // TODO resolve domain, store both IP and host
             $peer->name = "server " . $host;
             $peer->jwt_public_key = $this->senderJwtPk;
-            $peer->getGps();
+            $peer->fetchServerInfo();
             $peer->save();
 
             Log::debug("Host $host added as peer");

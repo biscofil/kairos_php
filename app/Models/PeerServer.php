@@ -93,12 +93,14 @@ class PeerServer extends Model
     }
 
     /**
-     *
+     * @param bool $selfQuery
+     * @return bool
      */
-    public function getGps(): bool
+    public function fetchServerInfo(bool $selfQuery = false): bool
     {
+        $v = $selfQuery ? "" : $this->ip; // works with both ip/domain
         /** @noinspection HttpUrlsUsage */
-        $url = "http://ip-api.com/php/{$this->ip}?fields=status,lat,lon,countryCode"; // works with both ip/domain
+        $url = "http://ip-api.com/php/$v?fields=status,lat,lon,countryCode,query";
         $response = Http::get($url);
         if (!($response->status() === 200)) {
             return false;
@@ -107,6 +109,9 @@ class PeerServer extends Model
         if ($data["status"] === "success") {
             $this->gps = new Point($data["lat"], $data["lon"]);
             $this->country_code = $data["countryCode"];
+            if ($selfQuery) {
+                $this->ip = $data["query"];
+            }
             return $this->save();
         }
         return false;

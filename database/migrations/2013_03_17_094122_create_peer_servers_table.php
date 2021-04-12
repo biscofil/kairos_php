@@ -29,6 +29,9 @@ class CreatePeerServersTable extends Migration
             $table->timestamps();
 
         });
+
+        Artisan::call('db:seed', ['--class' => 'PeerServersTableSeeder', '--force' => 1]);
+
     }
 
     /**
