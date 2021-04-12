@@ -133,13 +133,11 @@ class PeerServer extends Model
             return null;
         }
 
-        $claims = $token->getClaims();
-
-        if (!array_key_exists(AuthenticateWithElectionCreatorJwt::UserIdClaimName, $claims)) {
+        if (!$token->hasClaim(AuthenticateWithElectionCreatorJwt::UserIdClaimName)) {
             return null;
         }
 
-        return intval($claims[AuthenticateWithElectionCreatorJwt::UserIdClaimName]);
+        return intval($token->getClaim(AuthenticateWithElectionCreatorJwt::UserIdClaimName));
 
     }
 
