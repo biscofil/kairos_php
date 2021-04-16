@@ -102,8 +102,8 @@ export default {
                         let p2 = new LonLat(node2.gps.coordinates[0], node2.gps.coordinates[1]);
 
                         let path = [p1];
-                        for (let i = 1; i <= 10; i++) {
-                            let c = i / 10;
+                        for (let i = 1; i <= 100; i++) {
+                            let c = i / 100;
                             path.push(new LonLat(
                                 p1.lon + ((p2.lon - p1.lon) * c),
                                 p1.lat + ((p2.lat - p1.lat) * c)
