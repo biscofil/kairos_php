@@ -5,6 +5,7 @@ namespace Tests\Unit\Voting\CryptoSystems\ElGamal;
 
 
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
+use App\Voting\CryptoSystems\ElGamal\EGParameterSet;
 use App\Voting\CryptoSystems\ElGamal\EGThresholdPolynomial;
 use phpseclib3\Math\BigInteger;
 use Tests\TestCase;
@@ -21,13 +22,10 @@ class EG_TL_ThresholdTest extends TestCase
      */
     public function random()
     {
-
-        $keyPair = EGKeyPair::generate();
-        $keyPair->pk->p = BI(10);
-        $keyPair->pk->q = BI(10);
+        $parameterSet = new EGParameterSet(BI(10), BI(10), BI(10));
 
         $t = 4;
-        $p = EGThresholdPolynomial::random($t, $keyPair->pk);
+        $p = EGThresholdPolynomial::random($t, $parameterSet);
         $this->assertCount($t + 1, $p->factors);
         dump($p->factors[0]->toString());
         dump($p->factors[1]->toString());
@@ -37,112 +35,114 @@ class EG_TL_ThresholdTest extends TestCase
     }
 
     /**
-     * @test
-     */
-    public function compute()
-    {
-
-        $keyPair = EGKeyPair::generate();
-        $keyPair->pk->p = BI(100);
-        $keyPair->pk->q = BI(100);
-
-        $p = new EGThresholdPolynomial(
-            [BI(2), BI(3), BI(4), BI(5)],
-            $keyPair->pk
-        );
-
-        $this->assertCount(4, $p->factors);
-        $this->assertTrue($p->compute(BI(0))->equals($p->factors[0]));
-        $this->assertTrue($p->compute(BI(3))->equals(BI(82)));
-    }
-
-    /**
      * TODO
      * @test
      */
     public function valid_elgamal_parameters()
     {
-        $keyPair = EGKeyPair::generate();
+        $parameterSet = EGParameterSet::default();
+        $this->assertTrue($parameterSet->p->isPrime()); // prime
+        $this->assertTrue($parameterSet->g->isPrime()); // prime
+//        $this->assertTrue($keyPair->pk->q->isPrime());
 
-        $this->assertTrue($keyPair->pk->p->isPrime());
-        $this->assertTrue($keyPair->pk->q->isPrime());
+        list($quotient, $remainder) = $parameterSet->p->subtract(BI1())->divide($parameterSet->g); //
 
-        list($quotient, $remainder) = $keyPair->pk->q->divide($keyPair->pk->p->subtract(BI1()));
-        dump($quotient->toString());
-        dump($remainder->toString());
+        $this->assertFalse($quotient->equals(BI(0)));
         $this->assertTrue($remainder->equals(BI(0)));
     }
 
     /**
      * @test
      */
-    public function threshold()
+    public function threshold3()
     {
 
-        $peers = array_fill_keys(range(1, rand(5, 6)), []);
+//        $params = DH::createParameters('diffie-hellman-group14-sha1');
+//        $params = new CustomDH($params);
+//        dump($params->getPrime()->toString());
+//        dd($params->getBase()->toString());
+//        dd($pk);
+//        dd($pk->toBigInteger()->toString());
 
+//        srand(1);
+
+//        $parameterSet = new EGParameterSet(BI(3), BI(13), BI(13));
+        $parameterSet = new EGParameterSet(BI(29), BI(59), BI(31));
+//        $parameterSet = new EGParameterSet(BI(4), BI(5), BI(5));
+//        $parameterSet = EGParameterSet::default();
+
+        dump($parameterSet->toString());
+
+        $t = 1;
+        $peer_i = new Peer(1, $parameterSet, $t);
+        $peer_j = new Peer(2, $parameterSet, $t);
+
+        $peer_j->setReceivedBroadcast($peer_i->id, $peer_i->getBroadcast());
+        $peer_i->setReceivedBroadcast($peer_j->id, $peer_j->getBroadcast());
+
+        $peer_j->setReceivedShare($peer_i->id, $peer_i->getShareToSend($peer_j->id));
+        $peer_i->setReceivedShare($peer_j->id, $peer_j->getShareToSend($peer_i->id));
+
+        $this->assertTrue($peer_j->isShareValid($peer_i->id));
+        $this->assertTrue($peer_i->isShareValid($peer_j->id));
+
+    }
+
+    /**
+     * @test
+     */
+    public function threshold2()
+    {
+
+        srand(1);
+
+        $parameterSet = new EGParameterSet(BI(7), BI(29), BI(29));
+//        $parameterSet = new EGParameterSet(BI(29), BI(59), BI(31));
+
+        $t = 2;
+        $peers = [
+            new Peer(1, $parameterSet, $t),
+            new Peer(2, $parameterSet, $t),
+            new Peer(3, $parameterSet, $t),
+//            new Peer(4, $keyPair, $k),
+        ];
         $n = count($peers);
-        $t = rand(3, $n - 1);
 
-        dump("N = $n , T = $t");
+        // broadcast and send shares
+        foreach ($peers as $peer_i) {
+            $Aik = $peer_i->getBroadcast();
 
-        $broadcast = [];
-        $shares = [];
+            dump("{$peer_i->id} is broadcasting " . $Aik->toString());
 
-        $keyPair = EGKeyPair::generate();
-
-        // only works with this
-        $keyPair->pk->p = BI(100000);
-        $keyPair->pk->q = BI(100000);
-//        $keyPair->pk->q = $keyPair->pk->p;
-
-        $keyPair->sk->x = randomBIgt($keyPair->pk->q);
-        $keyPair->pk->y = $keyPair->pk->g->modPow($keyPair->sk->x, $keyPair->pk->p); // also called h
-
-        foreach ($peers as $i => $peer_i) {
-
-            $peers[$i]['id'] = $i;
-
-            $f_i = $keyPair->generatePolynomial($t);
-            $peers[$i]['f_i'] = $f_i;
-
-//            $f_i_prime = $keyPair->generatePolynomial($t);
-//            $peers[$i]['f_i_prime'] = $f_i_prime;
-
-            dump($f_i->toString() /*. " #### " . $f_i_prime->toString()*/);
-
-            $this->assertCount($t + 1, $f_i->factors);
-            $secret = $f_i->compute(BI(0));
-            $peers[$i]['secret'] = $secret;
-
-            // broadcast
-            $broadcast[$i] = $f_i->getBroadcast();
-            $this->assertCount($t + 1, $broadcast[$i]->values);
-
-            // compute shares
-            $shares[$i] = []; // from > to > share
-            foreach ($peers as $j => $peer_j) {
-                if ($j == $i) {
-                    continue; // skip self
+            foreach ($peers as $peer_j) {
+                if ($peer_i->id === $peer_j->id) {
+                    continue; // not self
                 }
-                $share = $f_i->compute(BI($j));
-                $shares[$i][$j] = $share;
-            }
-            $this->assertCount($n - 1, $shares[$i]);
+                $peer_j->setReceivedBroadcast($peer_i->id, $Aik);
 
+                $share = $peer_i->getShareToSend($peer_j->id);
+                dump("{$peer_i->id} is sending share {$share->toString()} to {$peer_j->id}");
+                $peer_j->setReceivedShare($peer_i->id, $share);
+            }
         }
 
-        $this->assertCount($n, $broadcast);
-        $this->assertCount($n, $shares);
+        // check broadcast and shares
+        foreach ($peers as $peer) {
+            $this->assertCount($n - 1, $peer->receivedBroadcasts); // not self
+            $this->assertCount($n - 1, $peer->shareReceived); // not self
+            $this->assertCount($n - 1, $peer->shareSent); // not self
+            foreach ($peer->receivedBroadcasts as $broadcast) {
+                $this->assertCount($t + 1, $broadcast->values);
+            }
+        }
 
-        // each peer j performs a check
-        foreach ($peers as $j => $peer_j) {
-            // peer j checks all its shares of all i
-            foreach ($peers as $i => $peer_i) {
-                if ($i == $j) {
-                    continue; // don't check for self
+        // check shares
+        foreach ($peers as $peer_i) {
+            foreach ($peers as $peer_j) {
+                if ($peer_i->id === $peer_j->id) {
+                    continue; // not self
                 }
-                $this->assertTrue($broadcast[$i]->isValid($shares[$i][$j], $j));
+                $this->assertTrue($peer_i->isShareValid($peer_j->id));
             }
         }
 
@@ -155,21 +155,20 @@ class EG_TL_ThresholdTest extends TestCase
 //            $peers[$j]['vk'] = $vk_j;
 //        }
 
-        foreach ($peers as $j => $peer) {
-            $peers[$j]['share'] = $this->combineReceivedSharesIntoShare($peer, $peers, $shares);
-        }
 
+        /**
+         * TODO
+         *    foreach ($peers as $j => $peer) {
+        $peers[$j]['share'] = $this->combineReceivedSharesIntoShare($peer, $peers, $shares);
+        }
         $all = $this->getCombinedSecretKey($peers, $keyPair);
         dump($all->toString());
-
         array_pop($peers); // remove one peer
-
         $allButOne = $this->getCombinedSecretKey($peers, $keyPair);
         dump($allButOne->toString());
-
         // TODO convert vk_j into c_i*
-
         $this->assertTrue($all->equals($allButOne));
+         */
 
     }
 
@@ -206,7 +205,7 @@ class EG_TL_ThresholdTest extends TestCase
         foreach ($shares as $i => $share_array) {
             foreach ($share_array as $j => $share) {
                 if ($i !== $_j && $j === $_j) {
-                    $out = $out->multiply($share)->modPow(BI1(), $keyPair->pk->p);
+                    $out = $out->multiply($share)->modPow(BI1(), $keyPair->pk->parameterSet->p);
                 }
             }
         }
@@ -227,12 +226,12 @@ class EG_TL_ThresholdTest extends TestCase
             $lambda = $this->getLagrangianCoefficient(
                 array_column($qualifiedPeers, 'id'),
                 $peer['id'],
-                $keyPair->pk->p
+                $keyPair->pk->parameterSet->p
             );
             $s = $s->add(
                 $share
                     ->multiply($lambda)
-                    ->modPow(BI1(), $keyPair->pk->p)
+                    ->modPow(BI1(), $keyPair->pk->parameterSet->p)
             );
         }
         return $s;
@@ -270,5 +269,6 @@ class EG_TL_ThresholdTest extends TestCase
         }
         $this->assertTrue(true);
     }
+
 
 }
