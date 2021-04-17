@@ -11,23 +11,23 @@ use phpseclib3\Math\BigInteger;
  * Class EGThresholdBroadcast
  * @package App\Voting\CryptoSystems\ElGamal
  * @property BigInteger[] $values
- * @property EGPublicKey $pk
+ * @property \App\Voting\CryptoSystems\ElGamal\EGParameterSet $ps
  */
 class EGThresholdBroadcast implements ThresholdBroadcast
 {
 
     public array $values;
-    public EGPublicKey $pk;
+    public EGParameterSet $ps;
 
     /**
      * EGThresholdBroadcast constructor.
      * @param array $values keys should be 0..k
-     * @param EGPublicKey $pk
+     * @param EGParameterSet $ps
      */
-    public function __construct(array $values, EGPublicKey $pk)
+    public function __construct(array $values, EGParameterSet $ps)
     {
         $this->values = $values;
-        $this->pk = $pk;
+        $this->ps = $ps;
     }
 
     /**
@@ -38,16 +38,26 @@ class EGThresholdBroadcast implements ThresholdBroadcast
     public function isValid(BigInteger $share_i_j, int $j): bool
     {
 
-        $g_s_i_j = $this->pk->g->modPow($share_i_j, $this->pk->q); // TODO mod?
+        $mod = $this->ps->p;
 
-        $prod = BI(1);
-        foreach ($this->values as $k => $b) {
-            $prod = $prod->multiply($b
-                ->modPow(BI(pow($j, $k)), $this->pk->q)
-            )->modPow(BI1(), $this->pk->q);
+        // left part
+        $left = $this->ps->g->modPow($share_i_j, $mod);
+        dump("   A = {$this->ps->g->toString()}^{$share_i_j->toString()} mod {$mod->toString()} = {$left->toString()}");
+
+        // right part
+        $right = BI(1);
+        foreach ($this->values as $k => $A_i_k) {
+
+            $exp = BI(pow($j, $k)); // BI($j * $k);
+            $term = $A_i_k->modPow($exp, $mod);
+            $right = $right->multiply($term)->modPow(BI1(), $mod);
+            dump("   B = B * [{$A_i_k->toString()}^[$j^$k] mod {$mod->toString()} = {$term->toString()}] = {$right->toString()}");
+
         }
 
-        return $g_s_i_j->equals($prod);
+        dump("{$left->toString()} =? {$right->toString()}");
+
+        return $left->equals($right);
     }
 
     // #######################################################################################################
@@ -55,12 +65,22 @@ class EGThresholdBroadcast implements ThresholdBroadcast
     // #######################################################################################################
 
     /**
+     * @return string
+     */
+    public function toString()
+    {
+        return implode(",", array_map(function (BigInteger $n) {
+            return $n->toString();
+        }, $this->values));
+    }
+
+    /**
      * @return array
      */
     public function toArray(): array
     {
         return [
-            'pk' => $this->pk->toArray(),
+            'ps' => $this->ps->toArray(),
             'values' => array_map(function (BigInteger $f) {
                 return $f->toHex();
             }, $this->values)
@@ -73,11 +93,11 @@ class EGThresholdBroadcast implements ThresholdBroadcast
      */
     public static function fromArray(array $data): EGThresholdBroadcast
     {
-        $pk = EGPublicKey::fromArray($data['pk']);
+        $ps = EGParameterSet::fromArray($data['ps']);
         $values = array_map(function (string $f) {
             return new BigInteger($f, 16);
         }, $data['values']);
-        return new static($values, $pk);
+        return new static($values, $ps);
     }
 
 }

@@ -10,52 +10,53 @@ use phpseclib3\Math\BigInteger;
  * Class EGThresholdPolynomial
  * @package App\Voting\CryptoSystems\ElGamal
  * @property BigInteger[] $factors
- * @property EGPublicKey $pk
+ * @property EGParameterSet $ps
  */
 class EGThresholdPolynomial
 {
 
     public array $factors;
-    public EGPublicKey $pk;
+    public EGParameterSet $ps;
 
     /**
      * EGThresholdPolynomial constructor.
      * @param array $factors
-     * @param EGPublicKey $pk
+     * @param \App\Voting\CryptoSystems\ElGamal\EGParameterSet $ps
      */
-    public function __construct(array $factors, EGPublicKey $pk)
+    public function __construct(array $factors, EGParameterSet $ps)
     {
         $this->factors = $factors;
-        $this->pk = $pk;
+        $this->ps = $ps;
     }
 
     /**
-     * @param int $degree
-     * @param EGPublicKey $pk
+     * @param int $t 0 <= t <= l-1
+     * @param \App\Voting\CryptoSystems\ElGamal\EGParameterSet $ps
      * @return EGThresholdPolynomial
      */
-    public static function random(int $degree, EGPublicKey $pk): EGThresholdPolynomial
+    public static function random(int $t, EGParameterSet $ps): EGThresholdPolynomial
     {
         $out = [];
-        for ($i = 0; $i <= $degree; $i++) {
-            $out[] = randomBIgt($pk->p); // TODO check
+        for ($i = 0; $i <= $t; $i++) {
+            $out[] = randomBIgt($ps->p);
         }
-        return new static($out, $pk);
+        return new static($out, $ps);
     }
 
     /**
+     * computes the polynomial at point x without module
      * @param BigInteger $x
      * @return BigInteger
      */
     public function compute(BigInteger $x): BigInteger
     {
-        $out = $this->factors[0];
+        $out = $this->factors[0]; // secret
         for ($i = 1; $i < count($this->factors); $i++) {
             $out = $out->add(
-                $this->factors[$i]->multiply($x->modPow(BI($i), $this->pk->p)) // TODO check Q / P
-            )->modPow(BI1(), $this->pk->p); // TODO check Q / P
+                $this->factors[$i]->multiply($x->pow(BI($i)))
+            );
         }
-        return $out->modPow(BI1(), $this->pk->p); // TODO check Q / P
+        return $out;
     }
 
     /**
@@ -64,11 +65,11 @@ class EGThresholdPolynomial
     public function getBroadcast(): EGThresholdBroadcast
     {
         $values = [];
-        foreach ($this->factors as $k => $a_i_k) {
-            $A_i_k = $this->pk->g->modPow($a_i_k, $this->pk->q); // TODO check Q / P
+        foreach ($this->factors as $a_i_k) {
+            $A_i_k = $this->ps->g->modPow($a_i_k, $this->ps->p);
             $values[] = $A_i_k;
         }
-        return new EGThresholdBroadcast($values, $this->pk);
+        return new EGThresholdBroadcast($values, $this->ps);
     }
 
     // #######################################################################################################
@@ -83,13 +84,10 @@ class EGThresholdPolynomial
         return implode("+", array_map(function (BigInteger $factor, $key) {
                 $out = $factor->toString();
                 if ($key > 0) {
-                    $out .= 'x';
-                    if ($key > 1) {
-                        $out .= '^' . $key;
-                    }
+                    $out .= 'x' . ($key > 1 ? ('^' . $key) : "");
                 }
                 return $out;
-            }, $this->factors, array_keys($this->factors))) . " mod " . $this->pk->p->toString();
+            }, $this->factors, array_keys($this->factors))) . " mod " .  $this->ps->p->toString();
     }
 
     // #######################################################################################################
@@ -102,7 +100,7 @@ class EGThresholdPolynomial
     public function toArray(): array
     {
         return [
-            'pk' => $this->pk->toArray(),
+            'ps' => $this->ps->toArray(),
             'factors' => array_map(function (BigInteger $f) {
                 return $f->toHex();
             }, $this->factors)
@@ -115,11 +113,11 @@ class EGThresholdPolynomial
      */
     public static function fromArray(array $data): EGThresholdPolynomial
     {
-        $pk = EGPublicKey::fromArray($data['pk']);
+        $ps = EGParameterSet::fromArray($data['ps']);
         $factors = array_map(function (string $f) {
             return new BigInteger($f, 16);
         }, $data['factors']);
-        return new static($factors, $pk);
+        return new static($factors, $ps);
     }
 
 }
