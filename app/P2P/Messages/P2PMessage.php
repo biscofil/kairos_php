@@ -26,6 +26,14 @@ abstract class P2PMessage
     protected string $from;
     protected array $to;
 
+    // register here all the messages
+    private static array $messageClasses = [
+        AddMeToYourPeers::class,
+        WillYouBeAElectionTrusteeForMyElection::class,
+        IReceivedTheseVotes::class,
+        ThisIsMyMixSet::class,
+    ];
+
     /**
      * @param string $from
      * @param string[]|string $to
@@ -72,21 +80,19 @@ abstract class P2PMessage
      * @param string $message
      * @return string
      * @throws Exception
+     * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
     protected static function getClass(string $message): string
     {
-        switch ($message) {
-            case AddMeToYourPeers::name:
-                return AddMeToYourPeers::class;
-            // ###########################
-            case WillYouBeAElectionTrusteeForMyElection::name:
-                return WillYouBeAElectionTrusteeForMyElection::class;
-            case ThisIsMyMixSet::name:
-                return ThisIsMyMixSet::class;
-            default:
-                Log::error("Unknown message name $message");
-                throw new Exception("Unknown message name $message");
+        /** @var \App\P2P\Messages\P2PMessage $messageClass */
+        foreach (self::$messageClasses as $messageClass) {
+            if ($messageClass::name === $message) {
+                /** @noinspection PhpIncompatibleReturnTypeInspection */
+                return $messageClass;
+            }
         }
+        Log::error("Unknown message name $message");
+        throw new Exception("Unknown message name $message");
     }
 
     /**
