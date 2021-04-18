@@ -30,12 +30,13 @@ use Lcobucci\JWT\Signer\Rsa\Sha256;
  * @property string|null country_code
  *
  * @property RSAPublicKey|null jwt_public_key
+ * @property string|null token Token used by the current server to authenticate with the server represented by this model
  *
  * @method static find(array $array)
  * @method static self firstOrFail()
  * @method static self|Builder withDomain(string $domain)
  */
-class PeerServer extends Model
+class PeerServer extends Authenticatable implements JWTSubject
 {
 
     use ModelWithCryptoFields;
@@ -49,7 +50,8 @@ class PeerServer extends Model
         'gps',
         'country_code',
         //
-        'jwt_public_key'
+        'jwt_public_key',
+        'token'
     ];
 
     protected $spatialFields = [
@@ -141,4 +143,15 @@ class PeerServer extends Model
 
     }
 
+    // ############################# JWT #######################################
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();  // id
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
 }

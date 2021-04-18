@@ -46,6 +46,12 @@ return [
             'provider' => 'users',
             'hash' => false,
         ],
+
+        'peer_api' => [
+            'driver' => 'jwt',
+            'provider' => 'peers',
+            'hash' => false,
+        ],
     ],
 
     /*
@@ -71,10 +77,10 @@ return [
             'model' => App\Models\User::class,
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'peers' => [
+            'driver' => 'eloquent',
+            'model' => PeerServer::class,
+        ],
     ],
 
     /*

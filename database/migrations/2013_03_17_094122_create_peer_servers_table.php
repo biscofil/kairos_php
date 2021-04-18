@@ -25,6 +25,7 @@ class CreatePeerServersTable extends Migration
             $table->string('country_code',5)->nullable();
 
             $table->text('jwt_public_key')->nullable();
+            $table->text('token')->nullable();
 
             $table->timestamps();
 
