@@ -33,7 +33,11 @@ class CastVoteController extends Controller
     public function store(Election $election, Request $request): CastVote
     {
         $data = $request->validate([
-            'vote' => ['required', 'array']
+            'vote' => ['required', 'array'],
+            /**
+             * claim added by @see AuthenticateWithElectionCreatorJwt::handle()
+             */
+            AuthenticateWithElectionCreatorJwt::UserIdClaimName => ['required']
         ]);
 
         /** @var CipherText $skClass */
@@ -48,6 +52,7 @@ class CastVoteController extends Controller
 
         $cast_vote = new CastVote();
         $cast_vote->vote = $vote;
+        $cast_vote->election_id = $election->id;
         $cast_vote->voter_id = $userID; // TODO user ID vs voter ID
         $cast_vote->hash = $vote->getFingerprint();
         $cast_vote->ip = \request()->ip();
