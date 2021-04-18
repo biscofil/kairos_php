@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\P2P\Messages\P2PMessage;
 use App\Voting\CryptoSystems\RSA\RSAKeyPair;
 use Illuminate\Console\Command;
 
@@ -45,6 +46,11 @@ class GenerateJwtKeypair extends Command
             config('jwt.keys.private'),
             config('jwt.keys.public')
         );
+
+        // copy jwt token to the record corresponding to this server
+        $me = P2PMessage::me();
+        $me->jwt_public_key = getJwtRSAKeyPair()->pk;
+        $me->save();
 
         if ($result) {
             $this->info("KeyPair exported");
