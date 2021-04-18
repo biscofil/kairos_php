@@ -38,6 +38,10 @@ RUN docker-php-ext-install gmp
 
 RUN pecl install redis
 
+RUN pecl install pcov && docker-php-ext-enable pcov
+
+RUN apt-get install -y cron
+
 RUN addgroup app_user_g -u 1000
 RUN useradd -m -r -u 1000 -g app_user_g app_user
 USER app_user
