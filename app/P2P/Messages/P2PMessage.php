@@ -29,6 +29,7 @@ abstract class P2PMessage
     private static array $messageClasses = [
         AddMeToYourPeers::class,
         WillYouBeAElectionTrusteeForMyElection::class,
+        IFrozeMyElection::class,
         IReceivedTheseVotes::class,
         ThisIsMyMixSet::class,
     ];
