@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Models\Election;
+use App\Models\PeerServer;
+use App\Voting\AnonymizationMethods\AnonymizationMethod;
 use App\Voting\CryptoSystems\CryptoSystem;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -75,6 +77,7 @@ class EditCreateElectionRequest extends FormRequest
         $election = Election::make($data);
         $election->uuid = (string)Str::uuid();
         $election->admin()->associate(getAuthUser());
+        $election->peerServerAuthor()->associate(PeerServer::me());
         $election->save();
         return $election;
     }

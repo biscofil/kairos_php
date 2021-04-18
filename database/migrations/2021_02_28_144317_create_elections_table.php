@@ -20,7 +20,7 @@ class CreateElectionsTable extends Migration
             $table->uuid('uuid')->unique();
             $table->string('slug')->unique();
 
-            $table->unsignedBigInteger('peer_server_id')->nullable(); // Null if created by this server
+            $table->unsignedBigInteger('peer_server_id');
             $table->foreign('peer_server_id')->references('id')->on('peer_servers');
 
             $table->string('name');

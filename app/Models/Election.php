@@ -38,8 +38,8 @@ use Illuminate\Support\Str;
  * @property bool is_featured
  * @property null|array questions
  *
- * @property int|null peer_server_id
- * @property PeerServer|null peerServerAuthor
+ * @property int peer_server_id ID of the server that created the election
+ * @property PeerServer peerServerAuthor Server that created the election
  *
  * @property int|null admin_id
  * @property User admin
