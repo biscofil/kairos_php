@@ -20,9 +20,16 @@ class AddMeToYourPeers extends P2PMessage
 {
 
     public const name = 'add_me_to_your_peers';
-    private RSAPublicKey $pk;
+    public RSAPublicKey $senderJwtPk;
 
-    public function __construct(string $from, $to, RSAPublicKey $pk)
+    /**
+     * AddMeToYourPeers constructor.
+     * @param \App\Models\PeerServer $from
+     * @param PeerServer[] $to
+     * @param \App\Voting\CryptoSystems\RSA\RSAPublicKey $pk
+     * @throws \Exception
+     */
+    public function __construct(PeerServer $from, array $to, RSAPublicKey $pk)
     {
         parent::__construct($from, $to);
         $this->senderJwtPk = $pk;
@@ -30,10 +37,10 @@ class AddMeToYourPeers extends P2PMessage
 
     /**
      * This is the mesage sent to the new peer
-     * @param string $to
+     * @param \App\Models\PeerServer $to
      * @return array
      */
-    public function getRequestData(string $to): array
+    public function getRequestData(PeerServer $to): array
     {
         $myKeyPair = getJwtRSAKeyPair();
         return [
@@ -42,13 +49,13 @@ class AddMeToYourPeers extends P2PMessage
     }
 
     /**
-     * @param string $sender
+     * @param PeerServer $sender
      * @param array $messageData
      * @return P2PMessage
      * @throws ValidationException
      * @throws \Exception
      */
-    public static function fromRequest(string $sender, array $messageData): P2PMessage
+    public static function fromRequest(PeerServer $sender, array $messageData): P2PMessage
     {
         $data = Validator::make($messageData, [
             'my_jwt_public_key' => ['required', 'array']
@@ -58,7 +65,7 @@ class AddMeToYourPeers extends P2PMessage
 
         return new static(
             $sender,
-            config('app.url'),
+            [self::me()],
             $pk
         );
     }
@@ -70,21 +77,13 @@ class AddMeToYourPeers extends P2PMessage
     public function onRequestReceived(): JsonResponse
     {
 
-        $host = $this->from;
-
         Log::debug("AddMeToYourPeers message received");
 
-        if (PeerServer::query()->where('ip', '=', $host)->count() == 0) {
+        $this->from->jwt_public_key = $this->senderJwtPk;
+        $this->from->fetchServerInfo();
+        $this->from->save();
 
-            $peer = new PeerServer();
-            $peer->ip = $host; // TODO resolve domain, store both IP and host
-            $peer->name = "server " . $host;
-            $peer->jwt_public_key = $this->senderJwtPk;
-            $peer->fetchServerInfo();
-            $peer->save();
-
-            Log::debug("Host $host added as peer");
-        }
+        Log::debug("Host {$this->from->ip} added as peer");
 
         $myKeyPair = getJwtRSAKeyPair();
         return new JsonResponse([
@@ -95,18 +94,23 @@ class AddMeToYourPeers extends P2PMessage
 
     /**
      * Once the peer has replied, we store its public key
-     * @param string $destPeerServer
-     * @param array $data
+     * @param \App\Models\PeerServer $destPeerServer
+     * @param \Illuminate\Http\Client\Response $response
      */
-    public function onResponseReceived(string $destPeerServer, array $data): void
+    public function onResponseReceived(PeerServer $destPeerServer, \Illuminate\Http\Client\Response $response): void
     {
+
+        if ($response->status() >= 300) {
+            return;
+        }
+
         // get the public key sent back from the peer
-        $pk = RSAPublicKey::fromArray($data['jwt_public_key']);
+        $pk = RSAPublicKey::fromArray($response->json('jwt_public_key'));
 
         // update peer
-        $server = PeerServer::withDomain($destPeerServer)->firstOrFail();
-        $server->jwt_public_key = $pk;
-        $server->save();
+        $destPeerServer->fetchServerInfo();
+        $destPeerServer->jwt_public_key = $pk;
+        $destPeerServer->save();
 
     }
 

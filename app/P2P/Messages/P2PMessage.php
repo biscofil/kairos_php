@@ -4,26 +4,25 @@
 namespace App\P2P\Messages;
 
 use App\Jobs\SendP2PMessage;
+use App\Models\PeerServer;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 use ReflectionClass;
 use ReflectionException;
 
 /**
  * Class P2PMessage
  * @package App\P2P\Messages
- * @property string $from
- * @property string[] $to // TODO allow multicast
+ * @property PeerServer $from
+ * @property PeerServer[] $to
  * @property string $name
  */
 abstract class P2PMessage
 {
 
-    protected string $from;
+    protected PeerServer $from;
     protected array $to;
 
     // register here all the messages
@@ -35,43 +34,34 @@ abstract class P2PMessage
     ];
 
     /**
-     * @param string $from
-     * @param string[]|string $to
+     * @param PeerServer $from
+     * @param PeerServer[] $to
      * @throws Exception
      */
-    public function __construct(string $from, $to)
+    public function __construct(PeerServer $from, array $to)
     {
-        $this->from = extractDomain($from);
-        $this->to = array_map(function (string $domain) {
-            return extractDomain($domain);
-        }, (array)$to);
+        $this->from = $from;
+        $this->to = $to;
     }
 
     /**
+     * @param \App\Models\PeerServer $senderPeer
+     * @param string $message
      * @param array $messageData
      * @return JsonResponse
-     * @throws ReflectionException
-     * @throws ValidationException
-     * @throws Exception
+     * @throws \ReflectionException
      * @noinspection PhpMissingReturnTypeInspection
      */
-    public static final function fromRequestData(array $messageData): JsonResponse
+    public static final function fromRequestData(PeerServer $senderPeer, string $message, array $messageData): JsonResponse
     {
 
-        $data = Validator::make($messageData, [
-            'message' => ['required', 'string'], // TODO check not self
-            'sender' => ['required', 'string']
-        ])->validate();
-
-        $message = $data['message'];
         $className = self::getClass($message);
-
-        $sender = extractDomain($data['sender']);
 
         $r = new ReflectionClass($className);
         /** @var static $instance */
         $instance = $r->newInstanceWithoutConstructor();
-        $messageObj = $instance->fromRequest($sender, $messageData);
+
+        $messageObj = $instance->fromRequest($senderPeer, $messageData);
         return $messageObj->onRequestReceived();
     }
 
@@ -96,33 +86,28 @@ abstract class P2PMessage
     }
 
     /**
-     * @return string
+     * TODO move to PeerServer class
+     * @return PeerServer
      */
-    protected static function me(): string
+    public static function me(): PeerServer
     {
-        return config('app.url');
+        return PeerServer::first(); // TODO check
     }
 
     /**
-     * @param string $sender
+     * @param PeerServer $sender
      * @param array $messageData
      * @return static
      * @throws Exception
      */
-    public static function fromRequest(string $sender, array $messageData): P2PMessage
-    {
-        return new static($sender, self::me());
-    }
+    public abstract static function fromRequest(PeerServer $sender, array $messageData): P2PMessage;
 
     /**
      * Sends the message in a blocking way, should only be called by queues and not during requests
-     * @param string $to
+     * @param \App\Models\PeerServer $to
      * @return array
      */
-    public function getRequestData(string $to): array
-    {
-        return [];
-    }
+    public abstract function getRequestData(PeerServer $to): array;
 
     // #############################################################
 
@@ -135,47 +120,34 @@ abstract class P2PMessage
 
         $messageName = (new ReflectionClass(get_class($this)))->getConstant('name');
 
-        $result = [];
+//        $result = [];
 
         foreach ($this->to as $destPeerServer) { // foreach destination server
 
-            $url = "https://" . $destPeerServer . '/api/p2p';
+            $url = "https://" . $destPeerServer->ip . '/api/p2p/' . $messageName;
 
             Log::debug("Sending a message to " . $url);
 
-            $data = array_merge_recursive($this->getRequestData($destPeerServer), [
-                'sender' => "https://" . $this->from,
-                'message' => $messageName // TODO check
-            ]);
+            $data = $this->getRequestData($destPeerServer);
 
-            $response = Http::withOptions([
-                'verify' => false, // TODO remove
-            ])->post($url, $data);  // ############################################## Response
+            /** @noinspection PhpParamsInspection */
+            Log::debug($data);
 
-            Log::debug("I received a response with status " . $response->status());
+            try {
 
-            $result[$destPeerServer] = $response->status();
+                $response = Http::withOptions([
+                    'verify' => false, // TODO remove
+                ])->post($url, $data);  // ############################################## Response
 
-            if ($response->status() >= 200 && $response->status() < 300) {
+                Log::debug("I received a response with status " . $response->status());
 
-                $json = $response->json();
-                Log::debug($json);
+                $this->onResponseReceived($destPeerServer, $response);
 
-                try {
-                    $this->onResponseReceived($destPeerServer, $response->json());
-                } catch (Exception $e) {
-                    Log::error($e->getMessage());
-                    Log::error($e->getFile());
-                    Log::error($e->getLine());
-                }
-
-            } else {
-                Log::error($response->body());
+            } catch (\Exception $e) {
+                Log::error("Error sending  $url : " . $e->getMessage());
             }
-        }
 
-        /** @noinspection PhpParamsInspection */
-        Log::debug($result);
+        }
 
     }
 
@@ -198,11 +170,11 @@ abstract class P2PMessage
     public abstract function onRequestReceived(): JsonResponse;
 
     /**
-     * @param string $destPeerServer
-     * @param array $data
+     * @param \App\Models\PeerServer $destPeerServer
+     * @param \Illuminate\Http\Client\Response $response
      * @return void
      */
-    public function onResponseReceived(string $destPeerServer, array $data): void
+    public function onResponseReceived(PeerServer $destPeerServer, \Illuminate\Http\Client\Response $response): void
     {
     }
 

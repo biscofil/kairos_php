@@ -3,6 +3,7 @@
 
 namespace App\P2P\Tasks;
 
+use App\Models\PeerServer;
 use App\Voting\CryptoSystems\ElGamal\EGThresholdBroadcast;
 
 /**
@@ -16,11 +17,11 @@ class SendBroadcastComplaint extends Task
     /**
      * VerifyBroadcast constructor.
      * @param EGThresholdBroadcast $broadcast
-     * @param string $from
-     * @param string[] $to
+     * @param PeerServer $from
+     * @param PeerServer[] $to
      * @throws \Exception
      */
-    public function __construct(EGThresholdBroadcast $broadcast, string $from, array $to)
+    public function __construct(EGThresholdBroadcast $broadcast, PeerServer $from, array $to)
     {
         parent::__construct($from, $to);
         $this->broadcast = $broadcast;

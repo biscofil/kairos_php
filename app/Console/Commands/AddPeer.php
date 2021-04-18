@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Models\PeerServer;
 use App\P2P\Messages\AddMeToYourPeers;
+use App\P2P\Messages\P2PMessage;
 use Illuminate\Console\Command;
 
 class AddPeer extends Command
@@ -39,17 +41,26 @@ class AddPeer extends Command
      */
     public function handle()
     {
-        $myHost = config('app.url');
-        $this->info("I AM " . $myHost);
+        $me = P2PMessage::me();
+
+        $this->info("I AM " . $me->ip);
 
         $to = $this->argument('to');
+        $to = extractDomain($to);
+
+        if (PeerServer::withIPAddress($to)->count()) {
+            $this->warn("Already present");
+        }
 
         $this->info("Sending message to " . $to);
 
-//        (new WillYouBeAElectionTrusteeForMyElection(Election::first(), $myHost, $to))->sendSync();
-//        (new AddMeToYourPeers($myHost, $to))->sendAsync();
-        (new AddMeToYourPeers($myHost, $to, getJwtRSAKeyPair()->pk))->sendSync();
+        $peerServer = new PeerServer();
+        $peerServer->name = $to;
+        $peerServer->ip = gethostbyname($to);
 
+        (new AddMeToYourPeers($me, [$peerServer], getJwtRSAKeyPair()->pk))->sendSync();
+
+        $this->info("Done");
         return 0;
     }
 }

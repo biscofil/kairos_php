@@ -9,21 +9,23 @@ use App\Models\Election;
 use App\Models\PeerServer;
 use App\Voting\CryptoSystems\PublicKey;
 use Exception;
+use Illuminate\Http\Client\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Class WillYouBeAElectionTrusteeForMyElection
  * @package App\P2P\Messages
- * @property array $electionData
+ * @property Election $election
  */
 class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
 {
 
     public const name = 'will_you_be_a_election_trustee_for_my_election';
 
-    public array $electionData;
+    public Election $election;
 
     // #######################################################################################
     // ##################################### REQUEST #########################################
@@ -31,24 +33,24 @@ class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
 
     /**
      * WillYouBeAElectionTrusteeForMyElection constructor.
-     * @param array $mixSet
-     * @param string $from
-     * @param string $to
+     * @param PeerServer $from
+     * @param PeerServer[] $to
+     * @param Election $election
      * @throws Exception
      */
-    public function __construct(array $mixSet, string $from, string $to)
+    public function __construct(PeerServer $from, array $to, Election $election)
     {
         parent::__construct($from, $to);
-        $this->electionData = $mixSet;
+        $this->election = $election;
     }
 
     /**
-     * @param string $sender
+     * @param PeerServer $sender
      * @param array $messageData
      * @return static
      * @throws Exception
      */
-    public static function fromRequest(string $sender, array $messageData): P2PMessage
+    public static function fromRequest(PeerServer $sender, array $messageData): P2PMessage
     {
         $data = Validator::make($messageData, [
             'election' => ['required', 'array']
@@ -56,21 +58,36 @@ class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
 
         $electionData = $data['election'];
 
+        $validator = Validator::make($data['election'],
+            (new EditCreateElectionRequest())->rules()
+        );
+        if (count($validator->errors())) {
+            throw new ValidationException($validator);
+        }
+
+        $election = Election::make($electionData);
+
+        if (!$sender->exists) {
+            throw new Exception("Peer server is unknown");
+        }
+
         return new WillYouBeAElectionTrusteeForMyElection(
-            $electionData,
             $sender,
-            config('app.url')
+            [self::me()],
+            $election
         );
     }
 
     /**
-     * @param string $to
+     * @param \App\Models\PeerServer $to
      * @return array
      */
-    public function getRequestData(string $to): array
+    public function getRequestData(PeerServer $to): array
     {
+        Log::debug("sending WillYouBeAElectionTrusteeForMyElection message to {$to->ip}");
+
         return [
-            'election' => $this->electionData,
+            'election' => $this->election->toArray(),
         ];
     }
 
@@ -88,35 +105,21 @@ class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
 
         Log::debug("WillYouBeAElectionTrusteeForMyElection message received");
 
-        // validate the sent data
-        $errors = Validator::make($this->electionData,
-            (new EditCreateElectionRequest())->rules()
-        )->errors()->toArray();
+        $this->election->id = null;
+        $this->election->admin_id = null;
+        $this->election->peerServerAuthor()->associate($this->from); // TODO check ip / domain
+        $this->election->save();
 
-        if (count($errors)) {
-            return new JsonResponse([
-                'errors' => $errors
-            ], 402);
-        }
-
-        $host = $this->from;
-
-        $election = Election::make($this->electionData);
-        $election->id = null;
-        $election->admin_id = null;
-        $election->peerServerAuthor()->associate(PeerServer::withDomain($host)->firstOrFail());
-        $election->save();
-
-        if($election->delta_t_l === 0){
+        if ($this->election->delta_t_l === 0) {
             // no slack : l-l theshold
-        }else{
+        } else {
             // t-l threshold
         }
 
-        $keyPair = $election->cryptosystem->getCryptoSystemClass()->generateKeypair(); // TODO remove for threshold
-        $keyPair->storeToFile('election_' . $election->id . '.keypair.json'); // TODO remove for threshold
+        $keyPair = $this->election->cryptosystem->getCryptoSystemClass()->generateKeypair(); // TODO remove for threshold
+        $keyPair->storeToFile('election_' . $this->election->id . '.keypair.json'); // TODO remove for threshold
 
-        Log::info("I now have a copy of the election of $host");
+        Log::info("I now have a copy of the election of {$this->from->name}");
 
         return new JsonResponse([
             'public_key' => json_encode($keyPair->pk->toArray()) // TODO remove for threshold
@@ -126,32 +129,35 @@ class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
 
     /**
      * We parse the public key and we assign it to the trustee
-     * @param string $destPeerServer
-     * @param array $data
+     * @param \App\Models\PeerServer $destPeerServer
+     * @param \Illuminate\Http\Client\Response $response
      * @throws Exception
      */
-    public function onResponseReceived(string $destPeerServer, array $data): void
+    public function onResponseReceived(PeerServer $destPeerServer, Response $response): void
     {
 
-        $server = PeerServer::withDomain($destPeerServer)->firstOrFail();
 
-        $election = Election::findOrFail($this->electionData['id']);
-
-        $trustee = $election->getTrusteeFromPeerServer($server);
+        $trustee = $this->election->getTrusteeFromPeerServer($destPeerServer);
 
         if ($trustee) {
 
+            if ($response->status() >= 300) {
+                $trustee->delete();
+                Log::info("Server {$destPeerServer->name} deleted as trustee");
+                return;
+            }
+
             /** @var PublicKey $pkClass */
-            $pkClass = $election->cryptosystem->getCryptoSystemClass()::PublicKeyClass;
-            $public_key = $pkClass::fromArray(json_decode($data['public_key'], true));
+            $pkClass = $this->election->cryptosystem->getCryptoSystemClass()::PublicKeyClass;
+            $public_key = $pkClass::fromArray(json_decode($response->json('public_key'), true));
             $trustee->setPublicKey($public_key);
             $trustee->save();
 
-            Log::info("Server $destPeerServer added as trustee");
+            Log::info("Server {$destPeerServer->name} added as trustee");
 
         } else {
 
-            Log::error("Server $destPeerServer NOT added as trustee");
+            Log::error("Server {$destPeerServer->name} NOT added as trustee");
 
         }
 

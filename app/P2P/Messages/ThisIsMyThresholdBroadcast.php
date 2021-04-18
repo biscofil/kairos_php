@@ -29,14 +29,14 @@ class ThisIsMyThresholdBroadcast extends P2PMessage
 
     /**
      * ThisIsMyThresholdBroadcast constructor.
+     * @param PeerServer $from
+     * @param PeerServer[] $to
      * @param Election $election
      * @param EGThresholdBroadcast $broadcast
      * @param BigInteger $share
-     * @param string $from
-     * @param $to
      * @throws \Exception
      */
-    public function __construct(Election $election, EGThresholdBroadcast $broadcast, BigInteger $share, string $from, $to)
+    public function __construct(PeerServer $from,array $to, Election $election, EGThresholdBroadcast $broadcast, BigInteger $share)
     {
         parent::__construct($from, $to);
         $this->election = $election;
@@ -50,7 +50,7 @@ class ThisIsMyThresholdBroadcast extends P2PMessage
      * @return static
      * @throws \Exception
      */
-    public static function fromRequest(string $sender, array $messageData): P2PMessage
+    public static function fromRequest(PeerServer $sender, array $messageData): P2PMessage
     {
         $data = Validator::make($messageData, [
             'election_uuid' => ['required', 'uuid', 'exists:elections,uuid'],
@@ -61,19 +61,19 @@ class ThisIsMyThresholdBroadcast extends P2PMessage
         $broadcast = EGThresholdBroadcast::fromArray($data['broadcast']);
 
         return new static(
+            $sender,
+            [self::me()],
             Election::findFromUuid($data['election_uuid']),
             $broadcast,
-            new BigInteger($data['share'], 16),
-            $sender,
-            config('app.url')
+            new BigInteger($data['share'], 16)
         );
     }
 
     /**
-     * @param string $to
+     * @param \App\Models\PeerServer $to
      * @return array
      */
-    public function getRequestData(string $to): array
+    public function getRequestData(PeerServer $to): array
     {
         return [
             'election_uuid' => $this->election->uuid,
@@ -94,17 +94,15 @@ class ThisIsMyThresholdBroadcast extends P2PMessage
     public function onRequestReceived(): JsonResponse
     {
 
-        $server = PeerServer::withDomain($this->from)->firstOrFail();
-
         // find sending trustee by peer server
-        $trusteeI = $this->election->getTrusteeFromPeerServer($server);
+        $trusteeI = $this->election->getTrusteeFromPeerServer($this->from);
         if (!$trusteeI) {
             return new JsonResponse(["error" => "trustee not found", 400]);
         }
 
         // set polynomial
         $trusteeI->broadcast = $this->broadcast;
-        $trusteeI->share = $this->share;
+        $trusteeI->share = $this->share; // TODO
         $trusteeI->save();
 
         $j = 1; // TODO compute index!!!!
