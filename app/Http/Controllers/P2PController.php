@@ -21,21 +21,13 @@ class P2PController extends Controller
      */
     public function list(): array
     {
-        $nodes = PeerServer::all()->map(function (PeerServer $server) {
+        return PeerServer::all()->map(function (PeerServer $server) {
             return [
                 "id" => $server->id,
                 "name" => $server->name,
                 "gps" => $server->gps,
             ];
         })->toArray();
-        $nodes[] = [
-            "id" => "_me",
-            "name" => parse_url(config('app.url'), PHP_URL_HOST),
-            "gps" => [
-                'coordinates' => [12.3155, 45.4408] // TODO
-            ]
-        ];
-        return $nodes;
     }
 
     /**
