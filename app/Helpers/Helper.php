@@ -102,3 +102,26 @@ function getJwtRSAKeyPair(): RSAKeyPair
         config('jwt.keys.public')
     );
 }
+
+/**
+ * Returns the Lagrangian coefficient with modulo
+ * @param int[] $I
+ * @param int $j
+ * @param \phpseclib3\Math\BigInteger $mod
+ * @return BigInteger
+ */
+function getLagrangianCoefficientMod(array $I, int $j, BigInteger $mod): BigInteger
+{
+    $out = BI(1);
+    foreach ($I as $k) {
+        if ($j === $k) {
+            continue;
+        }
+        $out = $out->multiply(
+            BI($k)->multiply(
+                BI($k - $j)->modInverse($mod)
+            )
+        );
+    }
+    return $out;
+}

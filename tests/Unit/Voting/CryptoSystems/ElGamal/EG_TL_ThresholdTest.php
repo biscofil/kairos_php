@@ -261,13 +261,41 @@ class EG_TL_ThresholdTest extends TestCase
     /**
      * @test
      */
-    public function lagrangian()
+    public function check_reconstruction()
     {
-        $I = [1, 2, 3, 4]; // no zero
-        foreach ($I as $j) {
-            dump($this->getLagrangianCoefficient($I, $j, BI(99999))->toString());
+
+        // G=49, P=311, Q=31
+//        $parameterSet = new EGParameterSet(BI(49), BI(311), BI(31),);
+        $parameterSet = EGParameterSet::default();
+//        dump($parameterSet->toString());
+
+        $t = rand(4, 8);
+        $p = new Peer(rand(1, 100), $parameterSet, $t);
+
+        $peerIDs = range(1, 10);
+
+        for ($_t = 3; $_t < 10; $_t++) {
+            // try with a number of peers $_t lower and higher than t
+
+            shuffle($peerIDs);
+            $I = array_slice($peerIDs, 0, $_t); // subset
+
+            $k = BI(0);
+            foreach ($I as $j) {
+                $lambda = getLagrangianCoefficientMod($I, $j, $parameterSet->q);
+                $k = $k->add(
+                    $p->getShareToSend($j)->multiply($lambda)
+                )->modPow(BI1(), $parameterSet->q);
+            }
+
+            // if the number of peers $_t is enough (gte t) the value should match
+            $this->assertEquals(
+                $k->equals($p->sk->x),
+                $_t >= $t
+            );
+
         }
-        $this->assertTrue(true);
+
     }
 
 
