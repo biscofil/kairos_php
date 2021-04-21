@@ -131,13 +131,13 @@ class EGCiphertext implements CipherText
 
         // a = a * (g ^ r mod p) mod p
         $alpha = $this->alpha
-            ->multiply($this->pk->g->modPow($randomness, $this->pk->p))
-            ->modPow(BI1(), $this->pk->p);
+            ->multiply($this->pk->parameterSet->g->modPow($randomness, $this->pk->parameterSet->p))
+            ->modPow(BI1(), $this->pk->parameterSet->p);
 
         // b = b * (y ^ r mod p) mod p
         $beta = $this->beta
-            ->multiply($this->pk->y->modPow($randomness, $this->pk->p))
-            ->modPow(BI1(), $this->pk->p);
+            ->multiply($this->pk->y->modPow($randomness, $this->pk->parameterSet->p))
+            ->modPow(BI1(), $this->pk->parameterSet->p);
 
         return new static($this->pk, $alpha, $beta);
     }
@@ -155,13 +155,13 @@ class EGCiphertext implements CipherText
 
         // a = a * (g ^ r mod p)^-1
         $alphaOriginal = $this->alpha->multiply(
-            $this->pk->g->modPow($randomness, $this->pk->p)->modInverse($this->pk->p)
-        )->modPow(BI1(), $this->pk->p);
+            $this->pk->parameterSet->g->modPow($randomness, $this->pk->parameterSet->p)->modInverse($this->pk->parameterSet->p)
+        )->modPow(BI1(), $this->pk->parameterSet->p);
 
         // b = b * (y ^ r mod p)^-1
         $betaOriginal = $this->beta->multiply(
-            $this->pk->y->modPow($randomness, $this->pk->p)->modInverse($this->pk->p)
-        )->modPow(BI1(), $this->pk->p);
+            $this->pk->y->modPow($randomness, $this->pk->parameterSet->p)->modInverse($this->pk->parameterSet->p)
+        )->modPow(BI1(), $this->pk->parameterSet->p);
 
         return new static($this->pk, $alphaOriginal, $betaOriginal);
 
@@ -178,8 +178,8 @@ class EGCiphertext implements CipherText
     {
         $running_decryption = $this->beta;
         foreach ($decryption_factors as $dec_factor) {
-            $running_decryption = $running_decryption->multiply($dec_factor->modInverse($pk->p))
-                ->modPow(BI1(), $pk->p);
+            $running_decryption = $running_decryption->multiply($dec_factor->modInverse($pk->parameterSet->p))
+                ->modPow(BI1(), $pk->parameterSet->p);
         }
         return $running_decryption;
     }
@@ -199,7 +199,7 @@ class EGCiphertext implements CipherText
         if (!$b instanceof EGCiphertext) {
             throw new RuntimeException("EGCiphertext::equals > invalid type, must be EGCiphertext");
         }
-        $this->pk->ensureSameCryptosystem($b->pk);
+        $this->pk->ensureSameParameters($b->pk);
         return $this->alpha->equals($b->alpha) && $this->beta->equals($b->beta);
     }
 

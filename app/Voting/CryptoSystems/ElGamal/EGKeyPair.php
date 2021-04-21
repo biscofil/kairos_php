@@ -27,21 +27,21 @@ class EGKeyPair implements KeyPair, SupportsThresholdEncryption
 
     /**
      * Generate an ElGamal keypair
+     * @param \App\Voting\CryptoSystems\ElGamal\EGParameterSet $parameterSet
      */
-    public static function generate(): EGKeyPair // TODO add threshold boolean
+    public static function generate($parameterSet = null): EGKeyPair // TODO add threshold boolean
     {
-        // generator g
-        $g = BI(config('elgamal.g'), config('elgamal.base'));
-        // prime p
-        $p = BI(config('elgamal.p'), config('elgamal.base'));
-        $q = BI(config('elgamal.q'), config('elgamal.base')); // TODO check?!?!
+
+        $parameterSet = is_null($parameterSet) ? EGParameterSet::default() : $parameterSet;
 
         // TODO if threshold {
         // TODO     EGThresholdPolynomial::random($degree, $this->pk);
         // TODO }else{
-        $x = randomBIgt($q);
-        $y = $g->modPow($x, $p); // also called h
-        $pk = new EGPublicKey($g, $p, $q, $y);
+
+        $x = randomBIgt($parameterSet->q); // TODO check
+        $y = $parameterSet->g->modPow($x, $parameterSet->p); // also called h
+
+        $pk = new EGPublicKey($parameterSet, $y);
         $sk = new EGPrivateKey($pk, $x);
         // TODO }
 
@@ -67,15 +67,6 @@ class EGKeyPair implements KeyPair, SupportsThresholdEncryption
         $sk = EGPrivateKey::fromArray(json_decode($content, true));
         $pk = $sk->pk;
         return new EGKeyPair($pk, $sk);
-    }
-
-    /**
-     * @param int $degree
-     * @return EGThresholdPolynomial
-     */
-    public function generatePolynomial(int $degree): EGThresholdPolynomial
-    {
-        return EGThresholdPolynomial::random($degree, $this->pk);
     }
 
 }

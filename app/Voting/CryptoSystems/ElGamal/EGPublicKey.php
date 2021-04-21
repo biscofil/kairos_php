@@ -11,9 +11,7 @@ use phpseclib3\Math\BigInteger;
 /**
  * Class EGPublicKey
  * @package App\Voting\CryptoSystems\ElGamal
- * @property BigInteger $g
- * @property BigInteger $p
- * @property BigInteger $q
+ * @property EGParameterSet $parameterSet
  * @property BigInteger $y
  */
 class EGPublicKey implements PublicKey
@@ -21,23 +19,17 @@ class EGPublicKey implements PublicKey
 
     const CRYPTOSYSTEM = ElGamal::class;
 
-    public BigInteger $g;
-    public BigInteger $p;
-    public BigInteger $q;
+    public EGParameterSet $parameterSet;
     public BigInteger $y;
 
     /**
      * EGPublicKey constructor.
-     * @param BigInteger $g
-     * @param BigInteger $p
-     * @param BigInteger $q
+     * @param EGParameterSet $parameterSet
      * @param BigInteger $y
      */
-    public function __construct(BigInteger $g, BigInteger $p, BigInteger $q, BigInteger $y)
+    public function __construct(EGParameterSet $parameterSet, BigInteger $y)
     {
-        $this->g = $g;
-        $this->p = $p;
-        $this->q = $q;
+        $this->parameterSet = $parameterSet;
         $this->y = $y;
     }
 
@@ -48,48 +40,39 @@ class EGPublicKey implements PublicKey
 
     /**
      * @param array $data
-     * @param bool $onlyY
+     * @param bool $ignoreParameterSet
      * @param int $base
      * @return EGPublicKey
      */
-    public static function fromArray(array $data, bool $onlyY = false, int $base = 16): EGPublicKey
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): EGPublicKey
     {
 
-        if ($onlyY) {
+        if ($ignoreParameterSet) {
             // Copy from config
-            return new EGPublicKey(
-                BI(config('elgamal.g'), config('elgamal.base')),
-                BI(config('elgamal.p'), config('elgamal.base')),
-                BI(config('elgamal.q'), config('elgamal.base')),
+            return new static(
+                EGParameterSet::default(),
                 BI($data['y'], $base)
             );
         }
 
-        return new EGPublicKey(
-            BI($data['g'], $base),
-            BI($data['p'], $base),
-            BI($data['q'], $base),
+        return new static(
+            EGParameterSet::fromArray($data, $base),
             BI($data['y'], $base)
         );
     }
 
     /**
-     * @param bool $onlyY
+     * @param bool $ignoreParameterSet
      * @return array
      */
-    public function toArray(bool $onlyY = false): array
+    public function toArray(bool $ignoreParameterSet = false): array
     {
-
-        if ($onlyY) {
-            return ["y" => $this->y->toHex()];
+        $out = [];
+        if (!$ignoreParameterSet) {
+            $out = $this->parameterSet->toArray();
         }
-
-        return [
-            "g" => $this->g->toHex(),
-            "p" => $this->p->toHex(),
-            "q" => $this->q->toHex(),
-            "y" => $this->y->toHex()
-        ];
+        $out["y"] = $this->y->toHex();
+        return $out;
     }
 
     // ####################################################################
@@ -102,15 +85,11 @@ class EGPublicKey implements PublicKey
      * @throws \Exception
      * @noinspection PhpMissingParamTypeInspection
      */
-    public function ensureSameCryptosystem($b): void
+    public function ensureSameParameters($b): void
     {
         // P, G and Q must be the same
-        if (!(
-            $this->p->equals($b->p)
-            && $this->q->equals($b->q)
-            && $this->g->equals($b->g)
-        )) {
-            throw new \Exception("incompatible public keys");
+        if (!$this->parameterSet->equals($b->parameterSet)) {
+            throw new \Exception('incompatible parameter sets');
         }
     }
 
@@ -128,13 +107,11 @@ class EGPublicKey implements PublicKey
             return $this;
         }
 
-        $this->ensureSameCryptosystem($b);
+        $this->ensureSameParameters($b);
 
         return new EGPublicKey(
-            $this->g,
-            $this->p,
-            $this->q,
-            $this->y->multiply($b->y)->powMod(BI1(), $this->p)
+            $this->parameterSet,
+            $this->y->multiply($b->y)->powMod(BI1(), $this->parameterSet->p)
         );
 
     }
@@ -148,13 +125,13 @@ class EGPublicKey implements PublicKey
     public function verifySecretKeyProof(DLogProof $dlog_proof, callable $challenge_generator): bool
     {
 
-        $left_side = $this->g->modPow($dlog_proof->response, $this->p);
+        $left_side = $this->parameterSet->q->modPow($dlog_proof->response, $this->parameterSet->p);
         $right_side = $dlog_proof->commitment
-            ->multiply($this->y->modPow($dlog_proof->challenge, $this->p))
-            ->modPow(BI1(), $this->p);
+            ->multiply($this->y->modPow($dlog_proof->challenge, $this->parameterSet->p))
+            ->modPow(BI1(), $this->parameterSet->p);
 
         /** @var BigInteger $expected_challenge */
-        $expected_challenge = $challenge_generator($dlog_proof->commitment)->modPow(BI1(), $this->q);
+        $expected_challenge = $challenge_generator($dlog_proof->commitment)->modPow(BI1(), $this->parameterSet->g);
 
         return $left_side->equals($right_side) && $dlog_proof->challenge->equals($expected_challenge);
 
@@ -193,7 +170,7 @@ class EGPublicKey implements PublicKey
      */
     public function encryptAndReturnRandomness(EGPlaintext $plainText): array
     {
-        $r = randomBIgt($this->q); // 0 < r < q-1 : randomness
+        $r = randomBIgt($this->parameterSet->q); // 0 < r < q-1 : randomness
         $ciphertext = $this->encryptWithRandomness($plainText, $r);
         return [$ciphertext, $r];
     }
@@ -210,19 +187,19 @@ class EGPublicKey implements PublicKey
         if ($encode_message) {
             // TODO what is this??????
             $y = $plainText->m->add(BI1());
-            if ($y->modPow($this->q, $this->p)->equals(BI1())) {
+            if ($y->modPow($this->parameterSet->g, $this->parameterSet->p)->equals(BI1())) {
                 $m = $y;
             } else {
-                $m = $y->modInverse($this->p);
+                $m = $y->modInverse($this->parameterSet->p);
             }
         } else {
             $m = $plainText->m;
         }
 
         // alpha = g^r mod p
-        $alpha = $this->g->modPow($randomness, $this->p);
+        $alpha = $this->parameterSet->g->modPow($randomness, $this->parameterSet->p);
         // beta = m*(y^r) mod p
-        $beta = $m->multiply($this->y->modPow($randomness, $this->p))->modPow(BI1(), $this->p);
+        $beta = $m->multiply($this->y->modPow($randomness, $this->parameterSet->p))->modPow(BI1(), $this->parameterSet->p);
 
         return new EGCiphertext($this, $alpha, $beta);
     }

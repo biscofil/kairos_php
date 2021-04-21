@@ -38,14 +38,14 @@ class EGPrivateKey extends SecretKey
 
     /**
      * @param array $data
-     * @param bool $onlyXY
+     * @param bool $ignoreParameterSet
      * @param int $base
      * @return EGPrivateKey
      */
-    public static function fromArray(array $data, bool $onlyXY = false, int $base = 16): EGPrivateKey
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): EGPrivateKey
     {
         return new EGPrivateKey(
-            EGPublicKey::fromArray($data['pk'], $onlyXY, $base),
+            EGPublicKey::fromArray($data['pk'], $ignoreParameterSet, $base),
             BI($data['x'], $base)
         );
     }
@@ -74,7 +74,7 @@ class EGPrivateKey extends SecretKey
     public function decryptionFactor(EGCiphertext $ciphertext): BigInteger
     {
         // (alpha^x) mod p
-        return $ciphertext->alpha->modPow($this->x, $this->pk->p);
+        return $ciphertext->alpha->modPow($this->x, $this->pk->parameterSet->p);
     }
 
     /**
@@ -113,16 +113,16 @@ class EGPrivateKey extends SecretKey
         }
 
         // ( [( alpha^x) mod p ] ^ -1 mod p * beta ) mod p
-        $m = $dec_factor->modInverse($this->pk->p)
+        $m = $dec_factor->modInverse($this->pk->parameterSet->p)
             ->multiply($ciphertext->beta)
-            ->modPow(BI1(), $this->pk->p);
+            ->modPow(BI1(), $this->pk->parameterSet->p);
 
         if ($decode_m) {  # get m back from the q-order subgroup
             // encode the message into the proper subgroup.
-            if ($m < $this->pk->q) {
+            if ($m < $this->pk->parameterSet->g) {
                 $y = $m;
             } else {
-                $y = $m->modInverse($this->pk->p);
+                $y = $m->modInverse($this->pk->parameterSet->p);
             }
             return new EGPlaintext($y->subtract(BI1()));
         } else {
@@ -157,14 +157,14 @@ class EGPrivateKey extends SecretKey
      */
     public function generateDLogProof(callable $challenge_generator): DLogProof
     {
-        $w = randomBIgt($this->pk->q);
-        $commitment = $this->pk->g->modPow($w, $this->pk->p);
+        $w = randomBIgt($this->pk->parameterSet->g);
+        $commitment = $this->pk->parameterSet->q->modPow($w, $this->pk->parameterSet->p);
         /** @var BigInteger $challenge */
         $challenge = $challenge_generator($commitment);
         // challenge = challenge mod p
-        $challenge = $challenge->modPow(BI1(), $this->pk->q);
+        $challenge = $challenge->modPow(BI1(), $this->pk->parameterSet->g);
         // w + x * challenge mod q, where x is the secret key.
-        $response = $w->add($this->x->multiply($challenge)->powMod(BI1(), $this->pk->q));
+        $response = $w->add($this->x->multiply($challenge)->powMod(BI1(), $this->pk->parameterSet->g));
         return new DLogProof($commitment, $challenge, $response);
     }
 
@@ -184,13 +184,13 @@ class EGPrivateKey extends SecretKey
             return $this;
         }
 
-        $this->pk->ensureSameCryptosystem($b->pk);
+        $this->pk->ensureSameParameters($b->pk);
 
         // sum of x mod (p-1) // TODO why?
 
         return new EGPrivateKey(
             $this->pk,
-            $this->x->add($b->x->powMod(BI1(), $this->pk->p->subtract(BI1()))) // TODO check p-1 / p
+            $this->x->add($b->x->powMod(BI1(), $this->pk->parameterSet->p))
         );
     }
 
@@ -200,11 +200,11 @@ class EGPrivateKey extends SecretKey
      */
     public function partiallyDecrypt(EGCiphertext $cipher): EGCiphertext
     {
-        $inv = $cipher->alpha->powMod($this->x, $cipher->pk->p)->modInverse($cipher->pk->p);
+        $inv = $cipher->alpha->powMod($this->x, $cipher->pk->parameterSet->p)->modInverse($cipher->pk->parameterSet->p);
         return new EGCiphertext(
             $cipher->pk,
             $cipher->alpha,
-            $inv->multiply($cipher->beta)->powMod(BI1(), $cipher->pk->p)
+            $inv->multiply($cipher->beta)->powMod(BI1(), $cipher->pk->parameterSet->p)
         );
     }
 

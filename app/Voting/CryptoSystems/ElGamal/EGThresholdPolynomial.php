@@ -59,19 +59,6 @@ class EGThresholdPolynomial
         return $out;
     }
 
-    /**
-     * @return EGThresholdBroadcast
-     */
-    public function getBroadcast(): EGThresholdBroadcast
-    {
-        $values = [];
-        foreach ($this->factors as $a_i_k) {
-            $A_i_k = $this->ps->g->modPow($a_i_k, $this->ps->p);
-            $values[] = $A_i_k;
-        }
-        return new EGThresholdBroadcast($values, $this->ps);
-    }
-
     // #######################################################################################################
     // #######################################################################################################
     // #######################################################################################################

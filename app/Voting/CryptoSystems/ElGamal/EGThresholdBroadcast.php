@@ -10,23 +10,23 @@ use phpseclib3\Math\BigInteger;
  * Represents the set of values broadcasted from node i
  * Class EGThresholdBroadcast
  * @package App\Voting\CryptoSystems\ElGamal
- * @property BigInteger[] $values
+ * @property BigInteger[] $A_I_K_values
  * @property \App\Voting\CryptoSystems\ElGamal\EGParameterSet $ps
  */
 class EGThresholdBroadcast implements ThresholdBroadcast
 {
 
-    public array $values;
+    public array $A_I_K_values;
     public EGParameterSet $ps;
 
     /**
      * EGThresholdBroadcast constructor.
-     * @param array $values keys should be 0..k
+     * @param array $A_I_K_values keys should be 0..k
      * @param EGParameterSet $ps
      */
-    public function __construct(array $values, EGParameterSet $ps)
+    public function __construct(array $A_I_K_values, EGParameterSet $ps)
     {
-        $this->values = $values;
+        $this->A_I_K_values = $A_I_K_values;
         $this->ps = $ps;
     }
 
@@ -46,7 +46,7 @@ class EGThresholdBroadcast implements ThresholdBroadcast
 
         // right part
         $right = BI(1);
-        foreach ($this->values as $k => $A_i_k) {
+        foreach ($this->A_I_K_values as $k => $A_i_k) {
 
             $exp = BI(pow($j, $k)); // BI($j * $k);
             $term = $A_i_k->modPow($exp, $mod);
@@ -71,7 +71,7 @@ class EGThresholdBroadcast implements ThresholdBroadcast
     {
         return implode(",", array_map(function (BigInteger $n) {
             return $n->toString();
-        }, $this->values));
+        }, $this->A_I_K_values));
     }
 
     /**
@@ -81,9 +81,9 @@ class EGThresholdBroadcast implements ThresholdBroadcast
     {
         return [
             'ps' => $this->ps->toArray(),
-            'values' => array_map(function (BigInteger $f) {
+            'a_i_k_values' => array_map(function (BigInteger $f) {
                 return $f->toHex();
-            }, $this->values)
+            }, $this->A_I_K_values)
         ];
     }
 
@@ -94,10 +94,10 @@ class EGThresholdBroadcast implements ThresholdBroadcast
     public static function fromArray(array $data): EGThresholdBroadcast
     {
         $ps = EGParameterSet::fromArray($data['ps']);
-        $values = array_map(function (string $f) {
+        $a_i_k_values = array_map(function (string $f) {
             return new BigInteger($f, 16);
-        }, $data['values']);
-        return new static($values, $ps);
+        }, $data['a_i_k_values']);
+        return new static($a_i_k_values, $ps);
     }
 
 }
