@@ -1,25 +1,12 @@
 <template>
-    <div>
-
-        <p v-if="default_auth_system">
-            <!--      <a class="small button" href="{% url "auth@start" system_name=default_auth_system %}?return_url={{return_url}}">-->
-            <a class="small button" href="auth@start">
-                Log In
-            </a>
-        </p>
-
-        <div v-else>
-            <div v-for="auth_system in enabled_auth_systems">
-                <p v-if="auth_system.name !== 'password'">
-                    <a @click="AuthProvider(auth_system.name)" href="javascript:void(0)" style="font-size: 1.4em;">
-                        <img :src="'/assets/img/login-icons/' + auth_system.name + '.png'"
-                             :alt="auth_system.name"/>
-                        {{ auth_system.name }}
-                    </a>
-                </p>
-            </div>
-        </div>
-    </div>
+    <span>
+        <a v-for="auth_system in enabled_auth_systems"
+           @click="authenticateWith(auth_system.name)"
+           href="javascript:void(0)"
+           style="font-size: 1.4em;">
+            <img :src="'/vuesocial/' + auth_system.name + '_' + color + '.svg'" :alt="auth_system.name"/>
+        </a>
+    </span>
 
 </template>
 
@@ -31,7 +18,7 @@ import VueSocialauth from 'vue-social-auth'
 
 Vue.use(VueSocialauth, {
     providers: {}
-})
+});
 
 export default {
     name: "LoginBox",
@@ -43,6 +30,10 @@ export default {
         enabled_auth_systems: {
             type: Array,
             required: true
+        },
+        color: {
+            type: String,
+            default: "color"
         }
     },
 
@@ -56,7 +47,7 @@ export default {
     },
 
     methods: {
-        AuthProvider(provider) {
+        authenticateWith(provider) {
             let self = this;
             this.$auth.authenticate(provider)
                 .then(response => {
@@ -87,7 +78,8 @@ export default {
 
 <style scoped>
 img {
-    height: 35px;
+    padding: 3px;
+    height: 30px;
     border: 0px;
 }
 </style>

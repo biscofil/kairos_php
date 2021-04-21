@@ -37,4 +37,5 @@ mix//.i18n()
     .sass('resources/sass/app.scss', 'public/css');
     // .generateIntegrityHash();
 
+mix.copyDirectory('resources/js/github/vuesocial/assets/networks', 'public/vuesocial');
 mix.copyDirectory('resources/assets', 'public/assets');
