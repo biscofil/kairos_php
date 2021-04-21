@@ -21,3 +21,5 @@ yarn-error.log
 /public/mix-manifest.json
 /public/mix-sri.json
 /public/.rnd
+/private_key.pem
+/public_key.pem
