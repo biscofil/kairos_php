@@ -117,4 +117,36 @@ export default class Utils {
             return RSAPublicKey.fromJSONObject(d);
         }
     }
+
+    static defaultVuetableCss() {
+        return {
+            table: {
+                tableClass: 'table table-hover table-outline mb-0',
+                tableHeaderClass: 'thead-light',
+                ascendingIcon: "fas fa-arrow-up",
+                descendingIcon: "fas fa-arrow-down",
+                handleIcon: "fas fa-menu",
+                renderIcon: function (classes, options) {
+                    return `<span class="${classes.join(' ')}"></span>`
+                }
+            },
+            paginationInfo: {
+                infoClass: 'pull-left'
+            },
+            pagination: {
+                wrapperClass: "pagination pull-right",
+                activeClass: "btn-primary",
+                disabledClass: "disabled",
+                pageClass: "btn btn-border",
+                linkClass: "btn btn-border",
+                icons: {
+                    first: "fas fa-backward",
+                    prev: "fas fa-caret-left",
+                    next: "fas fa-caret-right",
+                    last: "fas fa-forward"
+                }
+            }
+        };
+    }
+
 }

@@ -7,7 +7,7 @@ use App\Models\CastVote;
 use App\Models\Election;
 use App\Voting\CryptoSystems\CipherText;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Vuetable\Vuetable;
 
 /**
  * Class CastVoteController
@@ -17,9 +17,10 @@ class CastVoteController extends Controller
 {
 
     /**
-     * @return Response
+     * @return \Illuminate\Pagination\LengthAwarePaginator
+     * @throws \Exception
      */
-    public function index()
+    public function index(Election $election)
     {
         //
     }

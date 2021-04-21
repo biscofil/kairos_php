@@ -80,6 +80,8 @@ Route::get('/elections', [ElectionController::class, 'index']);
 Route::get('/elections/{election}', [ElectionController::class, 'show']);
 Route::get('/elections/{election}/trustees', [TrusteeController::class, 'index']);
 
+Route::get('/elections/{election}/votes', [CastVoteController::class, 'index']);
+
 //Route::fallback(function () {
 //    return response()->json([
 //        "error" => "not found"

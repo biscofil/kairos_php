@@ -86,7 +86,11 @@
                     </router-link>
                     &nbsp;&nbsp;|&nbsp;&nbsp;
                     <router-link :to="{ name: 'election@trustees@view', params: { slug: election.slug }}">
-                        trustees ({{ election.trustee_count }})
+                        Trustees ({{ election.trustee_count }})
+                    </router-link>
+                    &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <router-link :to="{ name: 'election@votes', params: { slug: election.slug }}">
+                        Votes
                     </router-link>
                 </p>
 
