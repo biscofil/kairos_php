@@ -29,7 +29,7 @@ Route::get('/admin/problem-elections', [SPAController::class, 'home']);
 Route::get('/admin', [SPAController::class, 'home']);
 Route::get('/new-election', [SPAController::class, 'home']);
 Route::get('/elections/{slug}/vote', [SPAController::class, 'home']);
-Route::get('/elections/{slug}/vote', [SPAController::class, 'home']);
+Route::get('/elections/{slug}/votes', [SPAController::class, 'home']);
 Route::get('/elections/{slug}/verifier', [SPAController::class, 'home']);
 Route::get('/elections/{slug}/edit', [SPAController::class, 'home']);
 Route::get('/elections/{slug}/extend', [SPAController::class, 'home']);
