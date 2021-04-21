@@ -148,7 +148,6 @@ class TrusteeController extends Controller
         return response()->json([
             'election' => [
                 'trustees' => $election->trustees()->with(['user', 'peerServer'])->get(),
-                'has_system_trustee' => $election->has_system_trustee
             ]
         ]);
     }

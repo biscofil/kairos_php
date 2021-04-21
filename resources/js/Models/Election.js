@@ -61,8 +61,6 @@ export default class Election {
         this.info_url = null;
         /** @type Boolean */
         this.is_private = null;
-        /** @type Boolean */
-        this.has_system_trustee = null;
 
         /** @type Array */
         this.issues = [];
@@ -262,7 +260,6 @@ export default class Election {
         el.voting_ends_at = d.voting_ends_at;
         el.frozen_at = d.frozen_at;
         el.archived_at = d.archived_at;
-        el.has_system_trustee = d.has_system_trustee;
 
         el.trustees = null;
         if (d.trustees) {

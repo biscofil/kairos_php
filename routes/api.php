@@ -56,7 +56,6 @@ Route::middleware('auth:user_api')->group(function () {
 
             Route::delete('/elections/{election}/trustees/{trustee}', [TrusteeController::class, 'destroy']);
             Route::post('/elections/{election}/trustees', [TrusteeController::class, 'store']);
-            Route::post('/elections/{election}/trustees/add-helios', [TrusteeController::class, 'store_system_trustee']);
 
         });
     });

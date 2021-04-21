@@ -170,8 +170,6 @@ class Election extends Model
         //
         'frozen_at' => 'datetime',
         'archived_at' => 'datetime',
-        //
-        'has_helios_trustee' => 'bool'
     ];
 
     protected $appends = [
@@ -181,7 +179,6 @@ class Election extends Model
         'voter_count',
         'cast_votes_count',
         'admin_name',
-        'has_system_trustee',
         'issues'
     ];
 
@@ -248,15 +245,6 @@ class Election extends Model
     public function getCastVotesCountAttribute(): int
     {
         return 0; // TODO
-    }
-
-    /**
-     * @return bool
-     * @noinspection PhpUnused
-     */
-    public function getHasSystemTrusteeAttribute(): bool
-    {
-        return $this->trustees()->systemTrustees()->count() > 0;
     }
 
     /**
@@ -417,26 +405,6 @@ class Election extends Model
         $trustee = Trustee::make();
         $trustee->uuid = (string)Str::uuid();
         $trustee->peerServer()->associate($server);
-        $trustee->election()->associate($this);
-        $trustee->save();
-        return $trustee;
-    }
-
-    /**
-     * @return Trustee
-     */
-    public function createSystemTrustee(): Trustee
-    {
-
-        //EGKeyPair::generate();
-        $keyPair = $this->cryptosystem->getCryptoSystemClass()->generateKeypair();
-
-        $trustee = Trustee::make();
-        $trustee->uuid = (string)Str::uuid();
-        $trustee->public_key = $keyPair->pk;
-        $trustee->computePublicKeyHash();
-        $trustee->private_key = $keyPair->sk; // todo WHY?
-        // TODO proof $trustee->pok = $trustee->private_key->generateDLogProof([EGPrivateKey::class, 'DLogChallengeGenerator']);
         $trustee->election()->associate($this);
         $trustee->save();
         return $trustee;

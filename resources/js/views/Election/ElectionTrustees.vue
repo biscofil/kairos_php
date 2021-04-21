@@ -37,10 +37,7 @@
             </p>
 
             <div v-if="election.is_auth_user_admin">
-                <a @click="add_trustee" href="javascript:void(0)" class="brackets_around">add a trustee</a>
-                <p v-if="!election.has_system_trustee">
-                    <a @click="add_helios_as_trustee" href="javascript:void(0)">add Helios as a trustee</a>
-                </p>
+                <a @click="add_trustee" href="javascript:void(0)" class="btn btn-sm btn-success">New trustee</a>
             </div>
         </div>
 
@@ -59,11 +56,6 @@
                         <div v-else-if="trustee.peer_server">
                             <!-- Use trustee -->
                             ({{ trustee.peer_server.name }})
-                            <a v-if="!election.frozen_at" @click="remove_trustee(trustee)"
-                               href="javascript:void(0)" class="brackets_around">x</a>
-                        </div>
-                        <div v-else>
-                            <!-- System trustee -->
                             <a v-if="!election.frozen_at" @click="remove_trustee(trustee)"
                                href="javascript:void(0)" class="brackets_around">x</a>
                         </div>
@@ -151,7 +143,6 @@ export default {
                         self.election.trustees = response.data.election.trustees.map(trustee => {
                             return Trustee.fromJSONObject(trustee);
                         });
-                        self.election.has_system_trustee = response.data.election.has_system_trustee;
                         self.$toastr.success("Done");
                     })
                     .catch(e => {
@@ -168,7 +159,6 @@ export default {
                 self.election.trustees = election.trustees.map(trustee => {
                     return Trustee.fromJSONObject(trustee);
                 });
-                self.election.has_system_trustee = election.has_system_trustee;
             });
 
             this.$modal.show(NewTrusteeModal, {
