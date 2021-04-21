@@ -61,4 +61,6 @@ class Voter extends Model
         return $this->belongsTo(CastVote::class, 'last_vote_cast_id');
     }
 
+    // #############################################
+
 }
