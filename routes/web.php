@@ -15,11 +15,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', [SPAController::class, 'home']);
-Route::get('/about', [SPAController::class, 'home']);
-Route::get('/docs', [SPAController::class, 'home']);
-Route::get('/faq', [SPAController::class, 'home']);
-Route::get('/privacy', [SPAController::class, 'home']);
-Route::get('/auth/why', [SPAController::class, 'home']);
 Route::get('/voted-elections', [SPAController::class, 'home']);
 Route::get('/administered-elections', [SPAController::class, 'home']);
 Route::get('/admin/network', [SPAController::class, 'home']);

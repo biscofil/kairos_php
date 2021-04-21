@@ -1,17 +1,12 @@
 import VueRouter from 'vue-router'
 
-import About from "./views/About.vue";
-import Docs from "./views/Docs.vue";
-import Faq from "./views/Faq.vue";
-import Privacy from "./views/Privacy.vue";
 import Home from "./views/Home.vue";
 import ElectionsVoted from "./views/ElectionsVoted.vue";
-// TODO import Verifier from "./views/Verifier/Verifier.vue";
-import PermsWhy from "./views/PermsWhy.vue";
 import Election from "./views/Election/Election.vue";
 import NewElection from "./views/Election/NewElection.vue";
 import ElectionQuestions from "./views/Election/ElectionQuestions.vue";
 import EditElection from "./views/Election/EditElection.vue";
+// TODO import Verifier from "./views/Verifier/Verifier.vue";
 // TODO import Booth from "./views/Election/Booth/Booth.vue";
 import ElectionTrustees from "./views/Election/ElectionTrustees.vue";
 import ElectionVoters from "./views/Election/ElectionVoters.vue";
@@ -36,11 +31,6 @@ const router = new VueRouter({
     // TODO validate
     routes: [
         {path: '/', component: Home, name: 'home'},
-        {path: '/about', component: About, name: 'about'},
-        {path: '/docs', component: Docs, name: 'docs'},
-        {path: '/faq', component: Faq, name: 'faq'},
-        {path: '/privacy', component: Privacy, name: 'privacy'},
-        {path: '/auth/why', component: PermsWhy},
         //
         {path: '/voted-elections', component: ElectionsVoted, name: 'elections@voted', meta: {requires_auth: true}},
         {
