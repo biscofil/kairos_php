@@ -55,12 +55,13 @@ class AuthController extends Controller
                 }
 
                 // Get the token
-                $token = auth('api')->login($user);
+                /** @noinspection PhpVoidFunctionResultUsedInspection */
+                $token = auth('user_api')->login($user);
 
                 return response()->json([
                     "user" => $user,
                     "access_token" => $token,
-                    'expires_in' => auth('api')->factory()->getTTL() * 60
+                    'expires_in' => auth('user_api')->factory()->getTTL() * 60
                 ]);
 
             default:

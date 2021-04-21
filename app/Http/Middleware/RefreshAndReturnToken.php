@@ -24,9 +24,9 @@ class RefreshAndReturnToken
         $newToken = null;
         $tokenExpiresIn = null;
 
-        if (auth('api')->check()) {
-            $newToken = auth('api')->refresh();
-            $tokenExpiresIn = auth('api')->factory()->getTTL() * 60;
+        if (auth('user_api')->check()) {
+            $newToken = auth('user_api')->refresh();
+            $tokenExpiresIn = auth('user_api')->factory()->getTTL() * 60;
         }
 
         return $out->withHeaders([

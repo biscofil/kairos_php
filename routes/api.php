@@ -34,7 +34,7 @@ Route::get('/auth/after/{provider}', [AuthController::class, 'providerLoginOK'])
 Route::post('/auth/after/{provider}', [AuthController::class, 'providerLogin']);
 
 // auth middleware
-Route::middleware('auth:api')->group(function () {
+Route::middleware('auth:user_api')->group(function () {
 
     Route::post('/elections', [ElectionController::class, 'store']);
     Route::post('/elections/{election}/copy', [ElectionController::class, 'copy']);

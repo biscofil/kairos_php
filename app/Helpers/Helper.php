@@ -9,7 +9,7 @@ use phpseclib3\Math\BigInteger;
  */
 function isLogged(): bool
 {
-    return auth('api')->check();
+    return auth('user_api')->check();
 }
 
 /**
@@ -18,7 +18,7 @@ function isLogged(): bool
  */
 function getAuthUser(): User
 {
-    return auth('api')->user();
+    return auth('user_api')->user();
 }
 
 /**

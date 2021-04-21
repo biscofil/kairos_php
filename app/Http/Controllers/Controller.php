@@ -31,7 +31,7 @@ class Controller extends BaseController
         $elections_administered = [];
         $elections_voted = [];
 
-        if (auth('api')->check()) {
+        if (auth('user_api')->check()) {
             $elections_administered = getAuthUser()->administeredElections()
                 ->limit(10)
                 ->select(['id', 'name', 'slug', 'admin_id'])
@@ -53,8 +53,8 @@ class Controller extends BaseController
         $auth_providers = null;
         $user = null;
 
-        if (auth('api')->check()) {
-            $user = auth('api')->user();
+        if (auth('user_api')->check()) {
+            $user = auth('user_api')->user();
         } else {
             $auth_providers = [
                 'enabled_auth_systems' => [
