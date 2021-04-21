@@ -17,9 +17,9 @@
 
         <h3 class="title">
             {{ election.name }} &mdash; Trustees
-            <router-link :to="{name:'election@view', params:{ slug: election.slug }}" class="brackets_around">
-                back to election
-            </router-link>
+            <!--            <router-link :to="{name:'election@view', params:{ slug: election.slug }}" class="brackets_around">-->
+            <!--                back to election-->
+            <!--            </router-link>-->
         </h3>
 
         <p>
