@@ -24,23 +24,34 @@ class Kernel extends ConsoleKernel
      *
      * @param Schedule $schedule
      * @return void
+     * @noinspection PhpMissingParentCallCommonInspection
      */
     protected function schedule(Schedule $schedule)
     {
-         $schedule->command('send:votes')
-             ->everyMinute()
-             ->appendOutputTo(config('logging.channels.single.path'));
+
+        $me = PeerServer::me();
+
+        $minute = hexdec(substr(sha1($me->domain), 0, 5)) % 60;
+
+        foreach ($me->elections as $election) { // TODO open election only
+            $schedule->command('send:votes ' . $election->id)
+                ->cron("$minute * * * *")
+                ->appendOutputTo(config('logging.channels.single.path'));
+        }
+
     }
 
     /**
      * Register the commands for the application.
      *
      * @return void
+     * @noinspection PhpMissingParentCallCommonInspection
      */
     protected function commands()
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
+        /** @noinspection PhpIncludeInspection */
         require base_path('routes/console.php');
     }
 }

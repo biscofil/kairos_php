@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\Election;
+use App\Models\PeerServer;
 use App\P2P\Messages\IReceivedTheseVotes;
-use App\P2P\Messages\P2PMessage;
 use Illuminate\Console\Command;
 
 class SendReceivedVotes extends Command
@@ -42,16 +42,13 @@ class SendReceivedVotes extends Command
     {
         $election = Election::find($this->argument('election'));
 
-        $me = P2PMessage::me();
-
-        /** @var Election $election */
-        $election = Election::find(149); // TODO
+        $me = PeerServer::me();
 
         $to = $election->peerServers->all();
 
         $votes = $election->votes->all();
 
-        $this->info("Sending votes");
+        $this->info("Sending votes of election $election->uuid");
 
         (new IReceivedTheseVotes($me, $to, $votes))->sendSync();
 
