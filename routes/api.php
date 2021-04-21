@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Route;
 //});
 
 Route::get('/p2p', [P2PController::class, 'list']);
-Route::post('/p2p', [P2PController::class, 'receive']);
+Route::post('/p2p/{message}', [P2PController::class, 'receive']);
 
 Route::get('/', [Controller::class, 'home']);
 

@@ -32,9 +32,10 @@ class P2PController extends Controller
 
     /**
      * @param Request $request
+     * @param string $message
      * @return JsonResponse
      */
-    public function receive(Request $request): JsonResponse
+    public function receive(Request $request, string $message): JsonResponse
     {
 
         try {
