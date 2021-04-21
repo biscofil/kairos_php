@@ -71,6 +71,7 @@ use Illuminate\Support\Str;
  */
 class Election extends Model
 {
+    use HasShareableFields;
     use HasFactory;
     use ModelWithCryptoFields;
 
@@ -111,6 +112,33 @@ class Election extends Model
         //
         'frozen_at',
         'archived_at',
+    ];
+
+    public $shareableFields = [
+        'uuid',
+        'slug',
+        //
+        'name',
+        'description',
+        'help_email',
+        'info_url',
+        'is_private',
+        'is_featured',
+        'questions',
+        //
+        'cryptosystem',
+        'anonymization_method',
+        'min_peer_count_t',
+        //
+        'is_registration_open', // TODO
+        'use_voter_alias',
+        'use_advanced_audit_features',
+        'randomize_answer_order',
+        //
+        'registration_starts_at',
+        'voting_starts_at',
+        'voting_extended_until',
+        'voting_end_at',
     ];
 
     protected $casts = [

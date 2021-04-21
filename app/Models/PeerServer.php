@@ -42,6 +42,7 @@ class PeerServer extends Authenticatable implements JWTSubject
     use ModelWithCryptoFields;
     use SpatialTrait;
     use HasFactory;
+    use HasShareableFields;
 
     protected $fillable = [
         'name',
@@ -52,6 +53,10 @@ class PeerServer extends Authenticatable implements JWTSubject
         //
         'jwt_public_key',
         'token'
+    ];
+
+    public $shareableFields = [
+        'domain'
     ];
 
     protected $spatialFields = [

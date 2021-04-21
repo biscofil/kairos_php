@@ -25,7 +25,9 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  */
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable;
+    use HasFactory;
+    use Notifiable;
+    use HasShareableFields;
 
     /**
      * The attributes that are mass assignable.
@@ -39,6 +41,13 @@ class User extends Authenticatable implements JWTSubject
         'provider',
         'provider_id',
         'can_create_election'
+    ];
+
+    public $shareableFields = [
+        'email',
+        'password',
+        'provider',
+        'provider_id',
     ];
 
     /**

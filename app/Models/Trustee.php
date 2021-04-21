@@ -47,6 +47,7 @@ use phpseclib3\Math\BigInteger;
  */
 class Trustee extends Model
 {
+    use HasShareableFields;
     use HasFactory;
     use ModelWithCryptoFields;
 
