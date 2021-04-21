@@ -1,6 +1,16 @@
 <template>
     <div v-if="election">
 
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">Elections</a></li>
+                <li class="breadcrumb-item">
+                    <router-link :to="{name:'election@view', params:{ slug: election.slug }}" >{{ election.name }}</router-link>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Voters and Ballot Tracking Center</li>
+            </ol>
+        </nav>
+
         <h3 class="title">
             {{ election.name }} &mdash; Voters and Ballot Tracking Center
             <router-link :to="{name:'election@view', params:{ slug: election.slug }}" class="brackets_around">

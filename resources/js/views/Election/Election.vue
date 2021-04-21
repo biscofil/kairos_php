@@ -7,6 +7,15 @@
         <div v-else>
             <div style="float: left; margin-right: 50px;">
 
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#">Elections</a></li>
+                        <li class="breadcrumb-item active">
+                            <router-link :to="{name:'election@view', params:{ slug: election.slug }}" >{{ election.name }}</router-link>
+                        </li>
+                    </ol>
+                </nav>
+
                 <h3 class="title">{{ election.name }}
                     <small v-if="election.is_auth_user_admin && !election.frozen_at">
                         <router-link class="small button" :to="'/elections/' + election.slug + '/edit'">

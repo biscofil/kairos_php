@@ -1,9 +1,19 @@
 <template>
     <div>
 
-        AAAA
-        <input type="text" v-model="vote">
-        <button @click="submit">OK</button>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">Elections</a></li>
+                <li class="breadcrumb-item">
+                    <router-link :to="{name:'election@view', params:{ slug: election.slug }}" >{{ election.name }}</router-link>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Booth</li>
+            </ol>
+        </nav>
+
+        Vote:
+        <input type="text" class="form-control" v-model="vote">
+        <button class="btn btn-success" @click="submit">OK</button>
 
         <form-wizard title="" subtitle="" v-if="false"> <!-- TODO show -->
             <tab-content v-for="(question,idx) in questions" :key="idx" :title="'Question #' + (idx+1)">

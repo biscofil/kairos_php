@@ -5,6 +5,16 @@
         </div>
         <div v-else>
 
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">Elections</a></li>
+                    <li class="breadcrumb-item">
+                        <router-link :to="{name:'election@view', params:{ slug: election.slug }}" >{{ election.name }}</router-link>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Questions</li>
+                </ol>
+            </nav>
+
             <h3 class="title">{{ election.name }} &mdash; Questions
                 <router-link class="brackets_around" :to="{ name:'election@view', params:{slug:election.slug} }">
                     back to election
