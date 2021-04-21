@@ -14,7 +14,7 @@ class SendReceivedVotes extends Command
      *
      * @var string
      */
-    protected $signature = 'send:votes';
+    protected $signature = 'send:votes {election}';
 
     /**
      * The console command description.
@@ -40,6 +40,7 @@ class SendReceivedVotes extends Command
      */
     public function handle()
     {
+        $election = Election::find($this->argument('election'));
 
         $me = P2PMessage::me();
 
