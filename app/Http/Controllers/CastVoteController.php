@@ -65,37 +65,4 @@ class CastVoteController extends Controller
 
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param CastVote $castVote
-     * @return Response
-     */
-    public function show(CastVote $castVote)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param Request $request
-     * @param CastVote $castVote
-     * @return Response
-     */
-    public function update(Request $request, CastVote $castVote)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param CastVote $castVote
-     * @return Response
-     */
-    public function destroy(CastVote $castVote)
-    {
-        //
-    }
 }
