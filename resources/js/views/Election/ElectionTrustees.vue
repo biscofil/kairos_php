@@ -169,22 +169,6 @@ export default {
 
         },
 
-        add_helios_as_trustee() {
-            let self = this;
-            this.$http.post(BASE_URL + '/api/elections/' + this.election.slug + '/trustees/add-helios')
-                .then(response => {
-                    self.election.trustees = response.data.election.trustees.map(trustee => {
-                        return Trustee.fromJSONObject(trustee);
-                    });
-                    self.election.has_system_trustee = response.data.election.has_system_trustee;
-                    self.$toastr.success("Done");
-                })
-                .catch(e => {
-                    console.log(e);
-                    self.$toastr.error("Error");
-                });
-        },
-
     }
 
 }
