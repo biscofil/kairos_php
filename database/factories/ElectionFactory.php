@@ -25,9 +25,12 @@ class ElectionFactory extends Factory
     {
         $cryptosystems = [CryptoSystemEnum::RSA(), CryptoSystemEnum::ElGamal()];
         return [
+            'peer_server_id' => 1,
+            //
             'cryptosystem' => CryptoSystemEnum::ElGamal(), //$cryptosystems[array_rand($cryptosystems)],
             //
             'name' => $this->faker->name,
+            'uuid' => $this->faker->uuid,
             'slug' => $this->faker->slug,
             'description' => $this->faker->paragraph,
             'help_email' => $this->faker->email,
