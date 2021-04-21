@@ -14,17 +14,20 @@
         </p>
 
         <div class="form">
-            <label>
-                Email:
-                <input type="email" name="email" size="60" v-model="email"/>
-            </label>
-            <br/>
-            <label>
-                Url:
-                <input type="url" name="url" size="60" v-model="url"/>
-            </label>
-            <br/>
-            <button @click="submit">Add Trustee</button>
+            <div class="form-group row">
+                <label class="col-sm-12 col-lg-2" for="email"> Email </label>
+                <div class="col-sm-12 col-lg-10">
+                    <input type="email" class="form-control" id="email" size="60" v-model="email"/>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-sm-12 col-lg-2" for="url">Url</label>
+                <div class="col-sm-12 col-lg-10">
+                    <input type="url" class="form-control" id="url" size="60" v-model="url"/>
+                </div>
+            </div>
+            <button class="btn btn-success" @click="submit">Add Trustee</button>
         </div>
     </div>
 </template>
