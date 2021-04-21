@@ -6,6 +6,8 @@ namespace Tests\Unit\Voting\CryptoSystems\ElGamal;
 
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\ElGamal\EGParameterSet;
+use App\Voting\CryptoSystems\ElGamal\EGPrivateKey;
+use App\Voting\CryptoSystems\ElGamal\EGPublicKey;
 use App\Voting\CryptoSystems\ElGamal\EGThresholdBroadcast;
 use App\Voting\CryptoSystems\ElGamal\EGThresholdPolynomial;
 use phpseclib3\Math\BigInteger;
@@ -17,8 +19,9 @@ use phpseclib3\Math\BigInteger;
  * @property EGParameterSet $ps
  * @property EGThresholdPolynomial $polynomial
  * @property EGThresholdBroadcast[] $receivedBroadcasts
- * @property BigInteger $secret_x
- * @property BigInteger $public_y
+ * @property EGPrivateKey $sk
+ * @property EGPrivateKey $skShare
+ * @property EGPublicKey $pk
  * @property BigInteger[] $shareSent
  * @property BigInteger[] $shareReceived
  */
@@ -46,13 +49,12 @@ class Peer
         $this->id = $id;
         $this->ps = $ps;
 
-        $this->polynomial = $this->generatePolynomial($t);
-        dump("  >> f_$id(x)=" . $this->polynomial->toString());
+        $kp = EGKeyPair::generate($ps);
+        $this->sk = $kp->sk;
+        $this->pk = $kp->pk;
 
-//        $this->secret_x = $this->polynomial->compute(BI(0));
-//        dump(" > my secret value X = " . $this->secret_x->toString());
-//        $this->public_y = $keyPair->pk->g->powMod($this->secret_x, $keyPair->pk->p); // TODO was q
-//        dump(" > my public value Y = " . $this->public_y->toString());
+        $this->polynomial = $kp->sk->getThresholdPolynomial($t);
+//        dump("Peer $this->id : " . $this->polynomial->toString());
     }
 
 
@@ -98,7 +100,7 @@ class Peer
      */
     public function getShareToSend(int $i): BigInteger
     {
-        $s = $this->polynomial->compute(BI($i))->modPow(BI1(), $this->ps->g);
+        $s = $this->polynomial->getShare($i);
         $this->shareSent["$i"] = $s;
         return $s;
     }
@@ -119,7 +121,7 @@ class Peer
      */
     public function isShareValid(int $i): bool
     {
-        dump("$this->id is checking share of $i : " . $this->shareReceived[$i]->toString());
+//        dump("$this->id is checking share of $i : " . $this->receivedShares["$i"]->toString());
         return $this->receivedBroadcasts[$i]->isValid(
             $this->shareReceived["$i"],
             $this->id
