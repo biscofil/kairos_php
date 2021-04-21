@@ -22,7 +22,7 @@ class CastVoteController extends Controller
      */
     public function index(Election $election)
     {
-        //
+        return Vuetable::of($election->votes()->getQuery())->make();
     }
 
     /**
