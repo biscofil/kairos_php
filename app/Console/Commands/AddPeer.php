@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\PeerServer;
 use App\P2P\Messages\AddMeToYourPeers;
-use App\P2P\Messages\P2PMessage;
 use Illuminate\Console\Command;
 
 class AddPeer extends Command
@@ -60,7 +59,7 @@ class AddPeer extends Command
 
         (new AddMeToYourPeers($me, [$peerServer], getJwtRSAKeyPair()->pk))->sendSync();
 
-        $this->info("Done");
+        $this->info('Done');
         return 0;
     }
 }

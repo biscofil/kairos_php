@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Models;
 
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
@@ -14,7 +14,7 @@ use Tests\TestCase;
 
 /**
  * Class ElectionTest
- * @package Tests\Unit\Models
+ * @package Tests\Feature\Models
  */
 class ElectionTest extends TestCase
 {

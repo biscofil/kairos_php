@@ -23,9 +23,9 @@ class P2PController extends Controller
     {
         return PeerServer::all()->map(function (PeerServer $server) {
             return [
-                "id" => $server->id,
-                "name" => $server->name,
-                "gps" => $server->gps,
+                'id' => $server->id,
+                'name' => $server->name,
+                'gps' => $server->gps,
             ];
         })->toArray();
     }
@@ -43,17 +43,16 @@ class P2PController extends Controller
 
         } catch (\Exception $e) {
 
-            Log::debug("Responding with error");
+            Log::debug('Responding with error');
             Log::error($e->getMessage());
+
             return response()->json([
-//                "request" => $data,
-                "error_message" => $e->getMessage(),
-                "file" => $e->getFile(),
-                "line" => $e->getLine(),
+                'error_message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ], 500);
 
         }
-
     }
 
 }

@@ -59,12 +59,12 @@ class Controller extends BaseController
             $auth_providers = [
                 'enabled_auth_systems' => [
                     [
-                        "name" => "google",
-                        "clientId" => config('services.google.client_id')
+                        'name' => 'google',
+                        'clientId' => config('services.google.client_id')
                     ],
                     [
-                        "name" => "facebook",
-                        "clientId" => config('services.facebook.client_id')
+                        'name' => 'facebook',
+                        'clientId' => config('services.facebook.client_id')
                     ],
                 ],
             ];
@@ -72,13 +72,13 @@ class Controller extends BaseController
 
         return response()->json([
             'settings' => [
-                "SITE_TITLE" => 'HELIOS',
-                "FOOTER_LOGO_URL" => asset('favicon.ico'),
-                "MAIN_LOGO_URL" => asset('favicon.ico'),
-                "SHOW_USER_INFO" => true,
-                "WELCOME_MESSAGE" => "welcome",
-                "SHOW_LOGIN_OPTIONS" => true, // TODO
-                "HELP_EMAIL_ADDRESS" => "info@example.com"
+                'SITE_TITLE' => 'Kairos',
+                'FOOTER_LOGO_URL' => asset('favicon.ico'),
+                'MAIN_LOGO_URL' => asset('favicon.ico'),
+                'SHOW_USER_INFO' => true,
+                'WELCOME_MESSAGE' => 'welcome',
+                'SHOW_LOGIN_OPTIONS' => true, // TODO
+                'HELP_EMAIL_ADDRESS' => 'info@example.com'
             ],
             'login_box' => $auth_providers,
             'user' => $user,

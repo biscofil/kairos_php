@@ -46,8 +46,8 @@ export default {
       let self = this;
       this.$http.get(BASE_URL + '/api/elections/' + slug)
           .then(response => {
-            self.election = response.data.election
-            self.newdate = self.voting_extended_until
+            self.election = response.data.election;
+            self.newdate = self.voting_extended_until;
           })
           .catch(e => {
             self.$toastr.error("Error");

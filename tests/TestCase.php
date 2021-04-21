@@ -4,6 +4,7 @@ namespace Tests;
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Testing\TestResponse;
 
 abstract class TestCase extends BaseTestCase
@@ -13,9 +14,9 @@ abstract class TestCase extends BaseTestCase
 
     /**
      * @param int $expectedCode
-     * @param TestResponse $response
+     * @param TestResponse|JsonResponse $response
      */
-    public function assertResponseStatusCode(int $expectedCode, TestResponse $response): void
+    public function assertResponseStatusCode(int $expectedCode, $response): void
     {
         if (env('TESTING_DUMP_RESPONSE', false)) {
             if ($response->getStatusCode() !== $expectedCode) {

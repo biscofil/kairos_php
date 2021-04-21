@@ -11,8 +11,8 @@ use BenSampo\Enum\Enum;
  */
 final class CryptoSystemEnum extends Enum
 {
-    const RSA = 'rsa';
-    const ElGamal = 'eg';
+    public const RSA = 'rsa';
+    public const ElGamal = 'eg';
 
     /**
      * @return CryptoSystem

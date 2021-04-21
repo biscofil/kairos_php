@@ -6,7 +6,7 @@
                 <router-link :to="{'name' : 'admin@network' }">Network</router-link>
             </li>
             <li>
-                <router-link :to="{'name' : 'admin@elections' }">Election statss</router-link>
+                <router-link :to="{'name' : 'admin@elections' }">Election stats</router-link>
             </li>
             <li>
                 <router-link :to="{'name' : 'admin@recent-votes' }">Elections with recent votes</router-link>

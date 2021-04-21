@@ -78,11 +78,11 @@
 
                 <p align="center" style="font-size: 1.5em;">
                     <router-link :to="{ name: 'election@questions', params: { slug: election.slug }}">
-                        questions ({{ election.questions ? election.questions.length : "0" }})
+                        Questions ({{ election.questions ? election.questions.length : "0" }})
                     </router-link>
                     &nbsp;&nbsp;|&nbsp;&nbsp;
                     <router-link :to="{ name: 'election@voters@list-pretty', params: { slug: election.slug }}">
-                        voters &amp; ballots
+                        Voters &amp; ballots
                     </router-link>
                     &nbsp;&nbsp;|&nbsp;&nbsp;
                     <router-link :to="{ name: 'election@trustees@view', params: { slug: election.slug }}">
