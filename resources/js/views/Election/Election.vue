@@ -93,28 +93,6 @@
                 <!-- OK SO FAR -->
 
                 <div v-if="election.is_auth_user_admin">
-                    <div v-if="election.frozen_at">
-                        <div
-                            style="background: lightyellow; padding:5px; padding-left: 10px; margin-top: 15px; border: 1px solid #aaa; width: 720px;"
-                            class="round">
-                            <a href="javascript:void(0)" @click="show_badge_body =! show_badge_body">
-                                Embed an Election Badge
-                            </a>
-                            <div v-show="show_badge_body">
-                                <br/>
-                                <form action="#">
-                                    <textarea cols="90" rows="4" wrap="soft">
-                                      <iframe :src="election_badge_url" frameborder="0" style="border: 1px solid black" height="75" width="200">
-                                        </iframe>
-                                    </textarea>
-                                    <br/>
-                                    <p style="font-size:0.8em;"> adding this HTML to your site displays a thin banner
-                                        with direct
-                                        links to voting.</p>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
 
                     <div v-if="election.result_released_at">
                         <!-- election complete, no next step -->
