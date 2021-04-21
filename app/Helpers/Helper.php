@@ -1,5 +1,7 @@
 <?php
 
+use App\Events\WebsocketLog;
+use App\Models\PeerServer;
 use App\Models\User;
 use App\Voting\CryptoSystems\RSA\RSAKeyPair;
 use phpseclib3\Math\BigInteger;
@@ -124,4 +126,13 @@ function getLagrangianCoefficientMod(array $I, int $j, BigInteger $mod): BigInte
         );
     }
     return $out;
+}
+
+/**
+ * Log
+ * @param string $msg
+ */
+function websocketLog(string $msg) : void
+{
+    WebsocketLog::dispatch(PeerServer::me()->domain . ' > ' . $msg);
 }
