@@ -1,97 +1,70 @@
 <!DOCTYPE html>
-<!--[if IE 8]>
-<html class="no-js lt-ie9" lang="en"> <![endif]-->
-<!--[if gt IE 8]><!-->
-<html class="no-js" lang="en"> <!--<![endif]-->
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width">
-    <title>Helios</title>
-    <link rel="stylesheet" href="/css/app.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Kairos Voting System">
+    <meta name="author" content="Filippo Bisconcin">
+    <!--    <link rel="icon" href="/docs/4.0/assets/img/favicons/favicon.ico">-->
+    <title>Kairos</title>
+    <link href="/css/app.css" rel="stylesheet">
 </head>
+
 <body>
 
 <div id="app">
 
-    <div class="wrapper" v-if="settings">
-        <nav class="top-bar">
-            <ul class="title-area">
-                <!-- Title Area -->
-                <li class="name">
-                    <h1>
-                        <router-link to="/"><img src="/assets/img/tinylogo.png"></router-link>
-                    </h1>
-                </li>
-                <li class="toggle-topbar menu-icon">
-                    <a href="javascript:void(0)"><span>menu</span></a>
-                </li>
-            </ul>
-            <section class="top-bar-section">
-                <!-- Right Nav Section -->
-                <ul class="right">
-                    <template v-if="$store.getters.isLogged && $store.getters.user.is_admin">
-                        <li><router-link :to="{ name: 'admin@home' } ">Admin</router-link></li>
-                        <li class="divider"></li>
-                    </template>
-                    <li><a href="http://heliosvoting.org">About Helios</a></li>
+    <header v-if="settings">
+        <!-- Fixed navbar -->
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+            <router-link class="navbar-brand" :to="{ name: 'home' }">Kairos</router-link>
+
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                    aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+
+                <ul class="navbar-nav mr-auto">
+
+                    <li v-if="$store.getters.isLogged && $store.getters.user.can_create_election" class="nav-item">
+                        <router-link class="nav-link" :to="{name: 'elections@new'}">New election</router-link>
+                    </li>
+
+                    <li v-if="$store.getters.isLogged && $store.getters.user.is_admin" class="nav-item">
+                        <router-link class="nav-link" :to="{ name: 'admin@home' }">Admin</router-link>
+                    </li>
                 </ul>
 
-                <ul>
-                    <li>
-                        <router-link to="/">{{ settings.SITE_TITLE }}</router-link>
-                    </li>
-                    <li>
-                        <router-link to="/verifier">Verifier</router-link>
-                    </li>
-                    <li class="divider"></li>
-                    <li>
-                        <router-link to="/about">About</router-link>
-                    </li>
-                    <li class="divider"></li>
-                    <li>
-                        <router-link to="/docs">Docs</router-link>
-                    </li>
-                    <li class="divider"></li>
-                    <li>
-                        <router-link to="/faq">FAQ</router-link>
-                    </li>
-                    <li class="divider"></li>
-                    <li>
-                        <router-link to="/privacy">Privacy</router-link>
-                    </li>
-                    <li class="divider"></li>
-                    <li>
-                        <a target="_new" href="https://github.com/benadida/helios-server">Code</a>
-                    </li>
-                    <li class="divider"></li>
-                    <li><a :href="'mailto:' + settings.HELP_EMAIL_ADDRESS">Help!</a></li>
-                </ul>
-            </section>
-        </nav>
+                <span class="navbar-text">
+                    <span v-if="$store.getters.isLogged">
+                        Hi <b>{{ $store.state.user.name }}</b>!
+                        <a class="btn btn-sm btn-danger" href="javascript:void(0)" @click="$store.dispatch('logout');">Logout</a>
+                    </span>
+                    <span v-else>
+                         <LoginBox :default_auth_system="$root.login_box.default_auth_system"
+                                   :enabled_auth_systems="$root.login_box.enabled_auth_systems"
+                                   color="white"/>
+                    </span>
+                </span>
 
-        <!-- Main Page Content and Sidebar -->
-        <div class="row" id="contentbody">
-            <router-view></router-view>
-        </div>
-
-        <div class="push"></div>
-
-        <div class="footer" id="footer">
-            <span style="float:right;">
-                <img v-if="settings.FOOTER_LOGO_URL" :src="settings.FOOTER_LOGO_URL"/>
-            </span>
-
-            <div v-if="$store.getters.isLogged">
-                logged in as <b>{{ $store.state.user.name }}</b>&nbsp;&nbsp;
-                <a class="tiny button" href="javascript:void(0)" @click="$store.dispatch('logout');">logout</a>
-                <br/>
             </div>
+        </nav>
+    </header>
 
-            <br clear="right"/>
+    <!-- Begin page content -->
+    <main role="main" class="container-fluid" id="contentbody" v-if="settings">
+        <router-view></router-view>
+    </main>
+
+    <footer class="footer" v-if="settings">
+        <div class="container">
+            <span class="text-muted">Kairos</span>
         </div>
+    </footer>
 
-    </div>
 
 </div>
 <script src="/js/app.js"></script>

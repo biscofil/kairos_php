@@ -9,6 +9,7 @@ import Toastr from 'toastr';
 import VModal from 'vue-js-modal/dist';
 import VueAxios from 'vue-axios';
 import vue_moment from "vue-moment";
+import LoginBox from "./components/LoginBox";
 
 require('./bootstrap');
 
@@ -30,6 +31,10 @@ const app = new Vue({
 
     router,
     store,
+
+    components: {
+        'loginbox': LoginBox
+    },
 
     data: {
         login_box: null,

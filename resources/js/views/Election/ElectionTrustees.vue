@@ -44,8 +44,8 @@
             </div>
         </div>
 
-        <ul v-if="election.trustees && election.trustees.length">
-            <li v-for="(trustee,idx) in election.trustees">
+        <div class="list-group list-group-flush" v-if="election.trustees && election.trustees.length">
+            <li v-for="(trustee,idx) in election.trustees" class="list-group-item">
                 <h5>
                     <country-flag v-if="trustee.peer_server" :country='trustee.peer_server.country_code'/> Trustee #{{ idx + 1 }}:
                     <div v-if="election.is_auth_user_admin">
