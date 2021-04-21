@@ -40,7 +40,8 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'provider',
         'provider_id',
-        'can_create_election'
+        'can_create_election',
+        'is_admin'
     ];
 
     public $shareableFields = [

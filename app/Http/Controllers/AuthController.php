@@ -49,7 +49,8 @@ class AuthController extends Controller
                         'provider' => 'google',
                         'provider_id' => $u->id,
                         'email' => $u->email,
-                        'name' => $u->name
+                        'name' => $u->name,
+                        'is_admin' => User::query()->count() === 0 // TODO remove, first user is admin
                     ]);
                 }
 
