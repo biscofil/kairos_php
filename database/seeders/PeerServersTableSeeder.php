@@ -26,7 +26,8 @@ class PeerServersTableSeeder extends Seeder
     {
         $peerServer = new PeerServer();
         $peerServer->name = 'This server';
-        $peerServer->fetchServerInfo(true);
+        $peerServer->domain = extractDomain(config('app.url'));
+        $peerServer->fetchServerInfo();
         $peerServer->save();
     }
 }
