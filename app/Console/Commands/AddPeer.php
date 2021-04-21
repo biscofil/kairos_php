@@ -13,7 +13,7 @@ class AddPeer extends Command
      *
      * @var string
      */
-    protected $signature = 'add:peer {to}';
+    protected $signature = 'add:peer {domain}';
 
     /**
      * The console command description.
@@ -40,24 +40,29 @@ class AddPeer extends Command
      */
     public function handle()
     {
-        $me = P2PMessage::me();
+        $me = PeerServer::me();
 
-        $this->info("I AM " . $me->ip);
+        $this->info('I AM ' . $me->domain);
 
-        $to = $this->argument('to');
-        $to = extractDomain($to);
+        $toDomain = $this->argument('domain');
+        $toDomain = extractDomain($toDomain);
 
-        if (PeerServer::withIPAddress($to)->count()) {
-            $this->warn("Already present");
+        $peerServer = PeerServer::withDomain($toDomain)->first();
+        if (is_null($peerServer)) {
+            $peerServer = PeerServer::newPeerServer($toDomain);
+            $peerServer->save();
+        } else {
+            $this->warn('Already present');
         }
 
-        $this->info("Sending message to " . $to);
+        $this->info('Sending message to ' . $toDomain);
 
-        $peerServer = new PeerServer();
-        $peerServer->name = $to;
-        $peerServer->ip = gethostbyname($to);
-
-        (new AddMeToYourPeers($me, [$peerServer], getJwtRSAKeyPair()->pk))->sendSync();
+        (new AddMeToYourPeers(
+            $me,
+            [$peerServer],
+            getJwtRSAKeyPair()->pk,
+            $peerServer->getNewToken()
+        ))->sendSync();
 
         $this->info('Done');
         return 0;
