@@ -55,6 +55,7 @@ Route::middleware('auth:user_api')->group(function () {
             });
 
             Route::delete('/elections/{election}/trustees/{trustee}', [TrusteeController::class, 'destroy']);
+            Route::put('/elections/{election}/trustees/threshold', [TrusteeController::class, 'threshold']);
             Route::post('/elections/{election}/trustees', [TrusteeController::class, 'store']);
 
         });

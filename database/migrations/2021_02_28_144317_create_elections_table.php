@@ -37,7 +37,7 @@ class CreateElectionsTable extends Migration
             $table->text('questions')->nullable();
 
             $table->string('cryptosystem', 20);
-            $table->unsignedSmallInteger('delta_t_l')->default(0);
+            $table->unsignedSmallInteger('min_peer_count_t')->nullable();
             $table->text('public_key')->nullable();
             $table->text('private_key')->nullable();
 

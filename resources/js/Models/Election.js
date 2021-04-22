@@ -14,6 +14,8 @@ export default class Election {
     constructor() {
         this.slug = null;
 
+        this.min_peer_count_t = null;
+
         /** @type ?EGPublicKey */
         this.public_key = null;
         /** @type ?EGSecretKey */
@@ -213,6 +215,7 @@ export default class Election {
     toJSONObject() {
         let json_obj = {
             slug: this.slug,
+            min_peer_count_t: this.min_peer_count_t,
             description: this.description,
             name: this.name,
             public_key: this.public_key.toJSONObject(),
@@ -249,6 +252,7 @@ export default class Election {
         el.is_auth_user_admin = d.is_auth_user_admin;
         el.is_auth_user_trustee = d.is_auth_user_trustee;
         el.issues = d.issues;
+        el.min_peer_count_t = d.min_peer_count_t;
         el.trustee_count = d.trustee_count;
 
         el.openreg = d.openreg; // TODO

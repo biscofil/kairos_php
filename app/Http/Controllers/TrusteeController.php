@@ -123,15 +123,21 @@ class TrusteeController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param Request $request
-     * @param Trustee $trustee
-     * @return Response
+     * @param \App\Models\Election $election
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, Trustee $trustee)
+    public function threshold(Election $election, Request $request): JsonResponse
     {
-        //
+        $data = $request->validate([
+            'min_peer_count_t' => ['required', 'integer']
+        ]);
+        $election->min_peer_count_t = $data['min_peer_count_t'];
+        $election->save();
+        return response()->json([
+            'election' => $election
+        ]);
+
     }
 
     /**

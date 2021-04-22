@@ -81,7 +81,34 @@
                 </div>
 
             </li>
-        </ul>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="form">
+                    <h3>Threshold encryption</h3>
+                    <p>
+                        This option only refers to <b>server</b> trustees.
+                    </p>
+                    <div class="form-group row">
+                        <div class="col-sm-12 col-lg-4">
+                            <label for="min_peer_count_t">Number <kbd>t</kbd> of peers required:</label>
+                        </div>
+                        <div class="col-sm-12 col-lg-4">
+                            <input type="range" class="form-control-range" id="min_peer_count_t"
+                                   :min="0"
+                                   :max="election.trustees.length"
+                                   v-model="min_peer_count_t"
+                                   :disabled="election.frozen_at">
+                            {{ min_peer_count_t }} trustees out of {{ election.trustees.length }}
+                        </div>
+                        <div class="col-sm-12" align="right" v-if="!election.frozen_at">
+                            <button class="btn btn-success" @click="saveT">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </div>
 
@@ -104,6 +131,7 @@ export default {
     data() {
         return {
             election: null,
+            min_peer_count_t: null
         }
     },
 
@@ -119,11 +147,27 @@ export default {
     },
 
     methods: {
+
+        saveT() {
+            let self = this;
+            this.$http.put(BASE_URL + '/api/elections/' + this.election.slug + '/trustees/threshold', {
+                min_peer_count_t: self.min_peer_count_t
+            })
+                .then(response => {
+                    self.$toastr.success("Done");
+                })
+                .catch(e => {
+                    console.log(e);
+                    self.$toastr.error("Error");
+                });
+        },
+
         fetch_election(slug) {
             let self = this;
             this.$http.get(BASE_URL + '/api/elections/' + slug + '/trustees')
                 .then(response => {
                     self.election = Election.fromJSONObject(response.data);
+                    self.min_peer_count_t = self.election.min_peer_count_t;
                     document.title = "Trustees for " + self.election.name;
                 })
                 .catch(e => {
