@@ -9,11 +9,11 @@ abstract class SecretKey
 
     /**
      * @param array $data
-     * @param bool $onlyXY
+     * @param bool $ignoreParameterSet
      * @param int $base
      * @return SecretKey
      */
-    public static abstract function fromArray(array $data, bool $onlyXY = false, int $base = 16): SecretKey;
+    abstract public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): SecretKey;
 
     /**
      * @param bool $ignoreParameterSet

@@ -38,7 +38,7 @@ class RSASecretKey extends SecretKey
     // ####################################################################################################
     // ####################################################################################################
 
-    public static function fromArray(array $data, bool $onlyXY = false, int $base = 16): RSASecretKey
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): RSASecretKey
     {
         $sk = PrivateKey::load($data['v']); // TODO
         return new static($sk);

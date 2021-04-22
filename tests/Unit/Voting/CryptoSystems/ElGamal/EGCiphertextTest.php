@@ -48,8 +48,8 @@ class EGCiphertextTest extends TestCase
         $msg = BigInteger::random(10);
         $plain = new EGPlaintext($msg);
 
-        $mainMixRandomness = randomBIgt($keyPair->pk->q);
-        $shadowMixRandomness = randomBIgt($keyPair->pk->q);
+        $mainMixRandomness = randomBIgt($keyPair->pk->parameterSet->q);
+        $shadowMixRandomness = randomBIgt($keyPair->pk->parameterSet->q);
 
         $mainMixCipher = $keyPair->pk->encryptWithRandomness($plain, $mainMixRandomness);
 

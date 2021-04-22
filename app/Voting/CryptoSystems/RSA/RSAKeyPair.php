@@ -11,6 +11,8 @@ use phpseclib3\Crypt\RSA\PrivateKey;
 /**
  * Class RSAKeyPair
  * @package App\Voting\CryptoSystems\RSA
+ * @property RSAPublicKey $pk
+ * @property RSASecretKey $sk
  */
 class RSAKeyPair implements KeyPair
 {
@@ -24,7 +26,11 @@ class RSAKeyPair implements KeyPair
         $this->sk = $sk;
     }
 
-    public static function generate(): RSAKeyPair
+    /**
+     * @param \App\Voting\CryptoSystems\RSA\RSAParameterSet $parameterSet
+     * @return \App\Voting\CryptoSystems\RSA\RSAKeyPair
+     */
+    public static function generate($parameterSet = null): RSAKeyPair
     {
         $sk = PrivateKey::createKey();
         $pk = $sk->getPublicKey();

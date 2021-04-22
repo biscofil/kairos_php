@@ -36,21 +36,21 @@ class RSAPublicKey implements PublicKey
 
     /**
      * @param array $data
-     * @param bool $onlyY
+     * @param bool $ignoreParameterSet
      * @param int $base
      * @return RSAPublicKey
      */
-    public static function fromArray(array $data, bool $onlyY = false, int $base = 16): RSAPublicKey
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16) : RSAPublicKey
     {
         $pk = PublicKeyLoader::load($data['v']);
         return new static($pk); // TODO
     }
 
     /**
-     * @param bool $onlyY
+     * @param bool $ignoreParameterSet
      * @return array
      */
-    public function toArray(bool $onlyY = false): array
+    public function toArray(bool $ignoreParameterSet = false): array
     {
         return [
             'v' => $this->value->toString('PKCS8') // TODO
@@ -112,7 +112,7 @@ class RSAPublicKey implements PublicKey
      * @throws Exception
      * @noinspection PhpMissingParamTypeInspection
      */
-    public function ensureSameCryptosystem($b): void
+    public function ensureSameParameters($b): void
     {
         //TODO
     }

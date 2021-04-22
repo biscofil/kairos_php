@@ -49,7 +49,7 @@ abstract class DynamicCryptosystemClassCaster implements CastsAttributes, Serial
         $className = (new ReflectionClass($cryptoSystemClassName))->getConstant($this->getTargetClassConstantName());
 
         $reflectionMethod = new ReflectionMethod($className, 'fromArray');
-        return $reflectionMethod->invokeArgs(NULL, [$data, $model->onlyStoreXY($key)]);
+        return $reflectionMethod->invokeArgs(NULL, [$data, $model->ignoreParameterSet($key)]);
     }
 
     /**
@@ -76,7 +76,7 @@ abstract class DynamicCryptosystemClassCaster implements CastsAttributes, Serial
         if (is_null($value)) {
             return null;
         }
-        $out = $value->toArray($model->onlyStoreXY($key));
+        $out = $value->toArray($model->ignoreParameterSet($key));
         $out['_cs'] = CryptoSystem::getIdentifier($value);
         return json_encode($out);
     }

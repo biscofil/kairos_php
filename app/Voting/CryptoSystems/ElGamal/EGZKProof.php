@@ -35,28 +35,26 @@ class EGZKProof
 
     /**
      * generate a DDH tuple proof, where challenge generator is almost certainly EG_fiatshamir_challenge_generator
-     * @param BigInteger $g
-     * @param BigInteger $alpha
+     * @param EGParameterSet $parameterSet
      * @param BigInteger $x
-     * @param BigInteger $p
-     * @param BigInteger $q
+     * @param BigInteger $alpha
      * @param callable $challenge_generator
      * @return EGZKProof
      */
-    public static function generate(BigInteger $g, BigInteger $alpha, BigInteger $x, BigInteger $p, BigInteger $q, callable $challenge_generator): EGZKProof
+    public static function generate(EGParameterSet $parameterSet, BigInteger $x, BigInteger $alpha, callable $challenge_generator): EGZKProof
     {
 
         # generate random w
-        $w = randomBIgt($q);
+        $w = randomBIgt($parameterSet->g);
 
-        $commitment_a = $g->modPow($w, $p); # A = little_g^w
-        $commitment_b = $alpha->modPow($w, $p); # B = little_h^w
+        $commitment_a = $parameterSet->q->modPow($w, $parameterSet->p); # A = little_g^w
+        $commitment_b = $alpha->modPow($w, $parameterSet->p); # B = little_h^w
 
         # get challenge
         $challenge = $challenge_generator($commitment_a, $commitment_b);
 
         # compute response
-        $response = $w->add($x->multiply($challenge))->modPow(BI1(), $q);
+        $response = $w->add($x->multiply($challenge))->modPow(BI1(), $parameterSet->g);
 
         # create proof instance
         return new EGZKProof(

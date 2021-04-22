@@ -7,7 +7,7 @@ namespace App\Models\Cast;
 /**
  * Trait ModelWithFieldsWithParameterSets
  * @package App\Models\Cast
- * @property array cryptoFieldsXYOnly
+ * @property string[] cryptoFields
  */
 trait ModelWithFieldsWithParameterSets
 {
@@ -19,9 +19,9 @@ trait ModelWithFieldsWithParameterSets
      * @param bool $default
      * @return bool
      */
-    public function onlyStoreXY(string $fieldName, bool $default = true): bool
+    public function ignoreParameterSet(string $fieldName, bool $default = true): bool
     {
-        if (property_exists($this, 'cryptoFieldsXYOnly')
+        if (property_exists($this, 'cryptoFields')
             && array_key_exists($fieldName, $this->cryptoFields)) {
             return $this->cryptoFields[$fieldName];
         }

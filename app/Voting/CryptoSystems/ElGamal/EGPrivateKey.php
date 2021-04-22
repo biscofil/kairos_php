@@ -100,7 +100,7 @@ class EGPrivateKey extends SecretKey
             // TODO $challenge_generator = EG_fiatshamir_challenge_generator;
         }
         $dec_factor = $this->decryptionFactor($ciphertext);
-        $proof = EGZKProof::generate($this->pk->g, $ciphertext->alpha, $this->x, $this->pk->p, $this->pk->q, $challenge_generator);
+        $proof = EGZKProof::generate($this->pk->parameterSet, $this->x, $ciphertext->alpha, $challenge_generator);
         return [$dec_factor, $proof];
     }
 

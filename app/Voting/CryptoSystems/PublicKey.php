@@ -13,17 +13,17 @@ interface PublicKey
 
     /**
      * @param array $data
-     * @param bool $onlyY
+     * @param bool $ignoreParameterSet
      * @param int $base
      * @return PublicKey
      */
-    public static function fromArray(array $data, bool $onlyY = false, int $base = 16): PublicKey;
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16) : PublicKey;
 
     /**
-     * @param bool $onlyY
+     * @param bool $ignoreParameterSet
      * @return array
      */
-    public function toArray(bool $onlyY = false): array;
+    public function toArray(bool $ignoreParameterSet = false): array;
 
     /**
      * @return string
@@ -40,6 +40,6 @@ interface PublicKey
     /**
      * @param $b
      */
-    public function ensureSameCryptosystem($b): void;
+    public function ensureSameParameters($b): void;
 
 }

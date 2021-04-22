@@ -14,9 +14,10 @@ interface KeyPair
 {
 
     /**
+     * @param \App\Voting\CryptoSystems\CryptoSystemParameterSet|null $parameterSet
      * @return KeyPair
      */
-    public static function generate(): KeyPair;
+    public static function generate($parameterSet = null): KeyPair;
 
     /**
      * @param string $filePath
