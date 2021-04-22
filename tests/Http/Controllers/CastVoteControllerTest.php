@@ -7,7 +7,7 @@ use App\Models\Election;
 use App\Models\User;
 use App\Models\Voter;
 use App\Voting\BallotEncodings\JsonBallotEncoding;
-use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
+use App\Voting\CryptoSystems\RSA\RSAKeyPair;
 use App\Voting\CryptoSystems\RSA\RSAPlaintext;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -54,7 +54,7 @@ class CastVoteControllerTest extends TestCase
         $plaintext = (JsonBallotEncoding::encode($votePlain, RSAPlaintext::class))[0];
         $cipher = $keyPair->pk->encrypt($plaintext);
 
-        $data = ["vote" => $cipher->toArray(true)];
+        $data = ['vote' => $cipher->toArray(true)];
 
         $response = $this->actingAs($user)
             ->json('POST', 'api/elections/' . $election->slug . '/cast', $data);

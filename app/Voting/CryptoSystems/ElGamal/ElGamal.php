@@ -16,11 +16,11 @@ use App\Voting\CryptoSystems\SupportsReEncryption;
 class ElGamal extends CryptoSystem implements SupportsReEncryption
 {
 
-    const PublicKeyClass = EGPublicKey::class;
-    const SecretKeyClass = EGPrivateKey::class;
-    const PlainTextClass = EGPlaintext::class;
-    const CipherTextClass = EGCiphertext::class;
-    const ThresholdBroadcastClass = EGThresholdBroadcast::class;
+    public const PublicKeyClass = EGPublicKey::class;
+    public const SecretKeyClass = EGPrivateKey::class;
+    public const PlainTextClass = EGPlaintext::class;
+    public const CipherTextClass = EGCiphertext::class;
+    public const ThresholdBroadcastClass = EGThresholdBroadcast::class;
 
     private static ?ElGamal $instance = null;
 
@@ -59,7 +59,8 @@ class ElGamal extends CryptoSystem implements SupportsReEncryption
 
     public function onElectionFreeze(Election &$election): void
     {
-        self::generateCombinedPublicKey($election);
+        // TODO only if no threshold
+        // self::generateCombinedPublicKey($election);
     }
 
     public function afterAnonymizationProcessEnds(Election &$election): void

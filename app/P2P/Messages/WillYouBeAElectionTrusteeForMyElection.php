@@ -7,9 +7,7 @@ namespace App\P2P\Messages;
 use App\Http\Requests\EditCreateElectionRequest;
 use App\Models\Election;
 use App\Models\PeerServer;
-use App\Voting\CryptoSystems\PublicKey;
 use Exception;
-use Illuminate\Http\Client\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -68,7 +66,7 @@ class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
         $election = Election::make($electionData);
 
         if (!$sender->exists) {
-            throw new Exception("Peer server is unknown");
+            throw new Exception('Peer server is unknown');
         }
 
         return new WillYouBeAElectionTrusteeForMyElection(
@@ -98,9 +96,9 @@ class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
     /**
      * This code is for the server to which we are sending the request to
      * he has to respond with its public key
-     * @return JsonResponse
+     * @return
      */
-    public function onRequestReceived(): JsonResponse
+    public function getRequestResponse()
     {
 
         Log::debug("WillYouBeAElectionTrusteeForMyElection message received");
@@ -110,48 +108,33 @@ class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
         $this->election->peerServerAuthor()->associate($this->from); // TODO check ip / domain
         $this->election->save();
 
-        if ($this->election->delta_t_l === 0) {
-            // no slack : l-l theshold
-        } else {
-            // t-l threshold
-        }
-
-        $keyPair = $this->election->cryptosystem->getCryptoSystemClass()->generateKeypair(); // TODO remove for threshold
-        $keyPair->storeToFile('election_' . $this->election->id . '.keypair.json'); // TODO remove for threshold
-
         Log::info("I now have a copy of the election of {$this->from->name}");
 
-        return new JsonResponse([
-            'public_key' => json_encode($keyPair->pk->toArray()) // TODO remove for threshold
-        ]);
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return new JsonResponse([]);
 
     }
 
     /**
      * We parse the public key and we assign it to the trustee
      * @param \App\Models\PeerServer $destPeerServer
-     * @param \Illuminate\Http\Client\Response $response
+     * @param \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response $response
      * @throws Exception
      */
-    public function onResponseReceived(PeerServer $destPeerServer, Response $response): void
+    protected function onResponseReceived(PeerServer $destPeerServer, $response): void
     {
 
+        Log::debug($response->json());
 
         $trustee = $this->election->getTrusteeFromPeerServer($destPeerServer);
 
         if ($trustee) {
 
-            if ($response->status() >= 300) {
+            if (!$response->ok()) {
                 $trustee->delete();
                 Log::info("Server {$destPeerServer->name} deleted as trustee");
                 return;
             }
-
-            /** @var PublicKey $pkClass */
-            $pkClass = $this->election->cryptosystem->getCryptoSystemClass()::PublicKeyClass;
-            $public_key = $pkClass::fromArray(json_decode($response->json('public_key'), true));
-            $trustee->setPublicKey($public_key);
-            $trustee->save();
 
             Log::info("Server {$destPeerServer->name} added as trustee");
 

@@ -16,7 +16,7 @@ use phpseclib3\Math\BigInteger;
 class EGPrivateKey extends SecretKey
 {
 
-    const CRYPTOSYSTEM = ElGamal::class;
+    public const CRYPTOSYSTEM = ElGamal::class;
 
     public EGPublicKey $pk;
     public BigInteger $x;
@@ -30,6 +30,16 @@ class EGPrivateKey extends SecretKey
     {
         $this->pk = $pk;
         $this->x = $x;
+    }
+
+    /**
+     * @param \App\Voting\CryptoSystems\ElGamal\EGPrivateKey $b
+     * @return bool
+     * @throws \Exception
+     */
+    public function equals(EGPrivateKey $b): bool
+    {
+        return $this->x->equals($b->x) && $this->pk->equals($b->pk);
     }
 
     // ##############################################################
@@ -51,14 +61,14 @@ class EGPrivateKey extends SecretKey
     }
 
     /**
-     * @param bool $onlyXY
+     * @param bool $ignoreParameterSet
      * @return array
      */
-    public function toArray(bool $onlyXY = false): array
+    public function toArray(bool $ignoreParameterSet = false): array
     {
         return [
-            "pk" => $this->pk->toArray($onlyXY),
-            "x" => $this->x->toHex()
+            'pk' => $this->pk->toArray($ignoreParameterSet),
+            'x' => $this->x->toHex()
         ];
     }
 
@@ -186,8 +196,6 @@ class EGPrivateKey extends SecretKey
 
         $this->pk->ensureSameParameters($b->pk);
 
-        // sum of x mod (p-1) // TODO why?
-
         return new EGPrivateKey(
             $this->pk,
             $this->x->add($b->x->powMod(BI1(), $this->pk->parameterSet->p))
@@ -206,6 +214,19 @@ class EGPrivateKey extends SecretKey
             $cipher->alpha,
             $inv->multiply($cipher->beta)->powMod(BI1(), $cipher->pk->parameterSet->p)
         );
+    }
+
+    // ##############################################################
+    // ##############################################################
+    // ##############################################################
+
+    /**
+     * @param int $t
+     * @return \App\Voting\CryptoSystems\ElGamal\EGThresholdPolynomial
+     */
+    public function getThresholdPolynomial(int $t): EGThresholdPolynomial
+    {
+        return EGThresholdPolynomial::random($this->x, $t, $this->pk->parameterSet);
     }
 
 }

@@ -49,14 +49,14 @@ class EGCiphertext implements CipherText
 
     /**
      * @param array $data
-     * @param bool $onlyY
+     * @param bool $ignoreParameterSet
      * @param EGPublicKey|null $pk
      * @return EGCiphertext
      */
-    public static function fromArray(array $data, bool $onlyY = false, ?EGPublicKey $pk = null): EGCiphertext
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, $pk = null): EGCiphertext
     {
         return new static(
-            $pk ?? EGPublicKey::fromArray($data['pk'], $onlyY),
+            $pk ?? EGPublicKey::fromArray($data['pk'], $ignoreParameterSet),
             BI($data['alpha'], 16),
             BI($data['beta'], 16)
         );
@@ -64,17 +64,17 @@ class EGCiphertext implements CipherText
 
     /**
      * @param bool $includePublicKey
-     * @param bool $onlyY
+     * @param bool $ignoreParameterSet
      * @return array
      */
-    public function toArray(bool $includePublicKey = false, bool $onlyY = false): array
+    public function toArray(bool $includePublicKey = false, bool $ignoreParameterSet = false): array
     {
         $out = [
             'alpha' => $this->alpha->toHex(),
             'beta' => $this->beta->toHex()
         ];
         if ($includePublicKey) {
-            $out['pk'] = $this->pk->toArray($onlyY);
+            $out['pk'] = $this->pk->toArray($ignoreParameterSet);
         }
         return $out;
     }
@@ -116,7 +116,7 @@ class EGCiphertext implements CipherText
     public function reEncryptAndReturnRandomness(): array
     {
         // r: randomness
-        $r = randomBIgt($this->pk->q);
+        $r = randomBIgt($this->pk->parameterSet->q);
         $ciphertext = $this->reEncryptWithRandomness($r);
         return [$ciphertext, $r];
     }

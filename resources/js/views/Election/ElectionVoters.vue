@@ -13,9 +13,6 @@
 
         <h3 class="title">
             {{ election.name }} &mdash; Voters and Ballot Tracking Center
-            <router-link :to="{name:'election@view', params:{ slug: election.slug }}" class="brackets_around">
-                back to election
-            </router-link>
         </h3>
 
         <p>

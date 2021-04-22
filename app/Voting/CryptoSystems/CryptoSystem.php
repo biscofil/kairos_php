@@ -20,13 +20,13 @@ abstract class CryptoSystem
 {
 
     // these have to be set by each CryptoSystem that extends this class
-    const PublicKeyClass = null;
-    const SecretKeyClass = null;
-    const PlainTextClass = null;
-    const CipherTextClass = null;
-    const ThresholdBroadcastClass = null;
+    public const PublicKeyClass = null;
+    public const SecretKeyClass = null;
+    public const PlainTextClass = null;
+    public const CipherTextClass = null;
+    public const ThresholdBroadcastClass = null;
 
-    const CryptoSystems = [
+    public const CRYPTOSYSTEMS = [
         CryptoSystemEnum::ElGamal => ElGamal::class,
         CryptoSystemEnum::RSA => RSA::class
     ];
@@ -37,10 +37,10 @@ abstract class CryptoSystem
      */
     public static function getByIdentifier(string $cryptoSystemIdentifier): string
     {
-        if (!array_key_exists($cryptoSystemIdentifier, self::CryptoSystems)) {
-            throw new \RuntimeException("Invalid cryptosystem " . $cryptoSystemIdentifier);
+        if (!array_key_exists($cryptoSystemIdentifier, self::CRYPTOSYSTEMS)) {
+            throw new \RuntimeException('Invalid cryptosystem ' . $cryptoSystemIdentifier);
         }
-        return CryptoSystem::CryptoSystems[$cryptoSystemIdentifier]; // ElGamal::class, RSA::class, ...
+        return CryptoSystem::CRYPTOSYSTEMS[$cryptoSystemIdentifier]; // ElGamal::class, RSA::class, ...
     }
 
     /**
@@ -49,10 +49,10 @@ abstract class CryptoSystem
      */
     public static function getIdentifier($obj): string
     {
-        $v = array_flip(self::CryptoSystems); // [ ElGamal::class => 'eg', ... ]
+        $v = array_flip(self::CRYPTOSYSTEMS); // [ ElGamal::class => 'eg', ... ]
         $key = $obj::CRYPTOSYSTEM;
         if (!array_key_exists($key, $v)) {
-            throw new \RuntimeException("Unhandled type " . $key);
+            throw new \RuntimeException('unknown cryptosystem ' . $key);
         }
         return $v[$key];
     }

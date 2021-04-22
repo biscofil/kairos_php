@@ -5,11 +5,11 @@ namespace App\Models\Cast;
 
 
 /**
- * Trait ModelWithCryptoFields
+ * Trait ModelWithFieldsWithParameterSets
  * @package App\Models\Cast
  * @property array cryptoFieldsXYOnly
  */
-trait ModelWithCryptoFields
+trait ModelWithFieldsWithParameterSets
 {
 
     /**
@@ -28,5 +28,11 @@ trait ModelWithCryptoFields
         //is not specified, only store X,Y
         return $default;
     }
+
+//    public function getFieldParameterSet(string $fieldName){
+//        if (method_exists($this, 'getParameterSet')) {
+//            return $this->getParameterSet($fieldName);
+//        }
+//    }
 
 }

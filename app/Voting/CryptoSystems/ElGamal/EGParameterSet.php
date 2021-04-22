@@ -10,9 +10,9 @@ use phpseclib3\Math\BigInteger;
 /**
  * Class EGParameterSet
  * @package App\Voting\CryptoSystems\ElGamal
- * @property BigInteger $g big prime which is a factor of $p-1
- * @property BigInteger $p big big prime
- * @property BigInteger $q @deprecated TODO remove???
+ * @property BigInteger $p big safe prime $p = 2$g + 1 where $g is also prime.
+ * @property BigInteger $q big prime which is a factor of $p-1
+ * @property BigInteger $g q such that q^g mod p = 1
  */
 class EGParameterSet implements CryptoSystemParameterSet
 {
@@ -20,18 +20,17 @@ class EGParameterSet implements CryptoSystemParameterSet
     /**
      * @var BigInteger
      */
-    public BigInteger $g;
-
-    /**
-     * @var BigInteger
-     */
     public BigInteger $p;
 
     /**
-     * @deprecated
      * @var BigInteger
      */
-    public BigInteger $q; // TODO remove???
+    public BigInteger $q;
+
+    /**
+     * @var BigInteger
+     */
+    public BigInteger $g;
 
     /**
      * EGParameterSet constructor.
@@ -47,40 +46,53 @@ class EGParameterSet implements CryptoSystemParameterSet
     }
 
     /**
-     * @param int $size
-     * @return static
+     *
      */
-    public static function random(int $size = 10)
+    public static function default(): EGParameterSet
     {
-        // find a prime g
-        $g = BigInteger::randomPrime($size);
-        // find a prime p such that g is a factor of p-1
-        $k = 2;
-        do {
-            $p = $g->multiply(BI($k))->add(BI1());
-            $k++;
-        } while (!$p->isPrime());
-        //
-        return new static($g, $p, BI(100)); // TODO q
+        $p = BI(config('elgamal.p'), config('elgamal.base')); // prime p
+        // NOTE: Q,G are inverted!!!
+        $g = BI(config('elgamal.q'), config('elgamal.base'));
+        // NOTE: Q,G are inverted!!!
+        $q = BI(config('elgamal.g'), config('elgamal.base'));
+        return new static($g, $p, $q);
     }
 
     /**
-     *
+     * @param int $size
+     * @return static
      */
-    public static function default()
+    public static function random(int $size = 10): EGParameterSet
     {
-        $g = BI(config('elgamal.g'), config('elgamal.base')); // generator g
-        $p = BI(config('elgamal.p'), config('elgamal.base')); // prime p
-        $q = BI(config('elgamal.q'), config('elgamal.base')); // TODO check?!?!
+        // find a prime g
+        $q = BigInteger::randomPrime($size);
+
+        // find a prime p such that q is a factor of p-1
+        $k = 2;
+        do {
+            $p = $q->multiply(BI($k))->add(BI1());
+            $k++;
+        } while (!$p->isPrime());
+
+        // g^q mod p must be 1
+        $g = BI(1);
+        do {
+            $g = BigInteger::randomRange(BI(1), $p);
+        } while (!$g->modPow($q, $p)->equals(BI(1)));
+
         return new static($g, $p, $q);
     }
+
+    // ############################################################
+    // ############################################################
+    // ############################################################
 
     /**
      * @return string
      */
     public function toString(): string
     {
-        return "G={$this->g->toString()}, P={$this->p->toString()}, Q={$this->q->toString()}";
+        return "< G={$this->g->toString()}, P={$this->p->toString()}, Q={$this->q->toString()} >";
     }
 
     /**
@@ -103,11 +115,15 @@ class EGParameterSet implements CryptoSystemParameterSet
     public function toArray(): array
     {
         return [
-            "g" => $this->g->toHex(),
-            "p" => $this->p->toHex(),
-            "q" => $this->q->toHex(),
+            'g' => $this->g->toHex(),
+            'p' => $this->p->toHex(),
+            'q' => $this->q->toHex(),
         ];
     }
+
+    // ############################################################
+    // ############################################################
+    // ############################################################
 
     /**
      * @param \App\Voting\CryptoSystems\ElGamal\EGParameterSet $parameterSet
@@ -116,8 +132,34 @@ class EGParameterSet implements CryptoSystemParameterSet
     public function equals($parameterSet): bool
     {
         return $this->p->equals($parameterSet->p)
-            && $this->q->equals($parameterSet->q)
-            && $this->g->equals($parameterSet->g);
+            && $this->g->equals($parameterSet->g)
+            && $this->q->equals($parameterSet->q);
+    }
+
+    /**
+     * Checks the validity of the parameters
+     * @return bool
+     */
+    public function isValid(): bool
+    {
+        // p has to be prime
+        if (!$this->p->isPrime()) {
+            return false;
+        }
+        // q has to be prime
+        if (!$this->q->isPrime()) {
+            return false;
+        }
+
+        // q has to be a factor of p-1
+        list($quotient, $remainder) = $this->p->subtract(BI1())->divide($this->q);
+        if (!$remainder->equals(BI(0))) {
+            return false;
+        }
+
+        // g^q mod p must be 1
+        return $this->g->modPow($this->q, $this->p)->equals(BI(1));
+
     }
 
 }

@@ -36,7 +36,7 @@ class ThisIsMyThresholdBroadcast extends P2PMessage
      * @param BigInteger $share
      * @throws \Exception
      */
-    public function __construct(PeerServer $from,array $to, Election $election, EGThresholdBroadcast $broadcast, BigInteger $share)
+    public function __construct(PeerServer $from, array $to, Election $election, EGThresholdBroadcast $broadcast, BigInteger $share)
     {
         parent::__construct($from, $to);
         $this->election = $election;
@@ -88,10 +88,11 @@ class ThisIsMyThresholdBroadcast extends P2PMessage
 
     /**
      * Code executed by server J when broadcast of server I arrives
-     * @return JsonResponse
+     * @return
      * @throws \Exception
+     * @noinspection PhpIncompatibleReturnTypeInspection
      */
-    public function onRequestReceived(): JsonResponse
+    public function getRequestResponse()
     {
 
         // find sending trustee by peer server
@@ -108,14 +109,14 @@ class ThisIsMyThresholdBroadcast extends P2PMessage
         $j = 1; // TODO compute index!!!!
 
         if ($this->broadcast->isValid($trusteeI->share, $j)) { // TODO
-            return new JsonResponse(["msg" => "Great, valid polynomial"]);
+            return new JsonResponse(['msg' => 'Great, valid polynomial']);
         } else {
             RunP2PTask::dispatch(new SendBroadcastComplaint(
                 $this->broadcast,
                 $this->from,
                 $this->to
             ));
-            return new JsonResponse(["error" => "I am about to broadcast complaint"], 400);
+            return new JsonResponse(['error' => 'I am about to broadcast complaint'], 400);
         }
 
     }

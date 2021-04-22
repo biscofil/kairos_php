@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CryptoSystemEnum;
-use App\Models\Cast\ModelWithCryptoFields;
+use App\Models\Cast\ModelWithFieldsWithParameterSets;
 use App\Models\Cast\PrivateKeyCasterCryptosystem;
 use App\Models\Cast\PublicKeyCasterCryptosystem;
 use App\Voting\CryptoSystems\PublicKey;
@@ -44,7 +44,7 @@ use Illuminate\Support\Str;
  * @property int|null admin_id
  * @property User admin
  *
- * @property int delta_t_l
+ * @property int|null min_peer_count_t
  * @property CryptoSystemEnum cryptosystem
  * @property null|PublicKey public_key
  * @property null|SecretKey private_key
@@ -73,7 +73,7 @@ class Election extends Model
 {
     use HasShareableFields;
     use HasFactory;
-    use ModelWithCryptoFields;
+    use ModelWithFieldsWithParameterSets;
 
     protected $fillable = [
         'uuid',
@@ -91,7 +91,7 @@ class Election extends Model
         //
         'cryptosystem',
         'public_key', 'private_key',
-        'delta_t_l',
+        'min_peer_count_t',
         //
         'is_registration_open', // TODO
         'use_voter_alias',
@@ -144,7 +144,7 @@ class Election extends Model
     protected $casts = [
         'id' => 'int',
         //
-        'delta_t_l' => 'int',
+        'min_peer_count_t' => 'int',
         'cryptosystem' => CryptoSystemEnum::class,
         'public_key' => PublicKeyCasterCryptosystem::class,
         'private_key' => PrivateKeyCasterCryptosystem::class,
@@ -465,6 +465,8 @@ class Election extends Model
 
         $this->save();
 
+        $this->trustees->load('peerServer');
+
         $this->setupOutputTables();
     }
 
@@ -496,7 +498,7 @@ class Election extends Model
         $e->name = "Copy of " . $this->name;
         $e->slug = $e->uuid;
         $e->cryptosystem = $this->cryptosystem;
-        $e->delta_t_l = $this->delta_t_l;
+        $e->min_peer_count_t = $this->min_peer_count_t;
         $e->description = $this->description;
         $e->help_email = $this->help_email;
         $e->info_url = $this->info_url;

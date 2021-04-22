@@ -16,9 +16,6 @@
             </nav>
 
             <h3 class="title">{{ election.name }} &mdash; Questions
-                <router-link class="brackets_around" :to="{ name:'election@view', params:{slug:election.slug} }">
-                    back to election
-                </router-link>
             </h3>
 
             <div>
@@ -38,9 +35,9 @@
                     </legend>
                     <QuestionEditor v-model="questions[idx]"/>
                 </fieldset>
-                <button class="small button" @click="addQuestion">Add question</button>
+                <button class="btn btn-sm btn-info" @click="addQuestion">Add question</button>
                 <hr>
-                <button @click="save_questions">Save all</button>
+                <button class="btn btn-success" @click="save_questions">Save all</button>
             </div>
 
         </div>
@@ -174,13 +171,16 @@ fieldset {
 <style>
 .vqb-group {
     border: 1px solid #a2a2a2;
-    padding: 10px;
     margin: 2px;
     border-radius: 5px;
 }
 
+.match-type-container{
+    padding: 5px;
+}
+
 .vqb-group-heading {
-    background: #dedede;
+    background: #9e9e9e;
     padding: 5px;
     border-radius: 5px;
 }

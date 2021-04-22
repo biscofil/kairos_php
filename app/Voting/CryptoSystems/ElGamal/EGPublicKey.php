@@ -17,7 +17,7 @@ use phpseclib3\Math\BigInteger;
 class EGPublicKey implements PublicKey
 {
 
-    const CRYPTOSYSTEM = ElGamal::class;
+    public const CRYPTOSYSTEM = ElGamal::class;
 
     public EGParameterSet $parameterSet;
     public BigInteger $y;
@@ -33,6 +33,16 @@ class EGPublicKey implements PublicKey
         $this->y = $y;
     }
 
+    /**
+     * @param \App\Voting\CryptoSystems\ElGamal\EGPublicKey $b
+     * @return bool
+     * @throws \Exception
+     */
+    public function equals(EGPublicKey $b): bool
+    {
+        $this->ensureSameParameters($b);
+        return $this->y->equals($b->y);
+    }
 
     // ####################################################################
     // ####################################################################
@@ -154,7 +164,7 @@ class EGPublicKey implements PublicKey
      * @return EGCiphertext
      * @noinspection PhpMissingParamTypeInspection
      */
-    public function encrypt($plainText): EGCiphertext
+    public function encrypt($plainText) : EGCiphertext
     {
         /** @var EGCiphertext $ciphertext */
         /** @var BigInteger $r */

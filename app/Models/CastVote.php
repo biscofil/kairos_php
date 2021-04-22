@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Voting\CryptoSystems\ElGamal\EGCiphertext;
-use App\Models\Cast\ThresholdBroadcastCasterCryptosystem;
-use App\Models\Cast\ModelWithCryptoFields;
+use App\Models\Cast\CiphertextCaster;
+use App\Models\Cast\ModelWithFieldsWithParameterSets;
+use App\Voting\CryptoSystems\CipherText;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -27,7 +27,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class CastVote extends Model
 {
     use HasFactory;
-    use ModelWithCryptoFields;
+    use ModelWithFieldsWithParameterSets;
 
     protected $fillable = [
         'vote',

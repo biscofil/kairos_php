@@ -15,7 +15,7 @@ class POKCaster implements CastsAttributes, SerializesCastableAttributes
 {
 
     /**
-     * @param ModelWithCryptoFields $model
+     * @param ModelWithFieldsWithParameterSets $model
      * @param string $key
      * @param mixed $value
      * @param array $attributes
@@ -32,7 +32,7 @@ class POKCaster implements CastsAttributes, SerializesCastableAttributes
     }
 
     /**
-     * @param ModelWithCryptoFields $model
+     * @param ModelWithFieldsWithParameterSets $model
      * @param string $key
      * @param null|DLogProof $value
      * @param array $attributes
@@ -49,7 +49,7 @@ class POKCaster implements CastsAttributes, SerializesCastableAttributes
     }
 
     /**
-     * @param ModelWithCryptoFields $model
+     * @param ModelWithFieldsWithParameterSets $model
      * @param string $key
      * @param DLogProof|null $value
      * @param array $attributes

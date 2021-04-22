@@ -5,8 +5,8 @@ namespace App\P2P\Messages;
 
 
 use App\Models\PeerServer;
+use App\Rules\SenderDomainMatchesRequestIP;
 use App\Voting\CryptoSystems\RSA\RSAPublicKey;
-use Illuminate\Http\Client\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -64,13 +64,21 @@ class AddMeToYourPeers extends P2PMessage
      */
     public static function getAuthPeer(Request $request): PeerServer
     {
-        $ipAddress = $request->ip();
+
+        $data = $request->validate([
+            // check if the claimed domain has in fact the used IP
+            'sender_domain' => ['required', new SenderDomainMatchesRequestIP($request->ip())]  // TODO validate active domain
+        ]);
+
+        $domain = $data['sender_domain'];
+        if ($peer = PeerServer::withDomain($domain)->first()) {
+            return $peer;
+        }
 
         /**
-         * IP instead of domain -> will be added later
          * @see \App\P2P\Messages\AddMeToYourPeers::fromRequest()
          */
-        return PeerServer::newPeerServer($ipAddress);//
+        return PeerServer::newPeerServer($domain);
 
     }
 
@@ -86,14 +94,9 @@ class AddMeToYourPeers extends P2PMessage
         $data = Validator::make($messageData, [
             'my_jwt_public_key' => ['required', 'array'],
             'token' => ['required'],
-            'sender_domain' => ['required'] // TODO validate domain
         ])->validate();
 
         // check if the claimed domain has in fact the used IP
-        $ip = gethostbyname($data['sender_domain']);
-        if ($ip === $sender->domain) {
-            $sender->domain = $data['sender_domain'];
-        }
 
         $pk = RSAPublicKey::fromArray($data['my_jwt_public_key']);
 
@@ -107,12 +110,12 @@ class AddMeToYourPeers extends P2PMessage
 
     /**
      * The new peer registers sender and replies with its jwt public key
-     * @return JsonResponse
+     * @return
      */
-    public function onRequestReceived(): JsonResponse
+    public function getRequestResponse()
     {
 
-        Log::debug("AddMeToYourPeers message received");
+        Log::debug('AddMeToYourPeers message received');
 
         $this->from->jwt_public_key = $this->senderJwtPk;
         $this->from->token = $this->token; // set the token the current server will use to communicate with {$this->from}
@@ -131,6 +134,7 @@ class AddMeToYourPeers extends P2PMessage
             'jwt_public_key' => $myKeyPair->pk->toArray()
         ];
 
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return new JsonResponse($out);
 
     }
@@ -138,12 +142,13 @@ class AddMeToYourPeers extends P2PMessage
     /**
      * Once the peer has replied, we store its public key
      * @param \App\Models\PeerServer $destPeerServer
-     * @param \Illuminate\Http\Client\Response $response
+     * @param \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response $response
      */
-    public function onResponseReceived(PeerServer $destPeerServer, Response $response): void
+    protected function onResponseReceived(PeerServer $destPeerServer, $response): void
     {
 
         if (!$response->ok()) {
+            Log::error($response->json());
             return;
         }
 

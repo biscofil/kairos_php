@@ -14,10 +14,10 @@ use App\Voting\CryptoSystems\CryptoSystem;
 class RSA extends CryptoSystem
 {
 
-    const PublicKeyClass = RSAPublicKey::class;
-    const SecretKeyClass = RSASecretKey::class;
-    const PlainTextClass = RSAPlaintext::class;
-    const CipherTextClass = RSACiphertext::class;
+    public const PublicKeyClass = RSAPublicKey::class;
+    public const SecretKeyClass = RSASecretKey::class;
+    public const PlainTextClass = RSAPlaintext::class;
+    public const CipherTextClass = RSACiphertext::class;
 
     private static ?RSA $instance = null;
 

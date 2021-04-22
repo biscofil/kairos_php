@@ -18,9 +18,11 @@ use Illuminate\Support\Facades\Log;
  */
 class SendP2PMessage implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
 
-    public $message;
+    public P2PMessage $message;
 
     /**
      * Create a new job instance.
@@ -33,13 +35,13 @@ class SendP2PMessage implements ShouldQueue
 
     /**
      * Execute the job.
-     *
      * @return void
+     * @throws \ReflectionException
      */
     public function handle()
     {
-        Log::debug("SendP2PMessage > SENDING....");
-        $this->message->sendSync();
-        Log::debug("SendP2PMessage > SENT");
+        Log::debug('SendP2PMessage > SENDING....');
+        $this->message->run();
+        Log::debug('SendP2PMessage > SENT');
     }
 }

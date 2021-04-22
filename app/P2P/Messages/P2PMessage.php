@@ -6,7 +6,9 @@ namespace App\P2P\Messages;
 use App\Jobs\SendP2PMessage;
 use App\Models\PeerServer;
 use Exception;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Http\Request;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use ReflectionClass;
@@ -21,6 +23,7 @@ use ReflectionException;
  */
 abstract class P2PMessage
 {
+    use SerializesModels;
 
     protected PeerServer $from;
     protected array $to;
@@ -31,7 +34,7 @@ abstract class P2PMessage
         WillYouBeAElectionTrusteeForMyElection::class,
         IFrozeMyElection::class,
         IReceivedTheseVotes::class,
-        ThisIsMyMixSet::class,
+        GiveMeYourMixSet::class,
     ];
 
     /**
@@ -73,7 +76,7 @@ abstract class P2PMessage
      * @throws Exception
      * @noinspection PhpPossiblePolymorphicInvocationInspection
      */
-    protected static function getClass(string $message): string
+    private static function getClass(string $message): string
     {
         /** @var \App\P2P\Messages\P2PMessage $messageClass */
         foreach (self::$messageClasses as $messageClass) {
@@ -101,14 +104,36 @@ abstract class P2PMessage
      * @return static
      * @throws Exception
      */
-    public abstract static function fromRequest(PeerServer $sender, array $messageData): P2PMessage;
+    abstract public static function fromRequest(PeerServer $sender, array $messageData): P2PMessage;
 
     /**
      * Sends the message in a blocking way, should only be called by queues and not during requests
      * @param \App\Models\PeerServer $to
      * @return array
      */
-    public abstract function getRequestData(PeerServer $to): array;
+    public function getRequestData(PeerServer $to): array
+    {
+        return [];
+    }
+
+    /**
+     * @return
+     */
+    abstract public function getRequestResponse();
+
+    /**
+     * @param \App\Models\PeerServer $destPeerServer
+     * @param \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response $response
+     * @return void
+     */
+    abstract protected function onResponseReceived(PeerServer $destPeerServer, $response): void;
+
+    /**
+     * All messages have been sent
+     */
+    protected function afterMessagesSent(){
+
+    }
 
     // #############################################################
 
@@ -116,67 +141,67 @@ abstract class P2PMessage
      * Sends the message in a blocking way, should only be called by queues (and tasks) and not during requests
      * @throws ReflectionException
      */
-    public final function sendSync(): void
+    final public function run(): void
     {
 
-        $messageName = (new ReflectionClass(get_class($this)))->getConstant('name');
+        Log::debug('class : ' . get_called_class());
 
-//        $result = [];
+        $messageName = (new ReflectionClass(get_called_class()))->getConstant('name');
 
         foreach ($this->to as $destPeerServer) { // foreach destination server
 
-            $url = "https://" . $destPeerServer->ip . '/api/p2p/' . $messageName;
+            $url = 'https://' . $destPeerServer->domain . '/api/p2p/' . $messageName;
 
-            Log::debug("Sending a message to " . $url);
+            if ($destPeerServer->domain == PeerServer::me()->domain) {
+                Log::error('CANT SENT A MESSAGE TO YOURSELF : ' . $url);
+                continue;
+            }
+
+            Log::debug('Sending a message to ' . $url);
+            websocketLog('Sending a message to ' . $url);
 
             $data = $this->getRequestData($destPeerServer);
-
-            /** @noinspection PhpParamsInspection */
-            Log::debug($data);
 
             try {
 
                 $response = Http::withOptions([
                     'verify' => false, // TODO remove
-                ])->post($url, $data);  // ############################################## Response
+                ])
+                    ->withToken($destPeerServer->token ?? '')
+                    ->post($url, $data);
 
-                Log::debug("I received a response with status " . $response->status());
+                // ############################################## Response
+
+                Log::debug('I received a response with status ' . $response->status());
 
                 $this->onResponseReceived($destPeerServer, $response);
 
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error("Error sending  $url : " . $e->getMessage());
+                Log::debug($e->getFile() . ' @ line ' . $e->getLine());
+                Log::debug($e->getTraceAsString());
             }
 
         }
+
+        $this->afterMessagesSent();
 
     }
 
     /**
      * @return mixed
      */
-    public final function sendAsync(): void
+    final public function sendSync(): void
     {
-        SendP2PMessage::dispatch($this);
+        SendP2PMessage::dispatchSync($this);
     }
 
-    // #############################################################
-    // #############################################################
-
-    // The output of onRequestReceived() should match the input of onResponseReceived();
-
     /**
-     * @return JsonResponse
+     * @return mixed
      */
-    public abstract function onRequestReceived(): JsonResponse;
-
-    /**
-     * @param \App\Models\PeerServer $destPeerServer
-     * @param \Illuminate\Http\Client\Response $response
-     * @return void
-     */
-    public function onResponseReceived(PeerServer $destPeerServer, \Illuminate\Http\Client\Response $response): void
+    final public function sendAsync(int $seconds = 0): void
     {
+        SendP2PMessage::dispatch($this)
+            ->delay(now()->addSeconds($seconds));
     }
-
 }

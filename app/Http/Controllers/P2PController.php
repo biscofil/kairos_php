@@ -37,10 +37,21 @@ class P2PController extends Controller
      */
     public function receive(Request $request, string $message): JsonResponse
     {
-
         try {
 
-            return P2PMessage::fromRequestData($request->all());
+            // get message class
+            $instance = P2PMessage::getNewMessageObject($message);
+
+            // check auth / get user
+            $senderPeer = $instance->getAuthPeer($request);
+
+            websocketLog("$message request received from $senderPeer->domain");
+
+            // instanciate it
+            $messageObj = $instance->fromRequest($senderPeer, $request->all());
+
+            // call onRequestReceived method
+            return $messageObj->getRequestResponse();
 
         } catch (\Exception $e) {
 

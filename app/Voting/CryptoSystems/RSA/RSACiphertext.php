@@ -30,30 +30,30 @@ class RSACiphertext implements CipherText
 
     /**
      * @param array $data
-     * @param bool $onlyY
+     * @param bool $ignoreParameterSet
      * @param RSAPublicKey|null $pk
      * @return RSACiphertext
      */
-    public static function fromArray(array $data, bool $onlyY = false, $pk = null): RSACiphertext
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, $pk = null) : RSACiphertext
     {
         return new static(
-            $pk ?? RSAPublicKey::fromArray($data['pk'], $onlyY),
+            $pk ?? RSAPublicKey::fromArray($data['pk'], $ignoreParameterSet),
             $data['c'],
         );
     }
 
     /**
      * @param bool $includePublicKey
-     * @param bool $onlyY
+     * @param bool $ignoreParameterSet
      * @return array
      */
-    public function toArray(bool $includePublicKey = false, bool $onlyY = false): array
+    public function toArray(bool $includePublicKey = false, bool $ignoreParameterSet = false): array
     {
         $out = [
             'c' => $this->cipherText
         ];
         if ($includePublicKey) {
-            $out['pk'] = $this->pk->toArray($onlyY);
+            $out['pk'] = $this->pk->toArray($ignoreParameterSet);
         }
         return $out;
     }

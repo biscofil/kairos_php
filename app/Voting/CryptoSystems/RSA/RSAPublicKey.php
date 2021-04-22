@@ -17,7 +17,7 @@ use phpseclib3\Crypt\RSA\PublicKey as phpsecRSA;
 class RSAPublicKey implements PublicKey
 {
 
-    const CRYPTOSYSTEM = RSA::class;
+    public const CRYPTOSYSTEM = RSA::class;
 
     public phpsecRSA $value;
 
@@ -93,7 +93,7 @@ class RSAPublicKey implements PublicKey
      */
     public function getFingerprint(): string
     {
-        return base64_encode(hash('sha256', "abc")); // TODO
+        return base64_encode(hash('sha256', 'abc')); // TODO
     }
 
     /**
@@ -101,7 +101,7 @@ class RSAPublicKey implements PublicKey
      * @return RSACiphertext
      * @noinspection PhpMissingParamTypeInspection
      */
-    public function encrypt($plainText): RSACiphertext
+    public function encrypt($plainText) : RSACiphertext
     {
         return new RSACiphertext($this, $this->value->encrypt($plainText->cipherText));
     }

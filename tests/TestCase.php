@@ -2,10 +2,14 @@
 
 namespace Tests;
 
+use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
+use App\Voting\CryptoSystems\ElGamal\EGPrivateKey;
+use App\Voting\CryptoSystems\ElGamal\EGPublicKey;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Testing\TestResponse;
+use phpseclib3\Math\BigInteger;
 
 abstract class TestCase extends BaseTestCase
 {

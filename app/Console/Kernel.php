@@ -4,6 +4,7 @@ namespace App\Console;
 
 use App\Console\Commands\AddPeer;
 use App\Console\Commands\SendReceivedVotes;
+use App\Models\PeerServer;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 

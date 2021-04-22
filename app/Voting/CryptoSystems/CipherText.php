@@ -4,8 +4,6 @@
 namespace App\Voting\CryptoSystems;
 
 
-use Illuminate\Http\Request;
-
 /**
  * Class CipherText
  * @package App\Voting\CryptoSystems
@@ -15,18 +13,18 @@ interface CipherText
 
     /**
      * @param array $data
-     * @param bool $onlyY
+     * @param bool $ignoreParameterSet
      * @param PublicKey|null $pk
      * @return CipherText
      */
-    //public static function fromArray(array $data, bool $onlyY = false, $pk = null): Ciphertext; // TODO
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, $pk = null) : CipherText;
 
     /**
      * @param bool $includePublicKey
-     * @param bool $onlyY
+     * @param bool $ignoreParameterSet
      * @return array
      */
-    //public function toArray(bool $includePublicKey = false, bool $onlyY = false): array; // TODO
+    public function toArray(bool $includePublicKey = false, bool $ignoreParameterSet = false): array;
 
     /**
      * @return string

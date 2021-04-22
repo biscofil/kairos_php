@@ -25,7 +25,7 @@ abstract class DynamicCryptosystemClassCaster implements CastsAttributes, Serial
     // ########################################################################
 
     /**
-     * @param ModelWithCryptoFields $model
+     * @param ModelWithFieldsWithParameterSets $model
      * @param string $key
      * @param string|null $value
      * @param array $attributes
@@ -64,7 +64,7 @@ abstract class DynamicCryptosystemClassCaster implements CastsAttributes, Serial
     // ########################################################################
 
     /**
-     * @param ModelWithCryptoFields $model
+     * @param ModelWithFieldsWithParameterSets $model
      * @param string $key
      * @param null|SecretKey $value
      * @param array $attributes
@@ -84,7 +84,7 @@ abstract class DynamicCryptosystemClassCaster implements CastsAttributes, Serial
     // ########################################################################
 
     /**
-     * @param ModelWithCryptoFields $model
+     * @param ModelWithFieldsWithParameterSets $model
      * @param string $key
      * @param EGPublicKey|null $value
      * @param array $attributes

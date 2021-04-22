@@ -13,11 +13,23 @@ use Illuminate\Contracts\Database\Eloquent\SerializesCastableAttributes;
  * Class CiphertextCaster TODO dynamic caster
  * @package App\Models\Cast
  */
-class CiphertextCaster implements CastsAttributes, SerializesCastableAttributes
+class CiphertextCaster extends FieldWithParameterSet
 {
 
+
     /**
-     * @param ModelWithCryptoFields $model
+     * Specify the name of the constant of a cryptosystem class (RSA/Elgamal) that contains the name of the class
+     * we want to cast the value to
+     * @return string
+     * @see \App\Voting\CryptoSystems\CryptoSystem::CipherTextClass
+     */
+    public function getTargetClassConstantName(): string
+    {
+        return 'CipherTextClass';
+    }
+
+    /**
+     * @param ModelWithFieldsWithParameterSets $model
      * @param string $key
      * @param string|null $value
      * @param array $attributes
@@ -38,7 +50,7 @@ class CiphertextCaster implements CastsAttributes, SerializesCastableAttributes
     }
 
     /**
-     * @param ModelWithCryptoFields $model
+     * @param ModelWithFieldsWithParameterSets $model
      * @param string $key
      * @param null|EGCiphertext $value
      * @param array $attributes
@@ -55,7 +67,7 @@ class CiphertextCaster implements CastsAttributes, SerializesCastableAttributes
     }
 
     /**
-     * @param ModelWithCryptoFields $model
+     * @param ModelWithFieldsWithParameterSets $model
      * @param string $key
      * @param EGCiphertext|null $value
      * @param array $attributes

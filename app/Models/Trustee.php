@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Models\Cast\BigIntCaster;
-use App\Models\Cast\ModelWithCryptoFields;
+use App\Models\Cast\ModelWithFieldsWithParameterSets;
 use App\Models\Cast\POKCaster;
 use App\Models\Cast\PrivateKeyCasterCryptosystem;
 use App\Models\Cast\PublicKeyCasterCryptosystem;
@@ -48,11 +48,13 @@ class Trustee extends Model
 {
     use HasShareableFields;
     use HasFactory;
-    use ModelWithCryptoFields;
+    use ModelWithFieldsWithParameterSets;
 
     protected $fillable = [
         'uuid',
-        'user_id',
+        //
+        'user_id', 'peer_server_id',
+        //
         'election_id',
         'public_key',
         'private_key',
@@ -63,6 +65,10 @@ class Trustee extends Model
         //
         'share_sent',
         'share_received'
+    ];
+
+    public $shareableFields = [
+        'uuid'
     ];
 
     protected $casts = [

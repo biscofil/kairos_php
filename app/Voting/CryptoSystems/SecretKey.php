@@ -4,8 +4,6 @@
 namespace App\Voting\CryptoSystems;
 
 
-use Illuminate\Http\Request;
-
 abstract class SecretKey
 {
 
@@ -18,16 +16,16 @@ abstract class SecretKey
     public static abstract function fromArray(array $data, bool $onlyXY = false, int $base = 16): SecretKey;
 
     /**
-     * @param bool $onlyXY
+     * @param bool $ignoreParameterSet
      * @return array
      */
-    public abstract function toArray(bool $onlyXY = false): array;
+    abstract public function toArray(bool $ignoreParameterSet = false): array;
 
     /**
      * @param CipherText $cipherText
      * @return Plaintext
      * @noinspection PhpMissingParamTypeInspection
      */
-    public abstract function decrypt($cipherText): Plaintext;
+    abstract public function decrypt($cipherText): Plaintext;
 
 }

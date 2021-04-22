@@ -78,25 +78,25 @@ class IReceivedTheseVotes extends P2PMessage
 
     /**
      * This code is for the server to which we are sending the request to
-     * @return JsonResponse
+     * @return
      */
-    public function onRequestReceived(): JsonResponse
+    public function getRequestResponse()
     {
         // TODO queue job
         $n = count($this->ballots);
-        LOG::debug("{$this->from->name} has sent me $n ballots");
-        return new JsonResponse(["status" => "ok, job queued"]);
+        Log::debug("{$this->from->name} has sent me $n ballots");
+        return new JsonResponse(['status' => 'ok, job queued']);
     }
 
     /**
      * @param \App\Models\PeerServer $destPeerServer
-     * @param \Illuminate\Http\Client\Response $response
+     * @param \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response $response
      * @throws Exception
      */
-    public function onResponseReceived(PeerServer $destPeerServer, \Illuminate\Http\Client\Response $response): void
+    protected function onResponseReceived(PeerServer $destPeerServer, $response): void
     {
 
-        LOG::debug($response->json());
+        Log::debug($response->json());
 
     }
 

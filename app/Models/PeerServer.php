@@ -3,19 +3,21 @@
 namespace App\Models;
 
 use App\Http\Middleware\AuthenticateWithElectionCreatorJwt;
-use App\Models\Cast\ModelWithCryptoFields;
+use App\Models\Cast\ModelWithFieldsWithParameterSets;
 use App\Models\Cast\PublicKeyCasterCryptosystem;
 use App\Voting\CryptoSystems\RSA\RSAPublicKey;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
 /**
  * Class PeerServer
@@ -32,14 +34,18 @@ use Lcobucci\JWT\Signer\Rsa\Sha256;
  * @property RSAPublicKey|null jwt_public_key
  * @property string|null token Token used by the current server to authenticate with the server represented by this model
  *
- * @method static find(array $array)
+ * @property \Illuminate\Support\Collection|\App\Models\Election[] elections
+ *
+ * @method static self|null find(array $array)
  * @method static self firstOrFail()
+ * @method static self|Builder unknown()
  * @method static self|Builder withDomain(string $domain)
+ * @method static self|null first()
  */
 class PeerServer extends Authenticatable implements JWTSubject
 {
 
-    use ModelWithCryptoFields;
+    use ModelWithFieldsWithParameterSets;
     use SpatialTrait;
     use HasFactory;
     use HasShareableFields;
@@ -67,13 +73,17 @@ class PeerServer extends Authenticatable implements JWTSubject
         'jwt_public_key' => PublicKeyCasterCryptosystem::class
     ];
 
+    // ############################################# Scopes
+
     /**
-     * @param string $domain
-     * @return PeerServer|null
+     * Returns peer servers the current server should present himself to
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     * @return \Illuminate\Database\Eloquent\Builder
+     * @noinspection PhpUnused
      */
-    public static function fromDomain(string $domain): ?PeerServer
+    public static function scopeUnknown(Builder $builder): Builder
     {
-        return self::withDomain($domain)->first();
+        return $builder->whereNull('token');
     }
 
     /**
@@ -92,12 +102,17 @@ class PeerServer extends Authenticatable implements JWTSubject
     // ############################################# RELATIONS
 
     /**
-     * @return BelongsToMany
+     * @return HasManyThrough|Election
      */
-    public function elections(): BelongsToMany
+    public function elections(): HasManyThrough
     {
-        return $this->belongsToMany(Election::class, 'election_peer_servers');
+        return $this->hasManyThrough(
+            Election::class, Trustee::class,
+            'peer_server_id', 'id',
+            null, 'election_id');
     }
+
+    // #############################
 
     /**
      * @param bool $selfQuery
@@ -113,13 +128,10 @@ class PeerServer extends Authenticatable implements JWTSubject
             return false;
         }
         $data = unserialize($response->body());
-        if ($data["status"] === "success") {
-            $this->gps = new Point($data["lat"], $data["lon"]);
-            $this->country_code = $data["countryCode"];
-            if ($selfQuery) {
-                $this->ip = $data["query"];
-            }
-            return $this->save();
+        if ($data['status'] === 'success') {
+            $this->gps = new Point($data['lat'], $data['lon']);
+            $this->country_code = $data['countryCode'];
+            return true;
         }
         return false;
     }

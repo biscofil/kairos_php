@@ -44,7 +44,9 @@
         <div class="list-group list-group-flush" v-if="election.trustees && election.trustees.length">
             <li v-for="(trustee,idx) in election.trustees" class="list-group-item">
                 <h5>
-                    <country-flag v-if="trustee.peer_server" :country='trustee.peer_server.country_code'/> Trustee #{{ idx + 1 }}:
+                    <country-flag v-if="trustee.peer_server && trustee.peer_server.country_code"
+                                  :country='trustee.peer_server.country_code'/>
+                    Trustee #{{ idx + 1 }}:
                     <div v-if="election.is_auth_user_admin">
                         <!-- TODO only shown for admin -->
                         <div v-if="trustee.user">
@@ -67,7 +69,10 @@
                         Public Key Fingerprint:
                         <small>{{ trustee.public_key_hash }}</small>
                     </span>
-                    <span v-else>No public key uploaded yet.</span>
+                    <span v-else>
+                        <span v-if="trustee.user" class="badge badge-warning">No public key uploaded yet.</span>
+                        <span v-else-if="trustee.peer_server" class="badge badge-info">The public key will be sent after the election freeze.</span>
+                    </span>
                 </p>
 
                 <div v-if="election.encrypted_tally">
@@ -79,6 +84,7 @@
         </ul>
 
     </div>
+
 </template>
 
 <script>

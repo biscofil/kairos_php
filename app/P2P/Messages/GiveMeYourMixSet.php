@@ -16,16 +16,17 @@ use Illuminate\Support\Facades\Validator;
 use phpseclib3\Math\BigInteger;
 
 /**
+ * TODO
  * Class ThisIsMyMixSet
  * @package App\P2P\Messages
  * @property array $mixSet
  */
-class ThisIsMyMixSet extends P2PMessage
+class GiveMeYourMixSet extends P2PMessage
 {
 
-    public const name = 'this_is_my_mix_set';
+    public const name = 'give_me_your_mix_set';
 
-    public $mixSet;
+    public array $mixSet;
 
     // #######################################################################################
     // ##################################### REQUEST #########################################
@@ -42,6 +43,17 @@ class ThisIsMyMixSet extends P2PMessage
     {
         parent::__construct($from, $to);
         $this->mixSet = $ballots;
+    }
+
+    /**
+     * @param \App\Models\PeerServer $to
+     * @return array
+     */
+    public function getRequestData(PeerServer $to): array
+    {
+        return [
+            'mix_set' => $this->mixSet,
+        ];
     }
 
     /**
@@ -64,66 +76,47 @@ class ThisIsMyMixSet extends P2PMessage
     }
 
     /**
-     * @param \App\Models\PeerServer $to
-     * @return array
-     */
-    public function getRequestData(PeerServer $to): array
-    {
-        return [
-            'mix_set' => $this->mixSet,
-        ];
-    }
-
-    // #######################################################################################
-    // ##################################### RESPONSE ########################################
-    // #######################################################################################
-
-    /**
      * This code is for the server to which we are sending the request to
      * he has to respond with its public key
-     * @return JsonResponse
+     * @return
+     * @noinspection PhpIncompatibleReturnTypeInspection
      */
-    public function onRequestReceived(): JsonResponse
+    public function getRequestResponse()
     {
 
-        Log::debug("ThisIsMyMixSet message received");
+        Log::debug('ThisIsMyMixSet message received');
 
-        // TODO store received mixset
-
-        /**
-         * The destination server generates 80 challenge bits and returns it to the sender
-         */
-
-        return new JsonResponse([
-            'challenge_bits' => BigInteger::random(80)->toBits()
-        ]);
+        // TODO return sqlitefile
+        return new BinaryFileResponse('');
 
     }
 
     /**
      * We parse the public key and we assign it to the trustee
      * @param \App\Models\PeerServer $destPeerServer
-     * @param \Illuminate\Http\Client\Response $response
+     * @param \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response $response
      * @throws Exception
      */
-    public function onResponseReceived(PeerServer $destPeerServer, Response $response): void
+    protected function onResponseReceived(PeerServer $destPeerServer, $response): void
     {
 
-        $response = Validator::make($response->json(), [
-            'challenge_bits' => ['required', 'string']
-        ])->validate();
+//        $response = Validator::make($response->json(), [
+//            'challenge_bits' => ['required', 'string']
+//        ])->validate();
+//
+//        Log::error("Challenge bits received: " . $response['challenge_bits']);
+//
+//        // TODO generate proof in task
+//
+//        $election = Election::findOrFail($this->mixSet['id']);
+//
+//        RunP2PTask::dispatch(new GenerateShadowMixes(
+//            $this->from,
+//            [$destPeerServer],
+//            $response['challenge_bits']
+//        ));
 
-        Log::error("Challenge bits received: " . $response['challenge_bits']);
-
-        // TODO generate proof in task
-
-        $election = Election::findOrFail($this->mixSet['id']);
-
-        RunP2PTask::dispatch(new GenerateShadowMixes(
-            $this->from,
-            [$destPeerServer],
-            $response['challenge_bits']
-        ));
+        // TODO store received file
 
     }
 

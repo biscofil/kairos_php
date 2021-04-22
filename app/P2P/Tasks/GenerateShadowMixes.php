@@ -4,6 +4,8 @@
 namespace App\P2P\Tasks;
 
 
+use App\Models\PeerServer;
+
 /**
  * Class GenerateShadowMixes
  * @package App\P2P\Tasks
@@ -16,12 +18,12 @@ class GenerateShadowMixes extends Task
 
     /**
      * WaitAndRespond constructor.
-     * @param string $from
-     * @param string[] $to
+     * @param PeerServer $from
+     * @param PeerServer[] $to
      * @param string $challengeBits
      * @throws \Exception
      */
-    public function __construct(string $from, array $to, string $challengeBits)
+    public function __construct(PeerServer $from, array $to, string $challengeBits)
     {
         parent::__construct($from, $to);
         $this->challengeBits = $challengeBits;

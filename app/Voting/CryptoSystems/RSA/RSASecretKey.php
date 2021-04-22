@@ -16,7 +16,7 @@ use phpseclib3\Crypt\RSA\PrivateKey;
 class RSASecretKey extends SecretKey
 {
 
-    const CRYPTOSYSTEM = RSA::class;
+    public const CRYPTOSYSTEM = RSA::class;
 
     private PrivateKey $value;
 
@@ -45,10 +45,10 @@ class RSASecretKey extends SecretKey
     }
 
     /**
-     * @param bool $onlyXY
+     * @param bool $ignoreParameterSet
      * @return array
      */
-    public function toArray(bool $onlyXY = false): array
+    public function toArray(bool $ignoreParameterSet = false): array
     {
         return [
             'v' => $this->value->__toString() // TODO

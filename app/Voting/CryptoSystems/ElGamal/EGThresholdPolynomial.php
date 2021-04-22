@@ -30,17 +30,18 @@ class EGThresholdPolynomial
     }
 
     /**
+     * @param \phpseclib3\Math\BigInteger $x secret value
      * @param int $t 0 <= t <= l-1
      * @param \App\Voting\CryptoSystems\ElGamal\EGParameterSet $ps
      * @return EGThresholdPolynomial
      */
-    public static function random(int $t, EGParameterSet $ps): EGThresholdPolynomial
+    public static function random(BigInteger $x, int $t, EGParameterSet $ps): EGThresholdPolynomial
     {
-        $out = [];
-        for ($i = 0; $i <= $t; $i++) {
-            $out[] = randomBIgt($ps->p);
+        $factors = [$x];
+        for ($i = 1; $i < $t; $i++) {
+            $factors[] = randomBIgt($ps->g);
         }
-        return new static($out, $ps);
+        return new static($factors, $ps);
     }
 
     /**
@@ -64,17 +65,45 @@ class EGThresholdPolynomial
     // #######################################################################################################
 
     /**
+     * @return \App\Voting\CryptoSystems\ElGamal\EGThresholdBroadcast
+     */
+    public function getBroadcast(): EGThresholdBroadcast
+    {
+        $values = [];
+        foreach ($this->factors as $a_i_k) {
+            // this is the same as the public key generation
+            $A_i_k = $this->ps->g->modPow($a_i_k, $this->ps->p);
+            $values[] = $A_i_k;
+        }
+//        dump("{$this->id} is broadcasting " . $b->toString());
+        return new EGThresholdBroadcast($values, $this->ps);
+    }
+
+    /**
+     * @param int $j
+     * @return \phpseclib3\Math\BigInteger
+     */
+    public function getShare(int $j)
+    {
+        return $this->compute(BI($j))->modPow(BI1(), $this->ps->q);
+    }
+
+    // #######################################################################################################
+    // #######################################################################################################
+    // #######################################################################################################
+
+    /**
      * @return string
      */
     public function toString(): string
     {
-        return implode("+", array_map(function (BigInteger $factor, $key) {
+        return '[' . implode(' + ', array_map(function (BigInteger $factor, $key) {
                 $out = $factor->toString();
                 if ($key > 0) {
-                    $out .= 'x' . ($key > 1 ? ('^' . $key) : "");
+                    $out .= 'x' . ($key > 1 ? ('^' . $key) : '');
                 }
                 return $out;
-            }, $this->factors, array_keys($this->factors))) . " mod " .  $this->ps->p->toString();
+            }, $this->factors, array_keys($this->factors))) . ']';
     }
 
     // #######################################################################################################
