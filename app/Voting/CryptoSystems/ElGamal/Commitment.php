@@ -30,7 +30,7 @@ class Commitment
         $array_to_hash = [];
         $array_to_hash[] = $this->a->toString(); // TODO or hex?
         $array_to_hash[] = $this->b->toString(); // TODO or hex?
-        $string_to_hash = implode(",", $array_to_hash);
+        $string_to_hash = implode(',', $array_to_hash);
         // compute sha1 of the commitment
         return BI(sha1(utf8_encode($string_to_hash)), 16);
     }

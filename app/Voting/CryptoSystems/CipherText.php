@@ -17,7 +17,7 @@ interface CipherText
      * @param array $data
      * @param bool $onlyY
      * @param PublicKey|null $pk
-     * @return Ciphertext
+     * @return CipherText
      */
     //public static function fromArray(array $data, bool $onlyY = false, $pk = null): Ciphertext; // TODO
 

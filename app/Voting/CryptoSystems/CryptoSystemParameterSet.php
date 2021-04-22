@@ -15,7 +15,7 @@ interface CryptoSystemParameterSet
      * @return CryptoSystemParameterSet
      * @noinspection PhpMissingReturnTypeInspection
      */
-    public static function default();
+    public static function default() : CryptoSystemParameterSet;
 
     /**
      * @return string
@@ -28,7 +28,7 @@ interface CryptoSystemParameterSet
      * @return CryptoSystemParameterSet
      * @noinspection PhpMissingReturnTypeInspection
      */
-    public static function fromArray(array $data, int $base = 16);
+    public static function fromArray(array $data, int $base = 16) : CryptoSystemParameterSet;
 
     /**
      * @return array

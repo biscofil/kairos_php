@@ -34,7 +34,7 @@ class RSAPlaintext implements Plaintext
     public function equals($b): bool
     {
         if (!$b instanceof RSACiphertext) {
-            throw new \RuntimeException("RSACiphertext::equals > invalid type, must be RSACiphertext");
+            throw new \RuntimeException('RSACiphertext::equals > invalid type, must be RSACiphertext');
         }
         // TODO $this->pk->ensureSameCryptosystem($b->pk);
         return $this->cipherText === $b->cipherText;

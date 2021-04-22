@@ -66,7 +66,7 @@ class RSAPublicKey implements PublicKey
      * @param string $type Example: "PKCS8"
      * @return bool
      */
-    public function toPemFile(string $filePath, string $type = "PKCS8"): bool
+    public function toPemFile(string $filePath, string $type = 'PKCS8'): bool
     {
         $content = $this->value->toString($type);
         return file_put_contents($filePath, $content);
@@ -77,7 +77,7 @@ class RSAPublicKey implements PublicKey
      * @param string $type Example: "PKCS8"
      * @return RSAPublicKey
      */
-    public static function fromPemFile(string $filePath, string $type = "PKCS8"): RSAPublicKey
+    public static function fromPemFile(string $filePath, string $type = 'PKCS8'): RSAPublicKey
     {
         $pk = file_get_contents($filePath);
         $pk = phpsecRSA::loadFormat($type, $pk);

@@ -101,7 +101,7 @@ class EGPrivateKey extends SecretKey
      * @noinspection PhpMissingParamTypeInspection
      * @noinspection PhpParameterNameChangedDuringInheritanceInspection
      */
-    public function decrypt($ciphertext): Plaintext
+    public function decrypt($ciphertext): EGPlaintext
     {
         /** @var BigInteger $dec_factor */
         $dec_factor = null; // TODO param

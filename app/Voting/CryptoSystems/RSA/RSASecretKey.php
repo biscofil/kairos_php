@@ -27,9 +27,9 @@ class RSASecretKey extends SecretKey
 
     /**
      * @param RSACiphertext $cipherText
-     * @return Plaintext
+     * @return RSAPlaintext
      */
-    public function decrypt($cipherText): Plaintext
+    public function decrypt($cipherText): RSAPlaintext
     {
         return $this->value->decrypt($cipherText);
     }

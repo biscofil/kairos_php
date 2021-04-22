@@ -32,10 +32,10 @@ interface PublicKey
 
     /**
      * @param Plaintext $plainText
-     * @return Ciphertext
+     * @return CipherText
      * @noinspection PhpMissingParamTypeInspection
      */
-    public function encrypt($plainText) : Ciphertext;
+    public function encrypt($plainText) : CipherText;
 
     /**
      * @param $b

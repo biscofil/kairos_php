@@ -53,9 +53,9 @@ class DLogProof
     public function toArray(): array
     {
         return [
-            "commitment" => $this->commitment->toHex(),
-            "challenge" => $this->challenge->toHex(),
-            "response" => $this->response->toHex()
+            'commitment' => $this->commitment->toHex(),
+            'challenge' => $this->challenge->toHex(),
+            'response' => $this->response->toHex()
         ];
     }
 
