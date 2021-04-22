@@ -4,11 +4,13 @@ html {
     position: relative;
     min-height: 100%;
 }
+
 #contentbody {
     padding: 80px 15px 60px;
     /* Margin bottom by footer height */
     margin-bottom: 60px;
 }
+
 .footer {
     position: absolute;
     bottom: 0;
@@ -40,8 +42,6 @@ code {
     content: "[";
 }
 
-.v--modal > div{
-    padding: 10px !important;
+.v--modal > div {
+    margin: 10px !important;
 }
-
-@import '~vue-toastr-2/dist/vue-toastr-2.min.css';

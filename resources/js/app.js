@@ -11,6 +11,8 @@ import VueAxios from 'vue-axios';
 import vue_moment from "vue-moment";
 import LoginBox from "./components/LoginBox";
 
+import 'vue-toastr-2/dist/vue-toastr-2.min.css';
+
 require('./bootstrap');
 
 window.Vue = Vue;
