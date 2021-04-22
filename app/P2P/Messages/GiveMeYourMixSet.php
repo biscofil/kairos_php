@@ -4,16 +4,11 @@
 namespace App\P2P\Messages;
 
 
-use App\Jobs\RunP2PTask;
-use App\Models\Election;
 use App\Models\PeerServer;
-use App\P2P\Tasks\GenerateShadowMixes;
 use Exception;
-use Illuminate\Http\Client\Response;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use phpseclib3\Math\BigInteger;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * TODO
@@ -70,7 +65,7 @@ class GiveMeYourMixSet extends P2PMessage
 
         return new static(
             $sender,
-            [self::me()],
+            [PeerServer::me()],
             $data['mix_set']
         );
     }

@@ -71,7 +71,7 @@ class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
 
         return new WillYouBeAElectionTrusteeForMyElection(
             $sender,
-            [self::me()],
+            [PeerServer::me()],
             $election
         );
     }
@@ -82,7 +82,7 @@ class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
      */
     public function getRequestData(PeerServer $to): array
     {
-        Log::debug("sending WillYouBeAElectionTrusteeForMyElection message to {$to->ip}");
+        Log::debug("sending WillYouBeAElectionTrusteeForMyElection message to {$to->domain}");
 
         return [
             'election' => $this->election->toArray(),

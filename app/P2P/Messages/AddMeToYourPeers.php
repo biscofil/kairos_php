@@ -52,7 +52,7 @@ class AddMeToYourPeers extends P2PMessage
         /** @noinspection PhpVoidFunctionResultUsedInspection */
         return [
             'my_jwt_public_key' => $myKeyPair->pk->toArray(),
-            'token' => auth('peer_api')->login($to),
+            'token' => $this->token,
             'sender_domain' => $this->from->domain // the domain of the current server, sending the request
         ];
     }
@@ -125,12 +125,8 @@ class AddMeToYourPeers extends P2PMessage
 
         $myKeyPair = getJwtRSAKeyPair();
 
-        // Get the token
-        /** @noinspection PhpVoidFunctionResultUsedInspection */
-        $token = auth('peer_api')->login($this->from);
-
         $out = [
-            'token' => $token,
+            'token' => $this->from->getNewToken(), // Get the token
             'jwt_public_key' => $myKeyPair->pk->toArray()
         ];
 

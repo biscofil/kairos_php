@@ -23,9 +23,9 @@ use phpseclib3\Math\BigInteger;
 class ThisIsMyThresholdBroadcast extends P2PMessage
 {
 
-    private BigInteger $share;
-    private Election $election;
-    private EGThresholdBroadcast $broadcast;
+    public BigInteger $share;
+    public Election $election;
+    public EGThresholdBroadcast $broadcast;
 
     /**
      * ThisIsMyThresholdBroadcast constructor.
@@ -45,7 +45,7 @@ class ThisIsMyThresholdBroadcast extends P2PMessage
     }
 
     /**
-     * @param string $sender
+     * @param PeerServer $sender
      * @param array $messageData
      * @return static
      * @throws \Exception
@@ -62,7 +62,7 @@ class ThisIsMyThresholdBroadcast extends P2PMessage
 
         return new static(
             $sender,
-            [self::me()],
+            [PeerServer::me()],
             Election::findFromUuid($data['election_uuid']),
             $broadcast,
             new BigInteger($data['share'], 16)
@@ -98,7 +98,7 @@ class ThisIsMyThresholdBroadcast extends P2PMessage
         // find sending trustee by peer server
         $trusteeI = $this->election->getTrusteeFromPeerServer($this->from);
         if (!$trusteeI) {
-            return new JsonResponse(["error" => "trustee not found", 400]);
+            return new JsonResponse(['error' => 'trustee not found', 400]);
         }
 
         // set polynomial
@@ -118,6 +118,11 @@ class ThisIsMyThresholdBroadcast extends P2PMessage
             ));
             return new JsonResponse(['error' => 'I am about to broadcast complaint'], 400);
         }
+
+    }
+
+    protected function onResponseReceived(PeerServer $destPeerServer, $response): void
+    {
 
     }
 

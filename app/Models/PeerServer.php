@@ -25,11 +25,12 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  *
  * @property int id
  * @property string name
- * @property string ip
- * @property int election_id
- * @property Election election
+ * @property string $domain
  * @property Point|null gps
  * @property string|null country_code
+ *
+ * @property int election_id
+ * @property Election election
  *
  * @property RSAPublicKey|null jwt_public_key
  * @property string|null token Token used by the current server to authenticate with the server represented by this model
@@ -69,6 +70,10 @@ class PeerServer extends Authenticatable implements JWTSubject
         'gps',
     ];
 
+    protected $hidden = [
+        'token'
+    ];
+
     protected $casts = [
         'jwt_public_key' => PublicKeyCasterCryptosystem::class
     ];
@@ -96,7 +101,34 @@ class PeerServer extends Authenticatable implements JWTSubject
      */
     public static function scopeWithDomain(Builder $builder, string $domain): Builder
     {
-        return $builder->where('ip', '=', extractDomain($domain));
+        $domain = extractDomain($domain);
+//        $ip = gethostbyname($domain);
+        return $builder->where('domain', '=', $domain);
+    }
+
+    // #############################################
+
+    /**
+     * @return \App\Models\PeerServer
+     */
+    public static function me(): PeerServer
+    {
+        return Cache::remember('_current_peer_server_', 15, function () {
+            return self::first();
+        });
+    }
+
+    /**
+     * @param string $domain
+     * @return \App\Models\PeerServer
+     */
+    public static function newPeerServer(string $domain): PeerServer
+    {
+        $senderPeer = new PeerServer();
+        $senderPeer->name = 'Server @ ' . $domain;
+        $senderPeer->domain = $domain;
+        $senderPeer->fetchServerInfo();
+        return $senderPeer;
     }
 
     // ############################################# RELATIONS
@@ -115,14 +147,13 @@ class PeerServer extends Authenticatable implements JWTSubject
     // #############################
 
     /**
-     * @param bool $selfQuery
      * @return bool
      */
-    public function fetchServerInfo(bool $selfQuery = false): bool
+    public function fetchServerInfo(): bool
     {
-        $v = $selfQuery ? "" : $this->ip; // works with both ip/domain
+        $d = $this->domain; // works with both ip/domain
         /** @noinspection HttpUrlsUsage */
-        $url = "http://ip-api.com/php/$v?fields=status,lat,lon,countryCode,query";
+        $url = "http://ip-api.com/php/$d?fields=status,lat,lon,countryCode,query";
         $response = Http::get($url);
         if (!($response->status() === 200)) {
             return false;
@@ -170,5 +201,15 @@ class PeerServer extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    /**
+     * Returns a new JWT token for the peer server
+     * @return string
+     */
+    public function getNewToken(): string
+    {
+        /** @noinspection PhpVoidFunctionResultUsedInspection */
+        return auth('peer_api')->setTTL(99999999999999999999999)->login($this); // TODO should not expire
     }
 }

@@ -25,11 +25,11 @@ abstract class P2PMessage
 {
     use SerializesModels;
 
-    protected PeerServer $from;
-    protected array $to;
+    public PeerServer $from;
+    public array $to;
 
     // register here all the messages
-    private static array $messageClasses = [
+    public static array $messageClasses = [
         AddMeToYourPeers::class,
         WillYouBeAElectionTrusteeForMyElection::class,
         IFrozeMyElection::class,
@@ -49,24 +49,33 @@ abstract class P2PMessage
     }
 
     /**
-     * @param \App\Models\PeerServer $senderPeer
      * @param string $message
-     * @param array $messageData
-     * @return JsonResponse
+     * @return \App\P2P\Messages\P2PMessage|object
      * @throws \ReflectionException
+     * @throws \Exception
      * @noinspection PhpMissingReturnTypeInspection
+     * @noinspection PhpIncompatibleReturnTypeInspection
      */
-    public static final function fromRequestData(PeerServer $senderPeer, string $message, array $messageData): JsonResponse
+    final public static function getNewMessageObject(string $message): P2PMessage
     {
-
         $className = self::getClass($message);
 
         $r = new ReflectionClass($className);
         /** @var static $instance */
-        $instance = $r->newInstanceWithoutConstructor();
+        return $r->newInstanceWithoutConstructor();
+    }
 
-        $messageObj = $instance->fromRequest($senderPeer, $messageData);
-        return $messageObj->onRequestReceived();
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return \App\Models\PeerServer
+     * @throws \Illuminate\Auth\AuthenticationException
+     */
+    public static function getAuthPeer(Request $request): PeerServer
+    {
+        if (!auth('peer_api')->check()) {
+            throw new AuthenticationException('Unauthenticated.');
+        }
+        return $request->user('peer_api'); // todo check
     }
 
     /**
@@ -87,15 +96,6 @@ abstract class P2PMessage
         }
         Log::error("Unknown message name $message");
         throw new Exception("Unknown message name $message");
-    }
-
-    /**
-     * TODO move to PeerServer class
-     * @return PeerServer
-     */
-    public static function me(): PeerServer
-    {
-        return PeerServer::first(); // TODO check
     }
 
     /**

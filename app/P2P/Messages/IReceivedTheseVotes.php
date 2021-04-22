@@ -67,7 +67,7 @@ class IReceivedTheseVotes extends P2PMessage
 
         return new static(
             $sender,
-            [self::me()],
+            [PeerServer::me()],
             $data['ballots']
         );
     }
