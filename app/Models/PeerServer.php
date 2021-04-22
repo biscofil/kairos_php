@@ -52,7 +52,7 @@ class PeerServer extends Authenticatable implements JWTSubject
 
     protected $fillable = [
         'name',
-        'ip',
+        'domain',
         //
         'gps',
         'country_code',

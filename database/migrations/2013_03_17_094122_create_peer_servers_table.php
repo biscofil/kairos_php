@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 
 class CreatePeerServersTable extends Migration
@@ -19,7 +20,7 @@ class CreatePeerServersTable extends Migration
 
             $table->string('name');
 
-            $table->ipAddress('ip');
+            $table->string('domain',100)->unique();
 
             $table->point('gps')->nullable();
             $table->string('country_code',5)->nullable();

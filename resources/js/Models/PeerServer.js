@@ -3,13 +3,13 @@ export default class PeerServer {
     /**
      *
      * @param id : Number
-     * @param ip : String
+     * @param domain : String
      * @param name : String
      * @param country_code : String
      */
-    constructor(id, ip, name, country_code) {
+    constructor(id, domain, name, country_code) {
         this.id = id;
-        this.ip = ip;
+        this.domain = domain;
         this.name = name;
         this.country_code = country_code;
     }
@@ -22,7 +22,7 @@ export default class PeerServer {
     static fromJSONObject(d) {
         return new PeerServer(
             d.id,
-            d.ip,
+            d.domain,
             d.name,
             d.country_code
         );

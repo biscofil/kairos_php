@@ -26,8 +26,7 @@ class ExistingPeerServer implements Rule
      */
     public function passes($attribute, $value)
     {
-        $host = parse_url($value, PHP_URL_HOST);
-        return PeerServer::query()->where('ip', '=', $host)->count() > 0;
+        return PeerServer::withDomain($value)->count() > 0;
     }
 
     /**

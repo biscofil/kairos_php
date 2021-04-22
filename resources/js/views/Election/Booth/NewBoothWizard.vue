@@ -93,25 +93,15 @@ export default {
             //let k = election.private_key.decrypt(c);
             //console.log(k);
             let self = this;
-            axios.post(BASE_URL + '/api/elections/' + this.election.slug + '/cast', {
-                vote: c.toJSONObject()
-            })
-                .then(response => {
-                    self.$toastr.success("OK main");
-                })
-                .catch(e => {
-                    self.$toastr.error("Error main");
-                });
-
             this.election.trustees.forEach(trustee => {
-                axios.post("https://" + trustee.peer_server.ip + '/api/elections/' + this.election.slug + '/cast', {
+                axios.post("https://" + trustee.peer_server.domain + '/api/elections/' + this.election.slug + '/cast', {
                     vote: c.toJSONObject()
                 })
                     .then(response => {
-                        self.$toastr.success("OK " + trustee.peer_server.ip);
+                        self.$toastr.success("OK " + trustee.peer_server.domain);
                     })
                     .catch(e => {
-                        self.$toastr.error("Error " + trustee.peer_server.ip);
+                        self.$toastr.error("Error " + trustee.peer_server.domain);
                     });
             });
 
