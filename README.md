@@ -1,5 +1,10 @@
 ## Thelios
 
+[![pipeline status](https://gitlab.com/biscofil/thelios/badges/master/pipeline.svg)](https://gitlab.com/biscofil/thelios/-/commits/master)
+
+[![coverage report](https://gitlab.com/biscofil/thelios/badges/master/coverage.svg)](https://gitlab.com/biscofil/thelios/-/commits/master)
+
+
 ```shell
 # comment out the user part in DockerFile
 docker build -t registry.gitlab.com/biscofil/thelios:no_user .
