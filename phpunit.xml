@@ -25,6 +25,9 @@
         <include>
             <directory suffix=".php">./app</directory>
         </include>
+        <report>
+            <text outputFile="php://stdout" showUncoveredFiles="false" showOnlySummary="true"/>
+        </report>
     </coverage>
     <php>
         <env name="APP_ENV" value="testing"/>
@@ -36,4 +39,5 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="TESTING_DUMP_RESPONSE" value="true"/>
     </php>
+    <logging></logging>
 </phpunit>
