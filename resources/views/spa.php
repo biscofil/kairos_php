@@ -6,9 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Kairos Voting System">
     <meta name="author" content="Filippo Bisconcin">
-    <!--    <link rel="icon" href="/docs/4.0/assets/img/favicons/favicon.ico">-->
     <title>Kairos</title>
     <link href="/css/app.css" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/favicon/site.webmanifest">
+    <link rel="mask-icon" href="/favicon/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
 </head>
 
 <body>
@@ -18,7 +24,10 @@
     <header v-if="settings">
         <!-- Fixed navbar -->
         <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-            <router-link class="navbar-brand" :to="{ name: 'home' }">Kairos</router-link>
+            <router-link class="navbar-brand" :to="{ name: 'home' }">
+                <img src="/favicon/favicon-32x32.png" width="30" height="30" class="d-inline-block align-top" alt="">
+                Kairos
+            </router-link>
 
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
                     aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
