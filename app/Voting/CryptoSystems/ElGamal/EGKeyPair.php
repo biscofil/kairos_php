@@ -6,7 +6,6 @@ namespace App\Voting\CryptoSystems\ElGamal;
 use App\Voting\CryptoSystems\KeyPair;
 use App\Voting\CryptoSystems\SupportsThresholdEncryption;
 use Illuminate\Support\Facades\Storage;
-use phpseclib3\Math\BigInteger;
 
 /**
  * Class EGKeyPair
@@ -61,7 +60,7 @@ class EGKeyPair implements KeyPair, SupportsThresholdEncryption
      * @param string $filePath Example: "private_key.json"
      * @return EGKeyPair
      */
-    static function fromFile(string $filePath): EGKeyPair
+    public static function fromFile(string $filePath): EGKeyPair
     {
         $content = Storage::get($filePath);
         $sk = EGPrivateKey::fromArray(json_decode($content, true));
