@@ -64,7 +64,7 @@
     </header>
 
     <!-- Begin page content -->
-    <main role="main" class="container-fluid" id="contentbody" v-if="settings">
+    <main role="main" class="container" id="contentbody" v-if="settings">
         <router-view></router-view>
     </main>
 
@@ -73,7 +73,6 @@
             <span class="text-muted">Kairos</span>
         </div>
     </footer>
-
 
 </div>
 <script src="/js/app.js"></script>

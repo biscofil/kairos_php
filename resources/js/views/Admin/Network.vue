@@ -1,10 +1,10 @@
 <template>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-sm-12 col-lg-6">
+            <div class="col-sm-12">
                 <GlobusMap :nodes="nodes" :links="links"/>
             </div>
-            <div class="col-sm-12 col-lg-6">
+            <div class="col-sm-12">
                 <h1>Log</h1>
                 <ul>
                     <li v-for="message in messages">

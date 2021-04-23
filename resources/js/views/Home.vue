@@ -2,12 +2,6 @@
     <div class="row" v-if="ready">
 
         <div class="col-sm-12">
-            <a href="/">
-                <img border="0" :src="$root.settings.MAIN_LOGO_URL"/>
-            </a>
-        </div>
-
-        <div class="col-sm-12">
             <div class="card">
                 <div class="card-body">
                     <h5>Featured elections</h5>
