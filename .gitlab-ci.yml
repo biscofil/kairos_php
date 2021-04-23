@@ -1,4 +1,4 @@
-image: registry.gitlab.com/biscofil/thelios:nouser
+image: registry.gitlab.com/biscofil/thelios:no_user
 
 services:
   - mysql:8
@@ -67,15 +67,15 @@ npm_test:
     - echo NPM TEST
     - npm test
 
-before_script:
-  - apt-get update -qq
-  - apt-get install -qq git
-  # Setup SSH deploy keys
-  - 'which ssh-agent || ( apt-get install -qq openssh-client )'
-  - eval $(ssh-agent -s)
-  - ssh-add <(echo "$SSH_PRIVATE_KEY")
-  - mkdir -p ~/.ssh
-  - '[[ -f /.docker
+#before_script:
+#  - apt-get update -qq
+#  - apt-get install -qq git
+#  # Setup SSH deploy keys
+#  - 'which ssh-agent || ( apt-get install -qq openssh-client )'
+#  - eval $(ssh-agent -s)
+#  - ssh-add <(echo "$SSH_PRIVATE_KEY")
+#  - mkdir -p ~/.ssh
+#  - '[[ -f /.docker
 
 #deploy_staging:
 #  type: deploy
