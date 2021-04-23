@@ -1,0 +1,98 @@
+image: registry.gitlab.com/biscofil/thelios:nouser
+
+services:
+  - mysql:8
+
+variables:
+  MYSQL_DATABASE: homestead
+  MYSQL_ROOT_PASSWORD: secret
+  DB_HOST: mysql
+  DB_USERNAME: root
+
+stages:
+  - test
+#  - build
+#  - deploy
+
+php_test:
+  stage: test
+  coverage: &cov '/^\s*Lines:\s*(\d+.\d+)\%/'
+  # Cache libraries in between jobs
+  cache:
+    key: composer_cache
+    paths:
+      - vendor/
+  before_script:
+    - cp .env.example .env
+    - composer install
+    - rm bootstrap/cache/*
+    - php artisan config:clear
+    - php artisan cache:clear
+    - php artisan route:clear
+    - php artisan view:clear
+    - php artisan key:generate
+    - php artisan config:cache
+    - php artisan route:cache
+    - php artisan migrate
+    - php artisan db:seed
+  script:
+    - echo PHPUNIT TEST
+    - vendor/phpunit/phpunit/phpunit tests/ --coverage-text --colors=never --configuration phpunit_gitlab.xml
+
+db_test:
+  stage: test
+  before_script:
+    - cp .env.example .env
+    - composer install
+    - php artisan key:generate
+    - php artisan config:cache
+  script:
+    - php artisan migrate
+    - php artisan db:seed
+    - php artisan migrate:refresh
+    - php artisan db:seed
+
+npm_test:
+  stage: test
+  coverage: &cov '/^Statements\s*:\s*([^%]+)/'
+  # Cache libraries in between jobs
+  cache:
+    key: npn_cache
+    paths:
+      - node_modules/
+  before_script:
+    - echo NPM INSTALL
+    - npm i
+  script:
+    - echo NPM TEST
+    - npm test
+
+before_script:
+  - apt-get update -qq
+  - apt-get install -qq git
+  # Setup SSH deploy keys
+  - 'which ssh-agent || ( apt-get install -qq openssh-client )'
+  - eval $(ssh-agent -s)
+  - ssh-add <(echo "$SSH_PRIVATE_KEY")
+  - mkdir -p ~/.ssh
+  - '[[ -f /.docker
+
+#deploy_staging:
+#  type: deploy
+#  environment:
+#  name: staging
+#  script:
+#    - ssh root@peer10.biscofil.it "cd /home/root/helios && git checkout master && git pull bySSH dev && npm install && pm2 reload idpm2 && exit"
+#    - ssh root@peer11.biscofil.it "cd /home/root/helios && git checkout master && git pull bySSH dev && npm install && pm2 reload idpm2 && exit"
+#  only:
+#    - master
+
+
+#npm_build:
+#  stage: build
+#  before_script:
+#    - echo NPM INSTALL
+#    - npm i
+#  script:
+#     - echo NPM RUN PROD
+#     - npm run prod
