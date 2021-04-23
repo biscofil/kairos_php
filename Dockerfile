@@ -42,12 +42,8 @@ RUN pecl install pcov && docker-php-ext-enable pcov
 
 RUN apt-get install -y cron
 
+# comment out for default user
 RUN addgroup app_user_g -u 1000
 RUN useradd -m -r -u 1000 -g app_user_g app_user
 USER app_user
 
-#CMD ["php", "artisan", "queue:work", "&"]
-#CMD ["apache2-foreground"]
-
-#RUN bash -c "php artisan queue:work & apache2-foreground"
-#RUN nohup bash -c "cd /var/www/html && php artisan queue:work &" && sleep 1 && apache2-foreground

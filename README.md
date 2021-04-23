@@ -1,6 +1,15 @@
 ## Thelios
 
 ```shell
+# comment out the user part in DockerFile
+docker build -t registry.gitlab.com/biscofil/thelios:no_user .
+# uncomment the user part in DockerFile
+docker build -t registry.gitlab.com/biscofil/thelios:user .
+docker push -a registry.gitlab.com/biscofil/thelios
+```
+
+# local
+```shell
 docker pull certbot/certbot
 APP_NAME=Peer0 APP_URL=http://peer0.biscofil.it docker-compose build
 U_ID=${UID} G_ID=${GID} docker-compose up -d

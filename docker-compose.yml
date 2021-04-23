@@ -2,10 +2,10 @@ version: '3'
 services:
 
   webserver:
-    build:
-      context: .
-      dockerfile: Dockerfile
-#    image: registry.gitlab.com/biscofil/thelios:latest
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+    image: registry.gitlab.com/biscofil/thelios:user
     restart: unless-stopped
     tty: true
     depends_on:
@@ -27,20 +27,20 @@ services:
     user: "${U_ID}:${G_ID}"
 
   php-queue:
-    build:
-      context: .
-      dockerfile: Dockerfile
-#    image: registry.gitlab.com/biscofil/thelios:latest
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+    image: registry.gitlab.com/biscofil/thelios:user
     restart: always
     command: php artisan queue:work
     volumes:
       - '.:/var/www/html'
 
   cronjob:
-    build:
-      context: .
-      dockerfile: Dockerfile
-#    image: registry.gitlab.com/biscofil/thelios:latest
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+    image: registry.gitlab.com/biscofil/thelios:user
     command: ./run-scheduler.sh
     restart: unless-stopped
     working_dir: /var/www/html
