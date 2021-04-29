@@ -6,7 +6,6 @@ namespace Tests\Unit\Voting\CryptoSystems\ElGamal;
 
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
-use App\Voting\CryptoSystems\ElGamal\EGThresholdPolynomial;
 use phpseclib3\Math\BigInteger;
 use Tests\TestCase;
 
@@ -20,7 +19,8 @@ class EG_LL_ThresholdPolynomialTest extends TestCase
     /**
      * @test
      */
-    public function combine_sk(){
+    public function combine_sk()
+    {
 
         $kp1 = EGKeyPair::generate();
         $kp2 = EGKeyPair::generate();
@@ -64,6 +64,47 @@ class EG_LL_ThresholdPolynomialTest extends TestCase
         $cipher321 = $kp2->sk->partiallyDecrypt($cipher321); // first server
         $cipher321 = $kp1->sk->partiallyDecrypt($cipher321); // third server
         $this->assertTrue($cipher321->beta->equals($plain->m));
+
+    }
+
+    /**
+     * @test
+     * @throws \Exception
+     */
+    public function sequential_partial_decryption_re_encryption()
+    {
+
+        $kp1 = EGKeyPair::generate();
+        $kp2 = EGKeyPair::generate();
+        $kp3 = EGKeyPair::generate();
+
+        $pk = $kp1->pk->combine($kp2->pk)->combine($kp3->pk);
+
+        $plain = new EGPlaintext(BigInteger::random(20));
+        $cipher = $pk->encrypt($plain);
+
+        // first server
+        $cipher1 = $kp1->sk->partiallyDecrypt($cipher);
+        $this->assertTrue($cipher1->alpha->equals($cipher->alpha)); // not changed
+        $this->assertFalse($cipher1->beta->equals($cipher->beta)); // changed
+        $cipher1->pk = $kp2->pk->combine($kp3->pk); // key of the next peers
+        $cipher1 = $cipher1->reEncrypt();
+        $this->assertFalse($cipher1->alpha->equals($cipher->alpha)); // changed
+        $this->assertFalse($cipher1->beta->equals($cipher->beta)); // changed
+
+        // second server
+        $cipher2 = $kp2->sk->partiallyDecrypt($cipher1); // second server
+        $this->assertTrue($cipher2->alpha->equals($cipher1->alpha)); // not changed
+        $this->assertFalse($cipher2->beta->equals($cipher1->beta)); // changed
+        $cipher2->pk = $kp3->pk; // key of the next peers
+        $cipher2 = $cipher2->reEncrypt();
+        $this->assertFalse($cipher2->alpha->equals($cipher1->alpha)); // changed
+        $this->assertFalse($cipher2->beta->equals($cipher1->beta)); // changed
+
+        // last server
+        $cipher3 = $kp3->sk->partiallyDecrypt($cipher2); // third server
+
+        $this->assertTrue($cipher3->beta->equals($plain->m));
 
     }
 }
