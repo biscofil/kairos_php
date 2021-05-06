@@ -7,6 +7,9 @@
 import {Entity} from '../github/openglobus/src/og/entity';
 import {Globe, LonLat} from '../github/openglobus';
 import {Vector, XYZ} from '../github/openglobus/src/og/layer';
+import tinygradient from "tinygradient";
+
+const arc = require('arc');
 
 export default {
     name: "GlobusMap",
@@ -77,43 +80,59 @@ export default {
                         lonlat: [node.gps.coordinates[0], node.gps.coordinates[1]],
                         label: {
                             text: node.name,
-                            // outline: 0.77,
-                            // outlineColor: "rgba(255,255,255,.4)",
                             size: 10,
                             color: "black",
-                            // offset: [10, -2]
                         },
-                        // billboard: {
-                        //     // src: "./marker.png",
-                        //     width: 64,
-                        //     height: 64,
-                        //     offset: [0, 32]
-                        // }
                     }));
                 }
             });
 
+            const steps = 100;
+            let colors = tinygradient(['#ff3b3b', '#FD743C', '#2c9700', '#008eb1']).rgb(steps)
+                .map(color => {
+                    return [color.toRgb().r / 255, color.toRgb().g / 255, color.toRgb().b / 255, 1];
+                });
+
             // links
-            this.nodes.forEach(node1 => {
-                this.nodes.forEach(node2 => {
-                    if (node1.id !== node2.id && node1.gps && node2.gps) {
+            Object.keys(this.nodes).forEach(key1 => {
+                Object.keys(this.nodes).forEach(key2 => {
 
-                        let p1 = new LonLat(node1.gps.coordinates[0], node1.gps.coordinates[1]);
-                        let p2 = new LonLat(node2.gps.coordinates[0], node2.gps.coordinates[1]);
+                    let node1 = this.nodes[key1];
+                    let node2 = this.nodes[key2];
 
-                        let path = [p1];
-                        for (let i = 1; i <= 100; i++) {
-                            let c = i / 100;
-                            path.push(new LonLat(
-                                p1.lon + ((p2.lon - p1.lon) * c),
-                                p1.lat + ((p2.lat - p1.lat) * c)
-                            ));
+                    if (key1 < key2 && node1.gps && node2.gps) {
+
+                        let path = [];
+                        let geodesic = true;
+                        if (geodesic) {
+                            let start = {x: node1.gps.coordinates[0], y: node1.gps.coordinates[1]};
+                            let end = {x: node2.gps.coordinates[0], y: node2.gps.coordinates[1]};
+                            let generator = new arc.GreatCircle(start, end, {});
+                            let line = generator.Arc(steps, {});
+                            line.geometries.forEach(geometry => {
+                                geometry.coords.forEach(pts => {
+                                    path.push(new LonLat(pts[0], pts[1]));
+                                });
+                            });
+
+                        } else {
+                            let p1 = new LonLat(node1.gps.coordinates[0], node1.gps.coordinates[1]);
+                            let p2 = new LonLat(node2.gps.coordinates[0], node2.gps.coordinates[1]);
+                            path.push(p1);
+                            for (let i = 1; i <= 100; i++) {
+                                let c = i / 100;
+                                path.push(new LonLat(
+                                    p1.lon + ((p2.lon - p1.lon) * c),
+                                    p1.lat + ((p2.lat - p1.lat) * c)
+                                ));
+                            }
                         }
 
                         entities.push(new Entity({
                             'polyline': {
-                                'pathLonLat': [path],
                                 'color': "#ff3b3b",
+                                'pathLonLat': [path],
+                                'pathColors': [colors],
                                 'thickness': 4,
                             }
                         }));
