@@ -23,10 +23,6 @@ import GlobusMap from "../../components/GlobusMap";
 // Enable pusher logging - don't include this in production
 Pusher.logToConsole = true;
 
-const pusher = new Pusher('ddf35c236814ea416d00', {
-    cluster: 'eu'
-});
-
 export default {
     name: "Network",
 
@@ -44,6 +40,11 @@ export default {
 
 
     mounted() {
+
+        const pusher = new Pusher('ddf35c236814ea416d00', {
+            cluster: 'eu'
+        });
+
         let self = this;
         axios.get(BASE_URL + "/api/p2p")
             .then(response => {
