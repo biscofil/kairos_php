@@ -49,7 +49,7 @@
 
                 <span class="navbar-text">
                     <span v-if="$store.getters.isLogged">
-                        Hi <b>{{ $store.state.user.name }}</b>!
+                        Hi <b>{{ $store.state.user.name }}</b>!&nbsp;
                         <a class="btn btn-sm btn-danger" href="javascript:void(0)" @click="$store.dispatch('logout');">Logout</a>
                     </span>
                     <span v-else>
@@ -68,9 +68,15 @@
         <router-view></router-view>
     </main>
 
-    <footer class="footer" v-if="settings">
+    <footer class="footer bg-dark" v-if="settings">
         <div class="container">
             <span class="text-muted">Kairos</span>
+            -
+            <a class="text-muted" href="https://peer20.biscofil.it">Peer20</a>
+            -
+            <a class="text-muted" href="https://peer21.biscofil.it">Peer21</a>
+            -
+            <a class="text-muted" href="https://peer22.biscofil.it">Peer22</a>
         </div>
     </footer>
 

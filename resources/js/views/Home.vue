@@ -19,7 +19,7 @@
                             <br>
                         </div>
                     </div>
-                    <span v-else>no featured elections at the moment</span>
+                    <span v-else>No featured elections at the moment</span>
                 </div>
             </div>
         </div>
@@ -37,7 +37,7 @@
                     </ul>
                     <span v-else>none yet</span>
                     <router-link :to="{name: 'elections@administered'}" class="btn btn-info btn-sm">
-                        see all
+                        See all
                     </router-link>
                 </div>
             </div>
@@ -54,8 +54,8 @@
                             </router-link>
                         </li>
                     </ul>
-                    <span v-else>none yet</span>
-                    <router-link :to="{name: 'elections@voted'}" class="btn btn-info btn-sm">see all</router-link>
+                    <span v-else>None yet</span>
+                    <router-link :to="{name: 'elections@voted'}" class="btn btn-info btn-sm">See all</router-link>
                 </div>
             </div>
         </div>
