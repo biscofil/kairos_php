@@ -50,6 +50,7 @@
                 <span class="navbar-text">
                     <span v-if="$store.getters.isLogged">
                         Hi <b>{{ $store.state.user.name }}</b>!&nbsp;
+                        <span v-if="$store.state.user.is_admin" class="text-success" title="Admin">[A]</span>
                         <a class="btn btn-sm btn-danger" href="javascript:void(0)" @click="$store.dispatch('logout');">Logout</a>
                     </span>
                     <span v-else>
