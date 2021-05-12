@@ -11,7 +11,7 @@
 
                 <hr>
 
-                <GlobusMap :nodes="nodes" :links="links"/>
+                <GlobusMap :servers="servers" :nodes="nodes" :links="links"/>
 
             </div>
             <div class="col-sm-12">
@@ -42,10 +42,11 @@ export default {
 
     data() {
         return {
+            servers: [],
             nodes: [],
             links: [],
             messages: [],
-            new_peer_domain : null
+            new_peer_domain: null
         }
     },
 
@@ -59,6 +60,7 @@ export default {
         let self = this;
         axios.get(BASE_URL + "/api/p2p")
             .then(response => {
+                self.servers = response.data;
                 self.links = response.data.map(server => {
                     return {sid: "_me", tid: server.id};
                 }).filter(server => {

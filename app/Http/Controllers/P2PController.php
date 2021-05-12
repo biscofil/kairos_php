@@ -26,6 +26,7 @@ class P2PController extends Controller
                 'id' => $server->id,
                 'name' => $server->name,
                 'gps' => $server->gps,
+                'country_code' => $server->country_code,
             ];
         })->toArray();
     }

@@ -1,5 +1,19 @@
 <template>
-    <div id="globus" style="width:100%;height:500px"></div>
+
+    <div>
+
+        <ul>
+            <li v-for="server in servers">
+                <country-flag v-if="server.country_code" :country='server.country_code'/>
+                <a href="javascript:void(0)" @click="flyTo(server.gps)">{{ server.name }}</a>
+            </li>
+        </ul>
+
+        <hr>
+
+        <div id="globus" style="width:100%;height:500px"></div>
+
+    </div>
 </template>
 
 <script>
@@ -8,15 +22,24 @@ import {Entity} from '../github/openglobus/src/og/entity';
 import {Globe, LonLat} from '../github/openglobus';
 import {Vector, XYZ} from '../github/openglobus/src/og/layer';
 import tinygradient from "tinygradient";
+import CountryFlag from 'vue-country-flag';
 
 const arc = require('arc');
 
 export default {
     name: "GlobusMap",
 
+    components: {
+        CountryFlag
+    },
+
     props: {
-        nodes: {},
-        links: {}
+        servers: {
+            default: [],
+            type: Array
+        },
+        nodes: {type: Array},
+        links: {type: Array}
     },
 
     data() {
@@ -143,6 +166,14 @@ export default {
             // done
             this.pointLayer.setEntities(entities);
         },
+
+        flyTo(gps) {
+            const DIST = 1000000; // 2000;
+            let viewPoint = new LonLat(gps.coordinates[0], gps.coordinates[1]); // TODO
+            let ell = this.globe.planet.ellipsoid;
+            this.globe.planet.camera.flyDistance(ell.lonLatToCartesian(viewPoint), DIST);
+        }
+
     }
 }
 </script>
