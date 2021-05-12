@@ -2,7 +2,17 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm-12">
+
+                <label>
+                    Dominio
+                    <input type="text" v-model="new_peer_domain">
+                </label>
+                <button class="btn btn-info" @click="addPeer">Aggiungi peer</button>
+
+                <hr>
+
                 <GlobusMap :nodes="nodes" :links="links"/>
+
             </div>
             <div class="col-sm-12">
                 <h1>Log</h1>
@@ -34,7 +44,8 @@ export default {
         return {
             nodes: [],
             links: [],
-            messages: []
+            messages: [],
+            new_peer_domain : null
         }
     },
 
@@ -56,6 +67,10 @@ export default {
                 self.nodes = response.data.map(server => {
                     return server;
                 });
+            })
+            .catch(e => {
+                console.log(e);
+                self.$toastr.error("Error");
             });
 
         let channel = pusher.subscribe('my-channel');
@@ -68,6 +83,21 @@ export default {
 
     methods: {
         onMessageReceived(message) {
+        },
+
+        addPeer() {
+            let self = this;
+            axios.post(BASE_URL + "/api/p2p/new_peer", {
+                'domain': self.new_peer_domain
+            })
+                .then(response => {
+                    console.log(response.data);
+                    self.$toastr.success("Ok");
+                })
+                .catch(e => {
+                    console.log(e);
+                    self.$toastr.error("Error");
+                });
         }
     }
 }

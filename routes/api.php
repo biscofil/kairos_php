@@ -24,7 +24,11 @@ use Illuminate\Support\Facades\Route;
 //    return $request->user();
 //});
 
-Route::get('/p2p', [P2PController::class, 'list']);
+Route::get('/p2p', [P2PController::class, 'list_peers']);
+Route::middleware(['admin'])->group(function () {
+    // these routes are only accessible by an admin
+    Route::post('/p2p/new_peer', [P2PController::class, 'add_peer']);
+});
 Route::post('/p2p/{message}', [P2PController::class, 'receive']);
 
 Route::get('/', [Controller::class, 'home']);

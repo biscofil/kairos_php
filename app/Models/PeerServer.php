@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Http\Middleware\AuthenticateWithElectionCreatorJwt;
 use App\Models\Cast\ModelWithFieldsWithParameterSets;
 use App\Models\Cast\PublicKeyCasterCryptosystem;
+use App\P2P\Messages\AddMeToYourPeers;
 use App\Voting\CryptoSystems\RSA\RSAPublicKey;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
@@ -142,6 +144,38 @@ class PeerServer extends Authenticatable implements JWTSubject
             Election::class, Trustee::class,
             'peer_server_id', 'id',
             null, 'election_id');
+    }
+
+    // #############################
+
+    /**
+     * @param string $toDomain
+     * @return \App\Models\PeerServer
+     * @throws \Exception
+     */
+    public static function addPeer(string $toDomain): PeerServer
+    {
+        $me = self::me();
+
+        $toDomain = extractDomain($toDomain);
+
+        $peerServer = self::withDomain($toDomain)->first();
+        if (is_null($peerServer)) {
+            $peerServer = self::newPeerServer($toDomain);
+            $peerServer->save();
+        } else {
+            Log::warning('addPeer > Already present');
+        }
+
+        (new AddMeToYourPeers(
+            $me,
+            $peerServer,
+            getJwtRSAKeyPair()->pk,
+            $peerServer->getNewToken()
+        ))->sendAsync();
+
+        Log::debug('addPeer > done');
+        return $peerServer;
     }
 
     // #############################

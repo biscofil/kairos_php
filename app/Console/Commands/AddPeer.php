@@ -40,31 +40,10 @@ class AddPeer extends Command
      */
     public function handle()
     {
-        $me = PeerServer::me();
-
-        $this->info('I AM ' . $me->domain);
-
+//        $me = PeerServer::me();
+//        $this->info('I AM ' . $me->domain);
         $toDomain = $this->argument('domain');
-        $toDomain = extractDomain($toDomain);
-
-        $peerServer = PeerServer::withDomain($toDomain)->first();
-        if (is_null($peerServer)) {
-            $peerServer = PeerServer::newPeerServer($toDomain);
-            $peerServer->save();
-        } else {
-            $this->warn('Already present');
-        }
-
-        $this->info('Sending message to ' . $toDomain);
-
-        (new AddMeToYourPeers(
-            $me,
-            [$peerServer],
-            getJwtRSAKeyPair()->pk,
-            $peerServer->getNewToken()
-        ))->sendSync();
-
-        $this->info('Done');
+        PeerServer::addPeer($toDomain);
         return 0;
     }
 }

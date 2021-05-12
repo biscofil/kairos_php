@@ -19,7 +19,7 @@ class P2PController extends Controller
     /**
      * @return array
      */
-    public function list(): array
+    public function list_peers(): array
     {
         return PeerServer::all()->map(function (PeerServer $server) {
             return [
@@ -28,6 +28,20 @@ class P2PController extends Controller
                 'gps' => $server->gps,
             ];
         })->toArray();
+    }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
+    public function add_peer(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'domain' => ['required', 'active_url']
+        ]);
+        $peerServer = PeerServer::addPeer($data['domain']);
+        return response()->json(['peer' => $peerServer]);
     }
 
     /**
