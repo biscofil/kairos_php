@@ -1,5 +1,5 @@
 <template>
-    <div id="globus" style="width:100%;height:100%"></div>
+    <div id="globus" style="width:100%;height:500px"></div>
 </template>
 
 <script>
