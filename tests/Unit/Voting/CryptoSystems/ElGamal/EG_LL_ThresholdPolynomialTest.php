@@ -55,14 +55,16 @@ class EG_LL_ThresholdPolynomialTest extends TestCase
         $plain = new EGPlaintext(BigInteger::random(20));
         $cipher = $pk->encrypt($plain);
 
+        // first > second > third
         $cipher123 = $kp1->sk->partiallyDecrypt($cipher); // first server
         $cipher123 = $kp2->sk->partiallyDecrypt($cipher123); // second server
-        $cipher123 = $kp3->sk->partiallyDecrypt($cipher123); // third server
+        $cipher123 = $kp3->sk->partiallyDecrypt($cipher123, true); // third server
         $this->assertTrue($cipher123->beta->equals($plain->m));
 
+        // third > second > first
         $cipher321 = $kp3->sk->partiallyDecrypt($cipher); // first server
         $cipher321 = $kp2->sk->partiallyDecrypt($cipher321); // first server
-        $cipher321 = $kp1->sk->partiallyDecrypt($cipher321); // third server
+        $cipher321 = $kp1->sk->partiallyDecrypt($cipher321, true); // third server
         $this->assertTrue($cipher321->beta->equals($plain->m));
 
     }
@@ -102,7 +104,7 @@ class EG_LL_ThresholdPolynomialTest extends TestCase
         $this->assertFalse($cipher2->beta->equals($cipher1->beta)); // changed
 
         // last server
-        $cipher3 = $kp3->sk->partiallyDecrypt($cipher2); // third server
+        $cipher3 = $kp3->sk->partiallyDecrypt($cipher2, true); // third server
 
         $this->assertTrue($cipher3->beta->equals($plain->m));
 

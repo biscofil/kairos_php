@@ -3,10 +3,10 @@
 
 namespace Tests\Unit\Voting\MixNets;
 
+use App\Voting\AnonymizationMethods\MixNets\ReEncryptingMixNode;
 use App\Voting\CryptoSystems\ElGamal\EGCiphertext;
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
-use App\Voting\MixNets\ReEncryptingMixNode;
 use phpseclib3\Math\BigInteger;
 use Tests\TestCase;
 

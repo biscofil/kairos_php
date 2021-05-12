@@ -126,6 +126,37 @@ class EGParameterSet implements CryptoSystemParameterSet
     // ############################################################
 
     /**
+     * Encode the message into the proper q-order subgroup.
+     * @param \phpseclib3\Math\BigInteger $m
+     * @return \phpseclib3\Math\BigInteger
+     */
+    public function mapMessageIntoSubgroup(BigInteger $m): BigInteger
+    {
+        $m = $m->add(BI1());
+        if (!$m->modPow($this->q, $this->p)->equals(BI1())) {
+            $m = $m->negate()->modPow(BI1(), $this->p);
+        }
+        return $m;
+    }
+
+    /**
+     * Get the message back from the q-order subgroup
+     * @param \phpseclib3\Math\BigInteger $m
+     * @return \phpseclib3\Math\BigInteger
+     */
+    public function extractMessageFromSubgroup(BigInteger $m): BigInteger
+    {
+        if ($m >= $this->q) {
+            $m = $m->negate()->modPow(BI1(), $this->p);
+        }
+        return $m->subtract(BI1());
+    }
+
+    // ############################################################
+    // ############################################################
+    // ############################################################
+
+    /**
      * @param \App\Voting\CryptoSystems\ElGamal\EGParameterSet $parameterSet
      * @return bool
      */

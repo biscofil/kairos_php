@@ -3,7 +3,6 @@
 
 namespace App\Voting\CryptoSystems\ElGamal;
 
-use App\Voting\CryptoSystems\Plaintext;
 use App\Voting\CryptoSystems\SecretKey;
 use phpseclib3\Math\BigInteger;
 
@@ -105,7 +104,7 @@ class EGPrivateKey extends SecretKey
     }
 
     /**
-     * Decrypt a ciphertext. Optional parameter decides whether to encode the message into the proper subgroup.
+     * Decrypt a ciphertext
      * @param EGCiphertext $ciphertext
      * @return mixed
      * @noinspection PhpMissingParamTypeInspection
@@ -113,31 +112,18 @@ class EGPrivateKey extends SecretKey
      */
     public function decrypt($ciphertext): EGPlaintext
     {
-        /** @var BigInteger $dec_factor */
-        $dec_factor = null; // TODO param
-        $decode_m = false; // TODO param
 
-        if (is_null($dec_factor)) {
-            // (alpha^x) mod p
-            $dec_factor = $this->decryptionFactor($ciphertext);
-        }
+        // (alpha^x) mod p
+        $dec_factor = $this->decryptionFactor($ciphertext);
 
         // ( [( alpha^x) mod p ] ^ -1 mod p * beta ) mod p
         $m = $dec_factor->modInverse($this->pk->parameterSet->p)
             ->multiply($ciphertext->beta)
             ->modPow(BI1(), $this->pk->parameterSet->p);
 
-        if ($decode_m) {  # get m back from the q-order subgroup
-            // encode the message into the proper subgroup.
-            if ($m < $this->pk->parameterSet->g) {
-                $y = $m;
-            } else {
-                $y = $m->modInverse($this->pk->parameterSet->p);
-            }
-            return new EGPlaintext($y->subtract(BI1()));
-        } else {
-            return new EGPlaintext($m);
-        }
+        $m = $this->pk->parameterSet->extractMessageFromSubgroup($m);
+
+        return new EGPlaintext($m);
     }
 
     // ##############################################################
@@ -204,15 +190,26 @@ class EGPrivateKey extends SecretKey
 
     /**
      * @param EGCiphertext $cipher
+     * @param bool $lastStep
      * @return EGCiphertext
      */
-    public function partiallyDecrypt(EGCiphertext $cipher): EGCiphertext
+    public function partiallyDecrypt(EGCiphertext $cipher, bool $lastStep = false): EGCiphertext
     {
-        $inv = $cipher->alpha->powMod($this->x, $cipher->pk->parameterSet->p)->modInverse($cipher->pk->parameterSet->p);
+        $inv = $cipher->alpha->powMod($this->x, $cipher->pk->parameterSet->p)
+            ->modInverse($cipher->pk->parameterSet->p);
+
+        $beta = $inv->multiply($cipher->beta)->powMod(BI1(), $cipher->pk->parameterSet->p);
+
+        if ($lastStep) {
+            // if this is the last partial decryption we must extract from the subgroup
+            $beta = $this->pk->parameterSet->extractMessageFromSubgroup($beta);
+            // TODO return plaintext
+        }
+
         return new EGCiphertext(
             $cipher->pk,
             $cipher->alpha,
-            $inv->multiply($cipher->beta)->powMod(BI1(), $cipher->pk->parameterSet->p)
+            $beta
         );
     }
 

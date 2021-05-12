@@ -2,12 +2,11 @@
 
 namespace Tests\Unit\Voting\MixNets;
 
+use App\Voting\AnonymizationMethods\MixNets\ReEncryptingMixNode;
 use App\Voting\BallotEncodings\JsonBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGCiphertext;
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
-use App\Voting\CryptoSystems\Plaintext;
-use App\Voting\MixNets\ReEncryptingMixNode;
 use Exception;
 use Illuminate\Support\Str;
 use phpseclib3\Math\BigInteger;
@@ -34,7 +33,7 @@ class MixNodeTest extends TestCase
                 'initial_pos' => $i,
                 'v' => Str::random(3)
             ];
-            $msgs = JsonBallotEncoding::encode($obj);
+            $msgs = JsonBallotEncoding::encode($obj, EGPlaintext::class);
             $msg = $msgs[0];
             $ciphers[] = $electionKeyPair->pk->encrypt($msg);
         }

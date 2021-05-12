@@ -6,7 +6,6 @@ use App\Voting\CryptoSystems\ElGamal\DLogProof;
 use App\Voting\CryptoSystems\ElGamal\EGPrivateKey;
 use App\Voting\CryptoSystems\ElGamal\EGPublicKey;
 use Exception;
-use phpseclib3\Math\BigInteger;
 use Tests\TestCase;
 
 /**
@@ -25,9 +24,9 @@ class EGPublicKeyTest extends TestCase
         $a = EGPublicKey::fromArray(['g' => 1, 'p' => 8, 'q' => 1, 'y' => 3], false, 10);
         $b = EGPublicKey::fromArray(['g' => 1, 'p' => 8, 'q' => 1, 'y' => 3], false, 10);
         $c = $a->combine($b);
-        $this->assertTrue($c->g->equals($a->g));
-        $this->assertTrue($c->p->equals($a->p));
-        $this->assertTrue($c->q->equals($a->q));
+        $this->assertTrue($c->parameterSet->equals($a->parameterSet));
+        $this->assertTrue($c->parameterSet->equals($a->parameterSet));
+        $this->assertTrue($c->parameterSet->equals($a->parameterSet));
         $this->assertTrue($c->y->equals(BI(1))); // 3*3 mod 8 = 1
     }
 

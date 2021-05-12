@@ -2,10 +2,9 @@
 
 namespace Tests\Unit\Voting\MixNets;
 
+use App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet;
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
-use App\Voting\MixNets\MixNodeParameterSet;
 use Exception;
-use phpseclib3\Math\BigInteger;
 use Tests\TestCase;
 
 /**

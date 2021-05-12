@@ -16,6 +16,7 @@ use phpseclib3\Math\BigInteger;
  * Class Peer
  * @package Tests\Unit\Voting\CryptoSystems\ElGamal
  * @property int $id
+ * @property int $t
  * @property EGParameterSet $ps
  * @property EGThresholdPolynomial $polynomial
  * @property EGThresholdBroadcast[] $receivedBroadcasts
@@ -23,19 +24,25 @@ use phpseclib3\Math\BigInteger;
  * @property EGPrivateKey $skShare
  * @property EGPublicKey $pk
  * @property BigInteger[] $shareSent
- * @property BigInteger[] $shareReceived
+ * @property BigInteger[] $receivedShares
+ * @property BigInteger $privateKeyShare
+ * @property int[] $qualifiedPeers
  */
 class Peer
 {
 
     public int $id;
+    public int $t;
     public EGParameterSet $ps;
     public EGThresholdPolynomial $polynomial;
     public array $receivedBroadcasts = [];
-//    public BigInteger $secret_x;
-//    public BigInteger $public_y;
-    public array $shareSent = [];
-    public array $shareReceived = [];
+    public EGPrivateKey $sk;
+    public EGPrivateKey $skShare;
+    public EGPublicKey $pk;
+    public array $sharesSent = [];
+    public array $receivedShares = [];
+    public BigInteger $privateKeyShare;
+    public array $qualifiedPeers = [];
 
     /**
      * Peer constructor.
@@ -45,7 +52,7 @@ class Peer
      */
     public function __construct(int $id, EGParameterSet $ps, int $t)
     {
-        dump("Creating peer #$id");
+        $this->t = $t;
         $this->id = $id;
         $this->ps = $ps;
 
@@ -57,16 +64,6 @@ class Peer
 //        dump("Peer $this->id : " . $this->polynomial->toString());
     }
 
-
-    /**
-     * @param int $t 0 <= t <= l-1
-     * @return EGThresholdPolynomial
-     */
-    public function generatePolynomial(int $t): EGThresholdPolynomial
-    {
-        return EGThresholdPolynomial::random($t, $this->ps);
-    }
-
     // ##########################################################
     // ##########################################################
     // ##########################################################
@@ -76,9 +73,7 @@ class Peer
      */
     public function getBroadcast(): EGThresholdBroadcast
     {
-        $b =  $this->polynomial->getBroadcast();
-        dump("{$this->id} is broadcasting " . $b->toString());
-        return $b;
+        return $this->polynomial->getBroadcast();
     }
 
     /**
@@ -88,6 +83,57 @@ class Peer
     public function setReceivedBroadcast(int $i, EGThresholdBroadcast $broadcast): void
     {
         $this->receivedBroadcasts["$i"] = $broadcast;
+    }
+
+    // ##########################################################
+    // ##########################################################
+    // ##########################################################
+
+    /**
+     * @param int $i
+     */
+    public function addQualifiedPeer(int $i): void
+    {
+        if (!in_array($i, $this->qualifiedPeers)) {
+            $this->qualifiedPeers[] = $i;
+        }
+    }
+
+    /**
+     * @param \App\Voting\CryptoSystems\ElGamal\EGPublicKey $pk
+     * @return \App\Voting\CryptoSystems\ElGamal\EGPrivateKey
+     */
+    public function computeX_j(EGPublicKey $pk): EGPrivateKey
+    {
+        $this->receivedShares["$this->id"] = $this->getShareToSend($this->id);
+        $s = $this->getShareToSend($this->id); // self share
+        $str = $s->toString();
+        foreach ($this->qualifiedPeers as $qualifiedPeerID) {
+            $recSh = $this->receivedShares["$qualifiedPeerID"]; //->multiply($lambda)
+            $s = $s->add($recSh)->modPow(BI1(), $this->ps->p); // was q
+            $str .= "+{$recSh->toString()}";
+        }
+//        dump("     > x_{$this->id}  = $str mod {$this->ps->p} = " . $s->toString());
+        return new EGPrivateKey($pk, $s);
+    }
+
+    /**
+     * @return \App\Voting\CryptoSystems\ElGamal\EGPublicKey
+     * @throws \Exception
+     */
+    public function getCombinedPublicKey(): EGPublicKey
+    {
+        $s = $this->pk; // append self to qualified peers
+        foreach ($this->qualifiedPeers as $qualifiedPeerID) {
+
+            $_p = new EGPublicKey($this->ps, $this->receivedBroadcasts["$qualifiedPeerID"]->A_I_K_values[0]);
+//            dump($_p->y->toString());
+            $s = $_p->combine($s);
+//
+//            $s = $s->multiply($this->receivedBroadcasts[$qualifiedPeerID]->A_I_K_values[0]) // public key = factors[0], maybe not
+//            ->modPow(BI1(), $this->ps->p);
+        }
+        return $s;
     }
 
     // ##########################################################
@@ -111,7 +157,7 @@ class Peer
      */
     public function setReceivedShare(int $i, BigInteger $share): void
     {
-        $this->shareReceived["$i"] = $share;
+        $this->receivedShares["$i"] = $share;
 //        dump("{$this->id} has received " . $share->toString() . " from $i");
     }
 
@@ -123,7 +169,7 @@ class Peer
     {
 //        dump("$this->id is checking share of $i : " . $this->receivedShares["$i"]->toString());
         return $this->receivedBroadcasts[$i]->isValid(
-            $this->shareReceived["$i"],
+            $this->receivedShares["$i"],
             $this->id
         );
     }

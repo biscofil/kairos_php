@@ -81,7 +81,7 @@ class EGPublicKey implements PublicKey
         if (!$ignoreParameterSet) {
             $out = $this->parameterSet->toArray();
         }
-        $out["y"] = $this->y->toHex();
+        $out['y'] = $this->y->toHex();
         return $out;
     }
 
@@ -160,11 +160,11 @@ class EGPublicKey implements PublicKey
     // ####################################################################
 
     /**
-     * @param Plaintext $plainText
+     * @param EGPlaintext $plainText
      * @return EGCiphertext
      * @noinspection PhpMissingParamTypeInspection
      */
-    public function encrypt($plainText) : EGCiphertext
+    public function encrypt($plainText): EGCiphertext
     {
         /** @var EGCiphertext $ciphertext */
         /** @var BigInteger $r */
@@ -188,23 +188,13 @@ class EGPublicKey implements PublicKey
     /**
      * @param EGPlaintext $plainText
      * @param BigInteger $randomness r
-     * @param bool $encode_message
      * @return EGCiphertext
      */
-    public function encryptWithRandomness(EGPlaintext $plainText, BigInteger $randomness, bool $encode_message = false): EGCiphertext
+    public function encryptWithRandomness(EGPlaintext $plainText, BigInteger $randomness): EGCiphertext
     {
 
-        if ($encode_message) {
-            // TODO what is this??????
-            $y = $plainText->m->add(BI1());
-            if ($y->modPow($this->parameterSet->g, $this->parameterSet->p)->equals(BI1())) {
-                $m = $y;
-            } else {
-                $m = $y->modInverse($this->parameterSet->p);
-            }
-        } else {
-            $m = $plainText->m;
-        }
+        $m = $plainText->m;
+        $m = $this->parameterSet->mapMessageIntoSubgroup($m);
 
         // alpha = g^r mod p
         $alpha = $this->parameterSet->g->modPow($randomness, $this->parameterSet->p);

@@ -40,11 +40,10 @@ abstract class TestCase extends BaseTestCase
      */
     public function assertValidEGKeyPair(EGPublicKey $pk, EGPrivateKey $sk)
     {
-        $p = new EGPlaintext(BigInteger::randomRange(BI1(), $pk->parameterSet->q));
+        $p = new EGPlaintext(randomBIgt($pk->parameterSet->q));
         $c = $pk->encrypt($p);
         $p2 = $sk->decrypt($c);
         $this->assertTrue($p->equals($p2));
     }
-
 
 }

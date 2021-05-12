@@ -21,7 +21,6 @@ class EG_TL_ThresholdTest extends TestCase
     public function check_factor_count()
     {
         $parameterSet = new EGParameterSet(BI(10), BI(10), BI(10));
-
         $t = 4;
         $p = EGThresholdPolynomial::random(BI(1), $t, $parameterSet);
         $this->assertCount($t, $p->factors);
@@ -29,25 +28,27 @@ class EG_TL_ThresholdTest extends TestCase
 
     /**
      * @test
+     * @throws \Exception
      */
-    public function threshold3()
+    public function threshold()
     {
 
         // G=49, P=311, Q=31
-        $parameterSet = new EGParameterSet(
-            BI(49),
-            BI(311),
-            BI(31),
-        );
-//        $parameterSet = EGParameterSet::default();
-        dump($parameterSet->toString());
+//        $parameterSet = new EGParameterSet(
+//            BI(49),
+//            BI(311),
+//            BI(31),
+//        );
+        $parameterSet = EGParameterSet::default();
+//        dump($parameterSet->toString());
 
         $t = 3;
         $peers = [
             new Peer(1, $parameterSet, $t),
             new Peer(2, $parameterSet, $t),
             new Peer(3, $parameterSet, $t),
-//            new Peer(4, $keyPair, $k),
+            new Peer(4, $parameterSet, $t),
+//            new Peer(5, $parameterSet, $t),
         ];
         $n = count($peers);
 
@@ -56,17 +57,12 @@ class EG_TL_ThresholdTest extends TestCase
             $this->assertValidEGKeyPair($peer_i->pk, $peer_i->sk);
             $Aik = $peer_i->getBroadcast();
 
-            dump("{$peer_i->id} is broadcasting " . $Aik->toString());
-
             foreach ($peers as $peer_j) {
                 if ($peer_i->id === $peer_j->id) {
                     continue; // not self
                 }
                 $peer_j->setReceivedBroadcast($peer_i->id, $Aik);
-
-                $share = $peer_i->getShareToSend($peer_j->id);
-                dump("{$peer_i->id} is sending share {$share->toString()} to {$peer_j->id}");
-                $peer_j->setReceivedShare($peer_i->id, $share);
+                $peer_j->setReceivedShare($peer_i->id, $peer_i->getShareToSend($peer_j->id));
             }
         }
 
@@ -92,94 +88,59 @@ class EG_TL_ThresholdTest extends TestCase
         }
 
 
-        // TODO complaint phase
-
-//        foreach ($peers as $j => $peer_j) {
-//            $vk_j = $this->getPublicVerificationKey($shares, $j, $keyPair);
-//            dump("VK_$j = " . $vk_j->toString());
-//            $peers[$j]['vk'] = $vk_j;
-//        }
-
-
-        /**
-         * TODO
-         *    foreach ($peers as $j => $peer) {
-        $peers[$j]['share'] = $this->combineReceivedSharesIntoShare($peer, $peers, $shares);
-        }
-        $all = $this->getCombinedSecretKey($peers, $keyPair);
-        dump($all->toString());
-        array_pop($peers); // remove one peer
-        $allButOne = $this->getCombinedSecretKey($peers, $keyPair);
-        dump($allButOne->toString());
-        // TODO convert vk_j into c_i*
-        $this->assertTrue($all->equals($allButOne));
-         */
-
-    }
-
-    /**
-     * @param $peer
-     * @param array $peers
-     * @param array $shares
-     * @return BigInteger
-     */
-    private function combineReceivedSharesIntoShare($peer, array $peers, array $shares): BigInteger
-    {
-        $j = $peer['id'];
-        $s = BI1();
-        // peer j checks all its shares of all i
-        foreach ($peers as $peer_i) {
-            $i = $peer_i['id'];
-            if ($i == $j) {
-                continue; // don't check for self
-            }
-            $s = $s->add($shares[$i][$j]);
-        }
-        return $s;
-    }
-
-    /**
-     * @param array $shares
-     * @param int $_j
-     * @param EGKeyPair $keyPair
-     * @return BigInteger
-     */
-    private function getPublicVerificationKey(array $shares, int $_j, EGKeyPair $keyPair): BigInteger
-    {
-        $out = BI1();
-        foreach ($shares as $i => $share_array) {
-            foreach ($share_array as $j => $share) {
-                if ($i !== $_j && $j === $_j) {
-                    $out = $out->multiply($share)->modPow(BI1(), $keyPair->pk->parameterSet->p);
-                }
+        // ########################## public key --> all share the same
+        $pk = [];
+        foreach ($peers as $peer) {
+            $y = $peer->getCombinedPublicKey();
+            $pk[] = $y;
+            if (count($pk)) {
+                $this->assertTrue($pk[0]->equals($y));
             }
         }
-        return $out;
-    }
+        $pk = $pk[0];
+//        dump('################### public key : ' . $pk->y->toString());
 
-    /**
-     * @param array $qualifiedPeers
-     * @param EGKeyPair $keyPair
-     * @return BigInteger
-     */
-    private function getCombinedSecretKey(array $qualifiedPeers, EGKeyPair $keyPair)
-    {
-        $s = BI(0);
-        foreach ($qualifiedPeers as $peer) {
-            /** @var BigInteger $share */
-            $share = $peer['share'];
-            $lambda = $this->getLagrangianCoefficient(
-                array_column($qualifiedPeers, 'id'),
-                $peer['id'],
-                $keyPair->pk->parameterSet->p
-            );
-            $s = $s->add(
-                $share
-                    ->multiply($lambda)
-                    ->modPow(BI1(), $keyPair->pk->parameterSet->p)
-            );
+
+        // ########################## true (virtual) private key
+        $virtual_secret_x = null;
+        foreach ($peers as $peer) {
+            $virtual_secret_x = $peer->sk->combine($virtual_secret_x);
         }
-        return $s;
+        $virtual_secret_x->x = $virtual_secret_x->x->modPow(BI1(), $parameterSet->q);
+//        dump('################### virtual_secret_x : ' . $virtual_secret_x->x->toString());
+        $this->assertValidEGKeyPair($pk, $virtual_secret_x);
+
+
+        // ########################## share private key
+        foreach ($peers as $peer) {
+            $peer->skShare = $peer->computeX_j($pk); // true
+        }
+
+        $I = $peers; // shared
+        shuffle($I);
+        $I = array_slice($I, 0, $t); // subset
+        /** @var \Tests\Unit\Voting\CryptoSystems\ElGamal\Peer[] $I */
+        $I = array_values($I);
+
+        $I_IDS = array_column($I, 'id');
+//        dump('Peers [' . implode(',', $I_IDS) . ']');
+
+        $share_secret_x = null;
+        foreach ($I as $peer) {
+
+            $lambda = getLagrangianCoefficientMod($I_IDS, $peer->id, $parameterSet->q);
+
+            $x_j = $peer->skShare;
+//            dump($x_j->x->toString() . '*' . $lambda->toString() . ' mod ' . $parameterSet->q);
+            $x_j->x = $x_j->x->multiply($lambda)->modPow(BI1(), $parameterSet->q);
+
+            $share_secret_x = $x_j->combine($share_secret_x);
+
+        }
+        $share_secret_x->x = $share_secret_x->x->modPow(BI1(), $parameterSet->q);
+//        dump('################### share_secret_x : ' . $share_secret_x->x->toString());
+        $this->assertTrue($share_secret_x->x->equals($virtual_secret_x->x));
+
     }
 
     /**
