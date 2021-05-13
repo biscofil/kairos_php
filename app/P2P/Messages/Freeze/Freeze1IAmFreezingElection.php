@@ -273,6 +273,7 @@ class Freeze1IAmFreezingElection extends P2PMessage
             $publicKey = json_encode($keyPair->pk->toArray());
 
         } else {
+
             Log::debug('Freeze1IAmFreezingElection > min_peer_count_t is not 0 --> GenerateAndSendShares');
 
             Log::debug('Generating polynomial');
@@ -305,11 +306,22 @@ class Freeze1IAmFreezingElection extends P2PMessage
 
         Log::debug('replying');
 
+        $broadcastToSendBack = null;
+        $shareToSendBack = null;
+
+        if ($senderTrustee = $this->election->getTrusteeFromPeerServer($this->from)) {
+            $senderIdx = $senderTrustee->getPeerServerIndex();
+            $broadcastToSendBack = $meTrustee->broadcast->toArray();
+            $shareToSendBack = $meTrustee->polynomial->getShare($senderIdx);
+            $senderTrustee->share_sent = $shareToSendBack;
+            $senderTrustee->save();
+        }
+
         return new JsonResponse([
             'status' => 'freezing, I will send ready later on',
             'public_key' => $publicKey,
-            'my_broadcast' => $meTrustee->broadcast ? $meTrustee->broadcast->toArray() : null,
-            'my_share' => $meTrustee->broadcast ? 1 : null //TODO share
+            'my_broadcast' => $broadcastToSendBack,
+            'my_share' => $shareToSendBack
         ]);
     }
 
@@ -329,19 +341,31 @@ class Freeze1IAmFreezingElection extends P2PMessage
 
         Log::info(static::getMessageName() . ' > OK ');
 
+        $trustee = $this->election->getTrusteeFromPeerServer($destPeerServer);
+        if (!$trustee) {
+            Log::error('Received positive confirmation from peer which is not a trustee for this election.');
+            return;
+        }
+
         if ($this->election->min_peer_count_t === 0) {
-
-            $trustee = $this->election->getTrusteeFromPeerServer($destPeerServer);
-            if (!$trustee) {
-                Log::error('Received positive confirmation from peer which is not a trustee for this election.');
-                return;
-            }
-
             $pkClass = $this->election->cryptosystem->getCryptoSystemClass()::PublicKeyClass;
             $public_key = $pkClass::fromArray(json_decode($response->json('public_key'), true));
             $trustee->setPublicKey($public_key);
             $trustee->save();
 
+        } else {
+
+            // store broadcast and share
+            $thresholdBroadcastClass = $this->election->cryptosystem->getCryptoSystemClass()::ThresholdBroadcastClass;
+            $broadCastSentBack = $response->json('my_broadcast');
+            $broadCastSentBack = $thresholdBroadcastClass::fromArray($broadCastSentBack);
+            $trustee->broadcast = $broadCastSentBack;
+
+            $shareSentBack = $response->json('my_share');
+            $shareSentBack = new BigInteger($shareSentBack, 16);
+            $trustee->share_received = $shareSentBack;
+
+            $trustee->save();
         }
 
     }
