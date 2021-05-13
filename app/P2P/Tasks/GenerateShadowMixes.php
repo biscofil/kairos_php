@@ -18,14 +18,11 @@ class GenerateShadowMixes extends Task
 
     /**
      * WaitAndRespond constructor.
-     * @param PeerServer $from
-     * @param PeerServer[] $to
      * @param string $challengeBits
      * @throws \Exception
      */
-    public function __construct(PeerServer $from, array $to, string $challengeBits)
+    public function __construct(string $challengeBits)
     {
-        parent::__construct($from, $to);
         $this->challengeBits = $challengeBits;
     }
 

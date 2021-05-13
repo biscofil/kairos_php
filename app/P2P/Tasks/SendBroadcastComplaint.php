@@ -17,13 +17,10 @@ class SendBroadcastComplaint extends Task
     /**
      * VerifyBroadcast constructor.
      * @param EGThresholdBroadcast $broadcast
-     * @param PeerServer $from
-     * @param PeerServer[] $to
      * @throws \Exception
      */
-    public function __construct(EGThresholdBroadcast $broadcast, PeerServer $from, array $to)
+    public function __construct(EGThresholdBroadcast $broadcast)
     {
-        parent::__construct($from, $to);
         $this->broadcast = $broadcast;
     }
 
