@@ -1,7 +1,7 @@
 <template>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-sm-12">
+            <div class="col-sm-6">
 
                 <label>
                     Dominio
@@ -14,7 +14,7 @@
                 <GlobusMap :servers="servers" :nodes="nodes" :links="links"/>
 
             </div>
-            <div class="col-sm-12">
+            <div class="col-sm-6">
                 <h1>Log</h1>
                 <ul>
                     <li v-for="message in messages">
