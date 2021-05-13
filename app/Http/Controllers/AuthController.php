@@ -41,7 +41,7 @@ class AuthController extends Controller
         $token = $data['code'];
 
         switch ($provider) {
-            case "google":
+            case 'google':
                 $u = (new GoogleAuthProvider())->getUserData($token);
                 $user = User::findByProvider('google', $u->id, $u->email);
                 if (is_null($user)) {
@@ -55,12 +55,11 @@ class AuthController extends Controller
                 }
 
                 // Get the token
-                /** @noinspection PhpVoidFunctionResultUsedInspection */
-                $token = auth('user_api')->login($user);
+                $token = $user->getNewJwtToken();
 
                 return response()->json([
-                    "user" => $user,
-                    "access_token" => $token,
+                    'user' => $user,
+                    'access_token' => $token,
                     'expires_in' => auth('user_api')->factory()->getTTL() * 60
                 ]);
 

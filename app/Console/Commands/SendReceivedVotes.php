@@ -52,7 +52,7 @@ class SendReceivedVotes extends Command
 
         (new IReceivedTheseVotes($me, $to, $votes))->sendSync();
 
-        $this->info("Done");
+        $this->info('Done');
 
         return 0;
     }

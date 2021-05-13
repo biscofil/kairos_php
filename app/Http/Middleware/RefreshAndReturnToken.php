@@ -30,8 +30,8 @@ class RefreshAndReturnToken
         }
 
         return $out->withHeaders([
-            "access_token" => $newToken,
-            "access_token_expires_in" => $tokenExpiresIn,
+            'access_token' => $newToken,
+            'access_token_expires_in' => $tokenExpiresIn,
         ]);
     }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\EditCreateElectionRequest;
 use App\Models\Election;
 use Exception;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,18 +23,19 @@ class ElectionController extends Controller
      * TODO pagination
      * @param Request $request
      * @return Election[]|Collection|JsonResponse
+     * @throws \Illuminate\Auth\AuthenticationException
      */
     public function index(Request $request)
     {
         if ($request->has('administered')) {
             if (!isLogged()) {
-                return response()->json(["error" => "unauthenticated"], 403);
+                throw new AuthenticationException();
             }
             return getAuthUser()->administeredElections()->get();
         }
         if ($request->has('voted')) {
             if (!isLogged()) {
-                return response()->json(["error" => "unauthenticated"], 403);
+                throw new AuthenticationException();
             }
             return getAuthUser()->votedElections()->get();
         }

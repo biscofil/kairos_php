@@ -16,9 +16,12 @@ use Illuminate\Queue\SerializesModels;
  */
 class RunP2PTask implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
-    public $task;
+    public Task $task;
 
     /**
      * Create a new job instance.

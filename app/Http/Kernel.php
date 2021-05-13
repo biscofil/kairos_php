@@ -83,6 +83,7 @@ class Kernel extends HttpKernel
 
         'admin' => MustBeAdmin::class,
         'election_admin' => MustBeElectionAdmin::class,
+
         'election_trustee' => ElectionTrustee::class,
         'frozen' => ElectionFrozen::class,
         'not_frozen' => ElectionNotFrozen::class,

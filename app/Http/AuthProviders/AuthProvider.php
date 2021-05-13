@@ -17,7 +17,7 @@ class AuthProvider
 
     protected function getProviderName(): string
     {
-        return "";
+        return '';
     }
 
 
@@ -34,7 +34,7 @@ class AuthProvider
     /**
      * @param string $token
      */
-    function getUserData(string $token): User
+    public function getUserData(string $token): User
     {
 
         $access_token = $this->getAccessTokenFromAuthCode($token);

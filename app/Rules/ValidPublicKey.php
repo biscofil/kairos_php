@@ -2,7 +2,7 @@
 
 namespace App\Rules;
 
-use App\Crypto\DLogProof;
+use App\Voting\CryptoSystems\ElGamal\DLogProof;
 use App\Voting\CryptoSystems\ElGamal\EGPublicKey;
 use Illuminate\Contracts\Validation\Rule;
 use phpseclib3\Math\BigInteger;
@@ -33,8 +33,8 @@ class ValidPublicKey implements Rule
         $key = json_decode($value, true);
 
         if (
-            array_key_exists("public_key", $key)
-            && array_key_exists("pok", $key)) {
+            array_key_exists('public_key', $key)
+            && array_key_exists('pok', $key)) {
 
             $public_key = json_decode($key['public_key'], true);
             $public_key = EGPublicKey::fromArray($public_key);

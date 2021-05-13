@@ -36,6 +36,6 @@ class GoogleAuthProvider extends AuthProvider
 
     protected function getProviderName(): string
     {
-        return "google";
+        return 'google';
     }
 }

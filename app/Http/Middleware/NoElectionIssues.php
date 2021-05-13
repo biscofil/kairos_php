@@ -23,8 +23,8 @@ class NoElectionIssues
         if ($election && $election instanceof Election) {
             if (count($election->issues)) {
                 return response([
-                    "error" => "there are issues",
-                    "issues" => $election->issues
+                    'error' => 'there are issues',
+                    'issues' => $election->issues
                 ], 400);
             }
         }

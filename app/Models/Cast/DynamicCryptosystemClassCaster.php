@@ -57,7 +57,7 @@ abstract class DynamicCryptosystemClassCaster implements CastsAttributes, Serial
      * we want to cast the value to
      * @return string
      */
-    abstract function getTargetClassConstantName(): string;
+    abstract public function getTargetClassConstantName(): string;
 
     // ########################################################################
     // ############################ MODEL TO DB ###############################

@@ -53,10 +53,10 @@ class GenerateJwtKeypair extends Command
         $me->save();
 
         if ($result) {
-            $this->info("KeyPair exported");
+            $this->info('KeyPair exported');
             return 0;
         } else {
-            $this->error("Error exporting KeyPair");
+            $this->error('Error exporting KeyPair');
             return 1;
         }
 
