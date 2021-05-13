@@ -22,6 +22,7 @@ services:
     volumes:
       - './letsencrypt:/home/letsencrypt'
       - './000-default.conf:/etc/apache2/sites-available/000-default.conf'
+      - './apache2.conf:/etc/apache2/apache2.conf'
       - '.:/var/www/html'
 #      - /var/www/html/bootstrap/cache
     user: "${U_ID}:${G_ID}"
