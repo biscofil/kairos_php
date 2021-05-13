@@ -19,9 +19,15 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class GiveMeYourMixSet extends P2PMessage
 {
 
-    public const name = 'give_me_your_mix_set';
-
     public array $mixSet;
+
+    /**
+     * @return string
+     */
+    public static function getMessageName(): string
+    {
+        return 'give_me_your_mix_set';
+    }
 
     // #######################################################################################
     // ##################################### REQUEST #########################################

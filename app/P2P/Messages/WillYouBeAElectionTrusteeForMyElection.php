@@ -21,9 +21,15 @@ use Illuminate\Validation\ValidationException;
 class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
 {
 
-    public const name = 'will_you_be_a_election_trustee_for_my_election';
-
     public Election $election;
+
+    /**
+     * @return string
+     */
+    public static function getMessageName(): string
+    {
+        return 'will_you_be_a_election_trustee_for_my_election';
+    }
 
     // #######################################################################################
     // ##################################### REQUEST #########################################
@@ -101,7 +107,7 @@ class WillYouBeAElectionTrusteeForMyElection extends P2PMessage
     public function getRequestResponse()
     {
 
-        Log::debug("WillYouBeAElectionTrusteeForMyElection message received");
+        Log::debug('WillYouBeAElectionTrusteeForMyElection message received');
 
         $this->election->id = null;
         $this->election->admin_id = null;

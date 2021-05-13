@@ -19,7 +19,6 @@ use ReflectionException;
  * @package App\P2P\Messages
  * @property PeerServer $from
  * @property PeerServer[] $to
- * @property string $name
  */
 abstract class P2PMessage
 {
@@ -27,6 +26,11 @@ abstract class P2PMessage
 
     public PeerServer $from;
     public array $to;
+
+    /**
+     * @return string
+     */
+    abstract public static function getMessageName() : string;
 
     // register here all the messages
     public static array $messageClasses = [
@@ -89,7 +93,7 @@ abstract class P2PMessage
     {
         /** @var \App\P2P\Messages\P2PMessage $messageClass */
         foreach (self::$messageClasses as $messageClass) {
-            if ($messageClass::name === $message) {
+            if ($messageClass::getMessageName() === $message) {
                 /** @noinspection PhpIncompatibleReturnTypeInspection */
                 return $messageClass;
             }
@@ -139,14 +143,13 @@ abstract class P2PMessage
 
     /**
      * Sends the message in a blocking way, should only be called by queues (and tasks) and not during requests
-     * @throws ReflectionException
      */
     final public function run(): void
     {
 
         Log::debug('class : ' . get_called_class());
 
-        $messageName = (new ReflectionClass(get_called_class()))->getConstant('name');
+        $messageName = static::getMessageName();
 
         foreach ($this->to as $destPeerServer) { // foreach destination server
 

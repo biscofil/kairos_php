@@ -19,9 +19,15 @@ use Illuminate\Support\Facades\Validator;
 class IReceivedTheseVotes extends P2PMessage
 {
 
-    public const name = 'i_received_these_votes';
-
     public array $ballots;
+
+    /**
+     * @return string
+     */
+    public static function getMessageName(): string
+    {
+        return 'i_received_these_votes';
+    }
 
     // #######################################################################################
     // ##################################### REQUEST #########################################

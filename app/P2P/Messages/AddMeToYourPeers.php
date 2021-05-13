@@ -22,9 +22,16 @@ use Illuminate\Validation\ValidationException;
 class AddMeToYourPeers extends P2PMessage
 {
 
-    public const name = 'add_me_to_your_peers';
     public RSAPublicKey $senderJwtPk;
     public string $token;
+
+    /**
+     * @return string
+     */
+    public static function getMessageName(): string
+    {
+        return 'add_me_to_your_peers';
+    }
 
     /**
      * AddMeToYourPeers constructor.
