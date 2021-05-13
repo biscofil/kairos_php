@@ -43,6 +43,7 @@ use phpseclib3\Math\BigInteger;
  * @method static self make()
  * @method static self|Builder peerServers()
  * @method static self findOrFail($id)
+ * @method static self|null find(int|array $array)
  */
 class Trustee extends Model
 {

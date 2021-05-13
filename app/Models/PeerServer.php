@@ -39,7 +39,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  *
  * @property \Illuminate\Support\Collection|\App\Models\Election[] elections
  *
- * @method static self|null find(array $array)
+ * @method static self|null find(int|array $array)
  * @method static self firstOrFail()
  * @method static self|Builder unknown()
  * @method static self|Builder withDomain(string $domain)
@@ -48,12 +48,15 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 class PeerServer extends Authenticatable implements JWTSubject
 {
 
+    public const meID = 1;
+
     use ModelWithFieldsWithParameterSets;
     use SpatialTrait;
     use HasFactory;
     use HasShareableFields;
 
     protected $fillable = [
+        'id',
         'name',
         'domain',
         //
@@ -90,7 +93,8 @@ class PeerServer extends Authenticatable implements JWTSubject
      */
     public static function scopeUnknown(Builder $builder): Builder
     {
-        return $builder->whereNull('token');
+        return $builder->whereNull('token')
+            ->where('peer_servers.id', '<>', PeerServer::meID); // ignore myself
     }
 
     /**
@@ -116,7 +120,7 @@ class PeerServer extends Authenticatable implements JWTSubject
     public static function me(): PeerServer
     {
         return Cache::remember('_current_peer_server_', 15, function () {
-            return self::first();
+            return self::find(self::meID);
         });
     }
 
