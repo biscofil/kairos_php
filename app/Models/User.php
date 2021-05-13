@@ -15,8 +15,8 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * @package App\Models
  * @property int id
  * @property string name
- * @property boolean is_admin
- * @property boolean can_create_election
+ * @property bool is_admin
+ * @property bool can_create_election
  * @property string email
  * @property string provider
  * @property string provider_id
@@ -92,7 +92,7 @@ class User extends Authenticatable implements JWTSubject
                     ->orWhere('provider_id', '<>', $providerID);
             })
             ->first()) {
-            throw new \Exception("Email exists already");
+            throw new \Exception('Email exists already');
         }
 
         return self::query()
@@ -135,6 +135,15 @@ class User extends Authenticatable implements JWTSubject
     }
 
     // ############################# JWT #######################################
+
+    /**
+     * @return string
+     */
+    public function getNewJwtToken(): string
+    {
+        /** @noinspection PhpVoidFunctionResultUsedInspection */
+        return auth('user_api')->login($this);
+    }
 
     public function getJWTIdentifier()
     {

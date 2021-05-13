@@ -7,6 +7,10 @@ namespace App\Http\AuthProviders;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
+/**
+ * Class GoogleAuthProvider
+ * @package App\Http\AuthProviders
+ */
 class GoogleAuthProvider extends AuthProvider
 {
 
@@ -34,6 +38,9 @@ class GoogleAuthProvider extends AuthProvider
 
     }
 
+    /**
+     * @return string
+     */
     protected function getProviderName(): string
     {
         return 'google';

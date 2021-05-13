@@ -12,27 +12,23 @@ use Laravel\Socialite\Two\User;
  * @package App\Http\AuthProviders
  * @property string $providerName
  */
-class AuthProvider
+abstract class AuthProvider
 {
 
-    protected function getProviderName(): string
-    {
-        return '';
-    }
-
+    /**
+     * @return string
+     */
+    abstract protected function getProviderName(): string;
 
     /**
      * @param string $authCode
      * @return string
      */
-    protected function getAccessTokenFromAuthCode(string $authCode): string
-    {
-        // default: do nothing
-        return $authCode;
-    }
+    abstract protected function getAccessTokenFromAuthCode(string $authCode): string;
 
     /**
      * @param string $token
+     * @return \Laravel\Socialite\Two\User
      */
     public function getUserData(string $token): User
     {
