@@ -5,6 +5,10 @@ namespace App\P2P\Messages;
 
 use App\Jobs\SendP2PMessage;
 use App\Models\PeerServer;
+use App\P2P\Messages\Freeze\Freeze1IAmFreezingElection;
+use App\P2P\Messages\Freeze\Freeze3CommitFail;
+use App\P2P\Messages\Freeze\Freeze2IAmReadyForFreeze;
+use App\P2P\Messages\Freeze\ThisIsMyThresholdBroadcast;
 use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
@@ -35,8 +39,14 @@ abstract class P2PMessage
     // register here all the messages
     public static array $messageClasses = [
         AddMeToYourPeers::class,
+        //
         WillYouBeAElectionTrusteeForMyElection::class,
-        IFrozeMyElection::class,
+        // freeze
+        Freeze1IAmFreezingElection::class,
+        ThisIsMyThresholdBroadcast::class,
+        Freeze2IAmReadyForFreeze::class,
+        Freeze3CommitFail::class,
+        //
         IReceivedTheseVotes::class,
         GiveMeYourMixSet::class,
     ];
