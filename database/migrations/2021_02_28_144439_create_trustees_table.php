@@ -35,9 +35,14 @@ class CreateTrusteesTable extends Migration
             $table->string('public_key_hash')->nullable();
             $table->text('pok')->nullable();
 
+            $table->text('polynomial')->nullable()->comment('NULL for all but itself'); // use to store our own polynomial
             $table->text('broadcast')->nullable();
-            $table->text('share_sent')->nullable();
-            $table->text('share_received')->nullable();
+
+            $table->text('share_sent')->nullable()->comment('NULL for self and user trustees');
+            $table->text('share_received')->nullable()->comment('NULL for self and user trustees');
+
+            $table->boolean('freeze_ready')->default(false)->comment('Used by coordinator');
+
             $table->boolean('qualified')->nullable();
 
             $table->timestamps();

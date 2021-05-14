@@ -30,9 +30,12 @@ use phpseclib3\Math\BigInteger;
  * @property null|string public_key_hash
  * @property null|bool qualified
  *
+ * @property ThresholdPolynomial|null polynomial
  * @property ThresholdBroadcast|null broadcast
+ *
  * @property BigInteger|null share_sent
  * @property BigInteger|null share_received
+ * @property bool freeze_ready
  *
  * @property null|int user_id
  * @property null|User user
@@ -62,10 +65,14 @@ class Trustee extends Model
         'pok',
         'public_key_hash',
         'qualified',
+        //
+        'polynomial',
         'broadcast',
         //
         'share_sent',
-        'share_received'
+        'share_received',
+        //
+        'freeze_ready',
     ];
 
     public $shareableFields = [
@@ -77,9 +84,11 @@ class Trustee extends Model
         'private_key' => PrivateKeyCasterCryptosystem::class,
         'pok' => POKCaster::class,
         'qualified' => 'bool',
+        'polynomial' => ThresholdPolynomialCasterCryptosystem::class,
         'broadcast' => ThresholdBroadcastCasterCryptosystem::class,
         'share_sent' => BigIntCaster::class,
-        'share_received' => BigIntCaster::class
+        'share_received' => BigIntCaster::class,
+        'freeze_ready' => 'bool',
     ];
 
     protected $hidden = [
