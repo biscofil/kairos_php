@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Http\Middleware\AuthenticateWithElectionCreatorJwt;
+use App\Jobs\SendP2PMessage;
 use App\Models\Cast\ModelWithFieldsWithParameterSets;
 use App\Models\Cast\PublicKeyCasterCryptosystem;
 use App\P2P\Messages\AddMeToYourPeers;
@@ -171,12 +172,14 @@ class PeerServer extends Authenticatable implements JWTSubject
             Log::warning('addPeer > Already present');
         }
 
-        (new AddMeToYourPeers(
-            $me,
-            $peerServer,
-            getJwtRSAKeyPair()->pk,
-            $peerServer->getNewToken()
-        ))->sendAsync();
+        SendP2PMessage::dispatch(
+            new AddMeToYourPeers\AddMeToYourPeersRequest(
+                $me,
+                $peerServer,
+                getJwtRSAKeyPair()->pk,
+                $peerServer->getNewToken()
+            )
+        );
 
         Log::debug('addPeer > done');
         return $peerServer;
