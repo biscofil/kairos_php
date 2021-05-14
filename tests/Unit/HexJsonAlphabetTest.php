@@ -14,7 +14,7 @@ use Tests\TestCase;
 class HexJsonAlphabetTest extends TestCase
 {
 
-    const alphabet = '0123456789{}:",';
+    public const alphabet = '0123456789{}:",';
 
     /**
      * @param array $obj
@@ -51,7 +51,7 @@ class HexJsonAlphabetTest extends TestCase
      */
     public function testRemapping()
     {
-        $a = ["1" => 124, "2" => 3522, "4" => 2];
+        $a = ['1' => 124, '2' => 3522, '4' => 2];
         // TODO add spaces
         $d = $this->hex2json($this->json2hex($a));
         $this->assertEquals($a, $d);
@@ -62,7 +62,7 @@ class HexJsonAlphabetTest extends TestCase
      */
     public function testRemappingWithArray()
     {
-        $a = ["1" => 124, "2" => 3522, "4" => [2]];
+        $a = ['1' => 124, '2' => 3522, '4' => [2]];
         $d = $this->hex2json($this->json2hex($a));
         $this->assertNotEquals($a, $d);
     }

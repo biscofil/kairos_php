@@ -76,7 +76,7 @@ class MixNodeTest extends TestCase
         foreach ($parameterSets as $idx => $parameterSet) {
             $challengeBit = $mixNode->challengeBits[$idx];
 
-            if ($challengeBit == "0") {
+            if ($challengeBit == '0') {
                 $mix = ReEncryptingMixNode::forward($keyPair->pk, $ciphertexts, $parameterSet);
                 $this->assertTrue($mixNode->shadowMixes[$idx]->equals($mix, $keyPair->sk));
             } else {

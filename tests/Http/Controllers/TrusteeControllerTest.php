@@ -19,7 +19,7 @@ class TrusteeControllerTest extends TestCase
         $trustee_user = User::factory()->create();
 
         /** @var Election $election */
-        $election = Election::factory()->withAdmin($trustee_user)->withUUID()->create();
+        $election = Election::factory()->withAdmin($trustee_user)->create();
 
         $election->createUserTrustee($trustee_user);
 

@@ -25,7 +25,7 @@ class CastVoteControllerTest extends TestCase
         $user = User::factory()->create();
 
         /** @var Election $election */
-        $election = Election::factory()->withAdmin($user)->withUUID()->frozen()->create();
+        $election = Election::factory()->withAdmin($user)->frozen()->create();
         $election->cryptosystem = 'rsa';
         $election->createSystemTrustee();
         $election->cryptosystem->getCryptoSystemClass()->onElectionFreeze($election); // generateCombinedPublicKey

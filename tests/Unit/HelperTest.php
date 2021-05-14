@@ -14,7 +14,7 @@ class HelperTest extends TestCase
      */
     public function testExtractDomain()
     {
-        $this->assertEquals("website.com", extractDomain("https://website.com/"));
+        $this->assertEquals('website.com', extractDomain('https://website.com/'));
 //        $this->assertEquals("website.com", extractDomain("website.com/"));
 //        $this->assertEquals("website.com", extractDomain("website.com"));
     }

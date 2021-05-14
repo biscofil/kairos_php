@@ -31,7 +31,7 @@ class ElectionFactory extends Factory
             //
             'name' => $this->faker->name,
             'uuid' => $this->faker->uuid,
-            'slug' => $this->faker->slug,
+            'slug' => Str::random(100),
             'description' => $this->faker->paragraph,
             'help_email' => $this->faker->email,
             'info_url' => $this->faker->url,
@@ -59,19 +59,6 @@ class ElectionFactory extends Factory
             'frozen_at' => null,
             'archived_at' => null,
         ];
-    }
-
-    /**
-     * Indicate that the election is frozen
-     * @return self
-     */
-    public function withUUID()
-    {
-        return $this->state(function (array $attributes) {
-            return [
-                'uuid' => (string)Str::uuid(),
-            ];
-        });
     }
 
     /**
