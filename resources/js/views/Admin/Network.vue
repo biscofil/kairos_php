@@ -11,7 +11,7 @@
 
                 <hr>
 
-                <ul>
+                <ul class="list-unstyled">
                     <li v-for="server in servers">
                         <country-flag v-if="server.country_code" :country='server.country_code'/>
                         <a href="javascript:void(0)" @click="flyTo(server)">{{ server.name }}</a>
@@ -126,5 +126,7 @@ export default {
 </script>
 
 <style scoped>
-
+.list-unstyled > li > span, .list-unstyled > li > a {
+    vertical-align: middle
+}
 </style>
