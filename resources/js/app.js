@@ -12,8 +12,13 @@ import vue_moment from "vue-moment";
 import LoginBox from "./components/LoginBox";
 
 import 'vue-toastr-2/dist/vue-toastr-2.min.css';
-
+import VuejsDialog from 'vuejs-dialog';
+import 'vuejs-dialog/dist/vuejs-dialog.min.css'; // include the default style
 require('./bootstrap');
+
+
+Vue.use(VuejsDialog); // Tell Vue to install the plugin.
+
 
 window.Vue = Vue;
 window.toastr = Toastr;

@@ -10,6 +10,8 @@
         "production": "mix --production"
     },
     "dependencies": {
+        "@amcharts/amcharts4": "^4.10.18",
+        "@amcharts/amcharts4-geodata": "^4.1.20",
         "@kazupon/vue-i18n-loader": "^0.5.0",
         "@vue/babel-preset-app": "^4.5.12",
         "@vue/compiler-sfc": "^3.0.11",
@@ -46,6 +48,7 @@
         "vue-router": "^3.5.1",
         "vue-social-auth": "^1.4.9",
         "vue-toastr-2": "0.0.10",
+        "vuejs-dialog": "^1.4.2",
         "vuetable-3": "^3.3.3",
         "vuex": "^3.6.2"
     },

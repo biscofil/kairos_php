@@ -1,6 +1,6 @@
 <template>
     <div class="container-fluid">
-        <div class="row">
+        <div class="row" v-if="nodes">
             <div class="col-sm-6">
 
                 <label>
@@ -11,14 +11,23 @@
 
                 <hr>
 
-                <GlobusMap :servers="servers" :nodes="nodes" :links="links"/>
+                <ul>
+                    <li v-for="server in servers">
+                        <country-flag v-if="server.country_code" :country='server.country_code'/>
+                        <a href="javascript:void(0)" @click="flyTo(server)">{{ server.name }}</a>
+                    </li>
+                </ul>
+
+                <hr>
+
+                <WorldMap2 ref="map" :servers="servers" :nodes="nodes" :links="links"/>
 
             </div>
             <div class="col-sm-6">
                 <h1>Log</h1>
                 <ul>
                     <li v-for="message in messages">
-                        {{ message }}
+                        <b>{{ message.server.name }}</b> {{ message.message }}
                     </li>
                 </ul>
             </div>
@@ -28,22 +37,24 @@
 
 <script>
 import Pusher from 'pusher-js';
-import GlobusMap from "../../components/GlobusMap";
+import WorldMap2 from "../../components/WorldMap2";
+import CountryFlag from 'vue-country-flag';
 
 // Enable pusher logging - don't include this in production
-Pusher.logToConsole = true;
+Pusher.logToConsole = false;
 
 export default {
     name: "Network",
 
     components: {
-        GlobusMap,
+        WorldMap2,
+        CountryFlag
     },
 
     data() {
         return {
             servers: [],
-            nodes: [],
+            nodes: null,
             links: [],
             messages: [],
             new_peer_domain: null
@@ -69,6 +80,7 @@ export default {
                 self.nodes = response.data.map(server => {
                     return server;
                 });
+                console.log("Network done");
             })
             .catch(e => {
                 console.log(e);
@@ -77,7 +89,6 @@ export default {
 
         let channel = pusher.subscribe('my-channel');
         channel.bind('my-event', function (data) {
-            self.messages.push(JSON.stringify(data));
             self.onMessageReceived(data);
         });
 
@@ -85,6 +96,8 @@ export default {
 
     methods: {
         onMessageReceived(message) {
+            this.messages.push(message);
+            this.$refs.map.flyPlane();
         },
 
         addPeer() {
@@ -100,6 +113,13 @@ export default {
                     console.log(e);
                     self.$toastr.error("Error");
                 });
+        },
+
+        flyTo(server) {
+            if (!server.gps) {
+                return;
+            }
+            this.$refs.map.flyTo(server);
         }
     }
 }

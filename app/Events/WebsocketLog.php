@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Models\PeerServer;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -10,6 +11,8 @@ use Illuminate\Queue\SerializesModels;
 /**
  * Class WebsocketLog
  * @package App\Events
+ * @property PeerServer $me
+ * @property string $message
  */
 class WebsocketLog implements ShouldBroadcast
 {
@@ -17,10 +20,12 @@ class WebsocketLog implements ShouldBroadcast
     use InteractsWithSockets;
     use SerializesModels;
 
+    public PeerServer $server;
     public string $message;
 
     public function __construct(string $message)
     {
+        $this->server = PeerServer::me();
         $this->message = $message;
     }
 

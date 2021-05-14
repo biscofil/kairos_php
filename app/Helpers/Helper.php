@@ -137,5 +137,5 @@ function getLagrangianCoefficientMod(array $I, int $j, BigInteger $mod): BigInte
 function websocketLog(string $msg): void
 {
     Log::debug($msg);
-    WebsocketLog::dispatch(PeerServer::me()->domain . ' > ' . $msg);
+    WebsocketLog::dispatch($msg);
 }
