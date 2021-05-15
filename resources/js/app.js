@@ -46,6 +46,7 @@ const app = new Vue({
     data: {
         login_box: null,
         settings: null,
+        main_class : "container"
     },
 
     created() {

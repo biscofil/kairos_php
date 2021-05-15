@@ -65,7 +65,7 @@
     </header>
 
     <!-- Begin page content -->
-    <main role="main" class="container" id="contentbody" v-if="settings">
+    <main role="main" :class="main_class" id="contentbody" v-if="settings">
         <router-view></router-view>
     </main>
 
