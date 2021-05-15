@@ -5,7 +5,6 @@ namespace App\P2P\Messages\AddMeToYourPeers;
 
 
 use App\Models\PeerServer;
-use App\P2P\Messages\P2PMessageRequest;
 use App\P2P\Messages\P2PMessageResponse;
 use App\Voting\CryptoSystems\RSA\RSAPublicKey;
 use Illuminate\Support\Facades\Validator;
@@ -55,11 +54,12 @@ class AddMeToYourPeersResponse extends P2PMessageResponse
     /**
      * @param PeerServer $requestDestination
      * @param array $messageData
+     * @param \App\P2P\Messages\AddMeToYourPeers\AddMeToYourPeersRequest $requestMessage
      * @return self
      * @throws ValidationException
      * @throws \Exception
      */
-    public static function unserialize(PeerServer $requestDestination, array $messageData): self
+    public static function unserialize(PeerServer $requestDestination, array $messageData, $requestMessage): self
     {
         $data = Validator::make($messageData, [
             'jwt_public_key' => ['required', 'array'],
@@ -82,9 +82,9 @@ class AddMeToYourPeersResponse extends P2PMessageResponse
 
     /**
      * Once the peer has replied, we store its public key
-     * @param \App\P2P\Messages\P2PMessageRequest $request
+     * @param \App\P2P\Messages\AddMeToYourPeers\AddMeToYourPeersRequest $request
      */
-    public function onResponseReceived(P2PMessageRequest $request): void
+    public function onResponseReceived($request): void
     {
         // update peer
         $destPeerServer = $this->requestDestination;
