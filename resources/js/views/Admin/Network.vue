@@ -27,7 +27,7 @@
                 <h1>Log</h1>
                 <ul>
                     <li v-for="message in messages">
-                        <b>{{ message.server.name }}</b> {{ message.message }}
+                        <b>{{ message.server.domain }}</b> {{ message.message }}
                     </li>
                 </ul>
             </div>
@@ -96,7 +96,7 @@ export default {
 
     methods: {
         onMessageReceived(message) {
-            this.messages.push(message);
+            this.messages.unshift(message);
             this.$refs.map.flyPlane();
         },
 
