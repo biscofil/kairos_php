@@ -44,15 +44,15 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
     /**
      * ThisIsMyThresholdBroadcast constructor.
      * @param PeerServer $requestSender
-     * @param PeerServer[] $requestDestinations
+     * @param PeerServer $requestDestination
      * @param Election $election
      * @param EGThresholdBroadcast $broadcast
      * @param BigInteger $share
      * @throws \Exception
      */
-    public function __construct(PeerServer $requestSender, array $requestDestinations, Election $election, ThresholdBroadcast $broadcast, BigInteger $share)
+    public function __construct(PeerServer $requestSender, PeerServer $requestDestination, Election $election, ThresholdBroadcast $broadcast, BigInteger $share)
     {
-        parent::__construct($requestSender, $requestDestinations);
+        parent::__construct($requestSender, [$requestDestination]);
         $this->election = $election;
         $this->broadcast = $broadcast;
         $this->share = $share;
@@ -98,7 +98,7 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
 
         return new static(
             $sender,
-            [PeerServer::me()],
+            PeerServer::me(),
             $election,
             $broadcast,
             $receivedShare

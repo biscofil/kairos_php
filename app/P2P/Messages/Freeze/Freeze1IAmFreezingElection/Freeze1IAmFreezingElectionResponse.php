@@ -110,6 +110,7 @@ class Freeze1IAmFreezingElectionResponse extends P2PMessageResponse
         // broadcast
         $broadcast = null;
         if ($data['my_broadcast']) {
+            /** @var ThresholdBroadcast $thresholdBroadcastClass */
             $thresholdBroadcastClass = $election->cryptosystem->getCryptoSystemClass()::ThresholdBroadcastClass;
             $broadcast = $thresholdBroadcastClass::fromArray($data['my_broadcast']); // RSA, ELGAMAL
         }
@@ -123,8 +124,8 @@ class Freeze1IAmFreezingElectionResponse extends P2PMessageResponse
         $freeze_ready = boolval($data['freeze_ready']);
 
         return new static(
-            PeerServer::me(),
             $requestDestination,
+            PeerServer::me(),
             $election,
             $publicKey,
             $broadcast,
@@ -136,36 +137,30 @@ class Freeze1IAmFreezingElectionResponse extends P2PMessageResponse
     // #############################################################
 
     /**
-     * TODO
-     * @param $request
+     * @param \App\Models\PeerServer $destPeerServer
+     * @param \App\P2P\Messages\Freeze\Freeze1IAmFreezingElection\Freeze1IAmFreezingElectionRequest $request
      * @throws \Exception
      */
-    public function onResponseReceived($request): void
+    public function onResponseReceived(PeerServer $destPeerServer, $request): void
     {
         $meTrustee = $this->election->getTrusteeFromPeerServer(PeerServer::me());
+        $trustee = $this->election->getTrusteeFromPeerServer($destPeerServer, true);
 
-        $trustee = $this->election->getTrusteeFromPeerServer($this->requestDestination);
-        if (!$trustee) {
-            Log::error('Received positive confirmation from peer which is not a trustee for this election.');
-            return;
-        }
+        $trustee->setPublicKey($this->publicKey);
 
-        if ($this->election->min_peer_count_t === 0) { // TODO change
-
-            $trustee->setPublicKey($this->publicKey);
-
+        if ($this->election->hasLLThresholdScheme()) {
+            Log::debug('Freeze1IAmFreezingElectionResponse::onResponseReceived > no threshold');
         } else {
-
+            Log::debug('Freeze1IAmFreezingElectionResponse::onResponseReceived > threshold');
+            $trustee->broadcast = $this->broadcast;
             if ($meTrustee) { // only if the current server (creator, coordinator) is also peer TODO check
                 // store broadcast and share
-                $trustee->broadcast = $this->broadcast;
                 $trustee->share_received = $this->share;
-                $trustee->freeze_ready = $this->freezeReady;
-
             }
-            $trustee->save();
-
+            $trustee->freeze_ready = $this->freezeReady;
         }
+
+        $trustee->save();
 
         Log::debug('Freeze1IAmFreezingElection > checking if all peers are ready');
         if (Freeze2IAmReadyForFreeze::areAllPeersReady($this->election)) {

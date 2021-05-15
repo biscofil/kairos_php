@@ -33,10 +33,6 @@ use phpseclib3\Math\BigInteger;
 class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
 {
 
-    // TODO if coordinator server acts as peer server too
-    //  then the message should also carry the broadcast + share
-
-    public const TIMEOUT = 10; //seconds
     public Election $election;
     public array $trustees;
     public ?ThresholdBroadcast $senderThresholdBroadcast;
@@ -201,10 +197,6 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         }
 
 
-//        $this->election->freeze();
-
-        $publicKey = null;
-
         $jobs = [
             // send a AddMeToYourPeers message to each unknown peer
             new RunP2PTask(new SendAddMeToYourPeersMessageToUnknownPeers($this->election)),
@@ -212,29 +204,26 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
 
         $meTrustee = $this->election->getTrusteeFromPeerServer(PeerServer::me(), true);
 
-        Log::debug('Generating keypair');
+        Log::debug('Generating my own keypair');
         $keyPair = $this->election->cryptosystem->getCryptoSystemClass()->generateKeypair();
         $meTrustee->private_key = $keyPair->sk;
         $meTrustee->public_key = $keyPair->pk;
+        $publicKey = $keyPair->pk;
 
-        if ($this->election->min_peer_count_t === 0) { // TODO change
+        if ($this->election->hasLLThresholdScheme()) {
 
-            Log::debug('Freeze1IAmFreezingElection > min_peer_count_t is 0 --> no GenerateAndSendShares');
+            Log::debug('Freeze1IAmFreezingElection > no threshold');
             // no slack : l-l theshold
-
-            $publicKey = $keyPair->pk;
 
         } else {
 
             Log::debug('Freeze1IAmFreezingElection > min_peer_count_t is not 0 --> GenerateAndSendShares');
 
-            Log::debug('Generating polynomial');
-            $polynomial = $keyPair->sk->getThresholdPolynomial($this->election->min_peer_count_t);
-            $meTrustee->polynomial = $polynomial; // save my polynomial
+            Log::debug('Generating my own polynomial to send back');
+            $meTrustee->polynomial = $meTrustee->private_key->getThresholdPolynomial($this->election->min_peer_count_t);
 
-            Log::debug('Generating broadcast');
-            $broadcast = $meTrustee->polynomial->getBroadcast();
-            $meTrustee->broadcast = $broadcast; // save my broadcast
+            Log::debug('Generating my own broadcast to send back');
+            $meTrustee->broadcast = $meTrustee->polynomial->getBroadcast();
 
             // t-l threshold
             $jobs[] = new RunP2PTask(new GenerateAndSendShares($this->election));
@@ -250,14 +239,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         // TODO after all AddMeToYourPeers messages are done
         //  > request only to peers with higher "label" and expect requests from peers with lower "label"
 
-        // execute jobs in sequence
-        Log::debug('Bus chain dispatch in 2 seconds');
-        // wait for 2 seconds to allow everyone to generate its polynomial
-        Bus::chain($jobs)->delay(2)->dispatch();
-
-        Log::debug('replying');
-
-        $broadcastToSendBack = null;
+//        $broadcastToSendBack = null;
         $shareToSendBack = null;
         $freezeReady = false;
 
@@ -265,7 +247,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
             // sender (coordinator) is a peer
 
             $senderIdx = $senderTrustee->getPeerServerIndex();
-            $broadcastToSendBack = $meTrustee->broadcast->toArray();
+//            $broadcastToSendBack = $meTrustee->broadcast->toArray();
             $shareToSendBack = $meTrustee->polynomial->getShare($senderIdx);
             $senderTrustee->share_sent = $shareToSendBack;
             $senderTrustee->save();
@@ -278,12 +260,17 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
             }
         }
 
+        // execute jobs in sequence
+        Log::debug('Bus chain dispatch in 5 seconds');
+        // wait for 5 seconds to allow everyone to generate its polynomial
+        Bus::chain($jobs)->delay(5)->dispatch();
+
         return new Freeze1IAmFreezingElectionResponse(
             PeerServer::me(),
             $this->requestSender,
             $this->election,
             $publicKey,
-            $broadcastToSendBack,
+            $meTrustee->broadcast,
             $shareToSendBack,
             $freezeReady
         );

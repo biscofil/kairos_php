@@ -82,9 +82,10 @@ class AddMeToYourPeersResponse extends P2PMessageResponse
 
     /**
      * Once the peer has replied, we store its public key
+     * @param \App\Models\PeerServer $destPeerServer
      * @param \App\P2P\Messages\AddMeToYourPeers\AddMeToYourPeersRequest $request
      */
-    public function onResponseReceived($request): void
+    public function onResponseReceived(\App\Models\PeerServer $destPeerServer, $request): void
     {
         // update peer
         $destPeerServer = $this->requestDestination;

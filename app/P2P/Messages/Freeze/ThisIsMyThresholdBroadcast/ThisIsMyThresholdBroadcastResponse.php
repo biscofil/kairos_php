@@ -82,9 +82,11 @@ class ThisIsMyThresholdBroadcastResponse extends P2PMessageResponse
     }
 
     /**
+     * @param \App\Models\PeerServer $destPeerServer
      * @param \App\P2P\Messages\Freeze\ThisIsMyThresholdBroadcast\ThisIsMyThresholdBroadcastRequest $request
+     * @throws \Exception
      */
-    public function onResponseReceived($request): void
+    public function onResponseReceived(PeerServer $destPeerServer, $request): void
     {
 
         Log::debug('ThisIsMyThresholdBroadcast response received');

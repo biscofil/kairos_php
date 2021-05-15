@@ -4,8 +4,10 @@
 namespace App\P2P\Messages\Freeze\ThisIsMyThresholdBroadcast;
 
 
+use App\Jobs\SendP2PMessage;
 use App\Models\Election;
 use App\Models\PeerServer;
+use App\P2P\Messages\Freeze\Freeze2IAmReadyForFreeze\Freeze2IAmReadyForFreezeRequest;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
 
@@ -31,6 +33,7 @@ class ThisIsMyThresholdBroadcast
 
     /**
      * @param \App\Models\Election $election
+     * @throws \Exception
      */
     public static function onAllSharesReceived(Election $election)
     {
@@ -42,6 +45,15 @@ class ThisIsMyThresholdBroadcast
 ////            RunP2PTask::dispatch(new SendBroadcastComplaint($this->broadcast));
 //            return new JsonResponse(['error' => 'I am about to broadcast complaint'], 400);
 //        }
+
+        SendP2PMessage::dispatch(
+            new Freeze2IAmReadyForFreezeRequest(
+                PeerServer::me(),
+                $election->peerServerAuthor,
+                $election,
+                $election->trustees()->get()->toArray()
+            )
+        );
 
         // TODO if all requests received -> reply to coordinator
         //  if all shares are valid reply "OK" to coordinator
