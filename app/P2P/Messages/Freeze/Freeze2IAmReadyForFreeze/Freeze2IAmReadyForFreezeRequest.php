@@ -109,6 +109,7 @@ class Freeze2IAmReadyForFreezeRequest extends P2PMessageRequest
     /**
      * @return \App\P2P\Messages\Freeze\Freeze2IAmReadyForFreeze\Freeze2IAmReadyForFreezeResponse
      * @noinspection PhpIncompatibleReturnTypeInspection
+     * @throws \Exception
      */
     public function onRequestReceived(): Freeze2IAmReadyForFreezeResponse
     {
@@ -125,6 +126,10 @@ class Freeze2IAmReadyForFreezeRequest extends P2PMessageRequest
 
         /** @var Trustee[]|\Illuminate\Support\Collection $_trustees */
         $_trustees = $this->election->trustees()->peerServers()->get()->keyBy('uuid');
+
+        // TODO check broadcast
+        $senderTrustee->freeze_ready = true;
+        $senderTrustee->save();
 
         if ($this->election->hasLLThresholdScheme()) {
 
@@ -162,6 +167,13 @@ class Freeze2IAmReadyForFreezeRequest extends P2PMessageRequest
                 }
             }
 
+        }
+
+        Log::debug('Freeze2IAmReadyForFreeze > checking if all peers are ready');
+        if (Freeze2IAmReadyForFreeze::areAllPeersReady($this->election)) {
+            // if all are ready
+            Log::debug('Freeze2IAmReadyForFreeze > all peers are ready. Calling ThisIsMyThresholdBroadcast::onAllPeersReady');
+            Freeze2IAmReadyForFreeze::onAllPeersReady($this->election);
         }
 
         return new Freeze2IAmReadyForFreezeResponse(PeerServer::me(), $this->requestSender);

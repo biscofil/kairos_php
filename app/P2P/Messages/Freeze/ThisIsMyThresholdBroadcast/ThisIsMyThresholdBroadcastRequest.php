@@ -8,6 +8,7 @@ use App\Models\Election;
 use App\Models\PeerServer;
 use App\P2P\Messages\P2PMessageRequest;
 use App\Voting\CryptoSystems\ElGamal\EGThresholdBroadcast;
+use App\Voting\CryptoSystems\PublicKey;
 use App\Voting\CryptoSystems\ThresholdBroadcast;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -20,6 +21,7 @@ use phpseclib3\Math\BigInteger;
  * @property ThresholdBroadcast $broadcast
  * @property Election $election
  * @property BigInteger $share
+ * @property PublicKey $publicKey
  */
 class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
 {
@@ -27,6 +29,7 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
     public BigInteger $share;
     public Election $election;
     public ThresholdBroadcast $broadcast;
+    public PublicKey $publicKey;
 
     /**
      * @return string
@@ -46,16 +49,18 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
      * @param PeerServer $requestSender
      * @param PeerServer $requestDestination
      * @param Election $election
+     * @param \App\Voting\CryptoSystems\PublicKey $publicKey
      * @param EGThresholdBroadcast $broadcast
      * @param BigInteger $share
      * @throws \Exception
      */
-    public function __construct(PeerServer $requestSender, PeerServer $requestDestination, Election $election, ThresholdBroadcast $broadcast, BigInteger $share)
+    public function __construct(PeerServer $requestSender, PeerServer $requestDestination, Election $election, PublicKey $publicKey, ThresholdBroadcast $broadcast, BigInteger $share)
     {
         parent::__construct($requestSender, [$requestDestination]);
         $this->election = $election;
         $this->broadcast = $broadcast;
         $this->share = $share;
+        $this->publicKey = $publicKey;
     }
 
     /**
@@ -67,6 +72,7 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
     {
         return [
             'election_uuid' => $this->election->uuid,
+            'public_key' => $this->publicKey->toArray(),
             'broadcast' => $this->broadcast->toArray(),
             'share' => $this->share->toHex()
         ];
@@ -83,6 +89,7 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
     {
         $data = Validator::make($messageData, [
             'election_uuid' => ['required', 'uuid', 'exists:elections,uuid'],
+            'public_key' => ['required', 'array'],
             'broadcast' => ['required', 'array'],
             'share' => ['required', 'string']
         ])->validate();
@@ -91,6 +98,11 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
 
         $election = Election::findFromUuid($data['election_uuid']);
 
+        /** @var PublicKey $publicKeyClass */
+        $publicKeyClass = $election->cryptosystem->getCryptoSystemClass()::PublicKeyClass;
+        $publicKey = $publicKeyClass::fromArray($data['public_key']); // RSA, ELGAMAL
+
+        /** @var ThresholdBroadcast $thresholdBroadcastClass */
         $thresholdBroadcastClass = $election->cryptosystem->getCryptoSystemClass()::ThresholdBroadcastClass;
         $broadcast = $thresholdBroadcastClass::fromArray($data['broadcast']); // RSA, ELGAMAL
 
@@ -100,6 +112,7 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
             $sender,
             PeerServer::me(),
             $election,
+            $publicKey,
             $broadcast,
             $receivedShare
         );
@@ -138,6 +151,7 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
 
         $trusteeI->broadcast = $this->broadcast;
         $trusteeI->share_received = $this->share;
+        $trusteeI->public_key = $this->publicKey;
         $trusteeI->share_sent = $shareToSendBack;
         $trusteeI->save();
 
@@ -149,6 +163,7 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
             PeerServer::me(),
             $this->requestSender,
             $meTrustee->broadcast,
+            $meTrustee->public_key,
             $trusteeI->share_sent
         );
 

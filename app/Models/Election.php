@@ -455,19 +455,92 @@ class Election extends Model
     public function freeze()
     {
 
-        $this->frozen_at = now();
-
-        // Elgamal: generate combined public key, RSA: nothing
-        $this->cryptosystem->getCryptoSystemClass()->onElectionFreeze($this);
-
         # generate voters hash
         // TODO $this->voter_hash = $this->generateVotersHash();
 
-        $this->save();
-
         $this->trustees->load('peerServer');
 
-        $this->setupOutputTables();
+        if ($this->peerServers()->count()) { // P2P three phase commit for freeze
+
+            if ($this->peer_server_id === PeerServer::me()->id) {
+
+//                if ($this->election->min_peer_count_t > 0
+//                    && $this->election->trustees()->where('peer_server_id', '=', PeerServer::meID)->count()) {
+//                    // generate polynomial
+//                    $meTrustee = $this->election->trustees()->where('peer_server_id', '=', PeerServer::meID)
+//                        ->firstOrFail();
+//
+//                    $keyPair = $this->election->cryptosystem->getCryptoSystemClass()->generateKeypair();
+//                    $meTrustee->private_key = $keyPair->sk;
+//                    $meTrustee->public_key = $keyPair->pk;
+//
+//                    $polynomial = $keyPair->sk->getThresholdPolynomial($this->election->min_peer_count_t);
+//                    $meTrustee->polynomial = $polynomial; // save my polynomial
+//
+//                    $meTrustee->save();
+//                    // TODO move outside of P2P message class
+//                }
+
+
+                /** @var \App\Models\Trustee $meTrustee */
+                $meTrustee = $this->getTrusteeFromPeerServer(PeerServer::me());
+
+                $broadcast = null;
+                if ($meTrustee && $this->min_peer_count_t > 0) {
+                    // if threshold and coordinator is also peer, send broadcast and share
+                    // if coordinator is also peer -> send broadcast and share
+                    $broadcast = $meTrustee->polynomial->getBroadcast();
+                }
+
+                // foreach peers generate share, store it and read it in message
+                $this->peerServers->each(function (PeerServer $trusteePeerServer) use ($broadcast, $meTrustee) {
+
+                    $share = null;
+
+                    $trusteeI = $this->getTrusteeFromPeerServer($trusteePeerServer);
+
+                    if ($meTrustee && $this->min_peer_count_t > 0) {
+                        // if threshold and coordinator is also peer, send broadcast and share
+                        // if coordinator is also peer -> send broadcast and share
+                        $j = $trusteeI->getPeerServerIndex();
+                        $share = $meTrustee->polynomial->getShare($j);
+                        $trusteeI->share_sent = $share;
+                        $trusteeI->save();
+                    }
+
+                    SendP2PMessage::dispatch(
+                        new Freeze1IAmFreezingElectionRequest(
+                            PeerServer::me(), $trusteePeerServer,
+                            $this, $this->trustees->all(),
+                            $broadcast, $share)
+                    );
+
+                });
+
+
+                // wait for 10 seconds for a confirmation
+                // delay : let's specify that a job should not be available for processing until 10 minutes after it has been dispatched:
+                OnElectionFreezeTimeout::dispatch($this)->delay(now()->addSeconds(15));
+
+            }
+
+        } else { // this is the only server
+
+            $this->actualFreeze();
+        }
+
+    }
+
+    /**
+     *
+     */
+    public function actualFreeze() : void
+    {
+        // Elgamal: generate combined public key, RSA: nothing
+        $this->cryptosystem->getCryptoSystemClass()->onElectionFreeze($this);
+        $this->frozen_at = now();
+        $this->save();
+        // TODO $this->setupOutputTables();
     }
 
     /**
@@ -495,7 +568,7 @@ class Election extends Model
         $e->uuid = (string)Str::uuid();
         $e->admin()->associate(getAuthUser());
 
-        $e->name = "Copy of " . $this->name;
+        $e->name = 'Copy of ' . $this->name;
         $e->slug = $e->uuid;
         $e->cryptosystem = $this->cryptosystem;
         $e->min_peer_count_t = $this->min_peer_count_t;

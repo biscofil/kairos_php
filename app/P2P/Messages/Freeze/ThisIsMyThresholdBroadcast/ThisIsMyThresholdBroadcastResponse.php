@@ -5,39 +5,43 @@ namespace App\P2P\Messages\Freeze\ThisIsMyThresholdBroadcast;
 
 
 use App\Models\PeerServer;
-use App\P2P\Messages\P2PMessageRequest;
 use App\P2P\Messages\P2PMessageResponse;
+use App\Voting\CryptoSystems\PublicKey;
 use App\Voting\CryptoSystems\ThresholdBroadcast;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use phpseclib3\Math\BigInteger;
 
 /**
  * Class ThisIsMyThresholdBroadcastResponse
  * @package App\P2P\Messages\Freeze\ThisIsMyThresholdBroadcast
  * @property ThresholdBroadcast $broadcast
- * @property  BigInteger $share
+ * @property BigInteger $share
+ * @property \App\Voting\CryptoSystems\PublicKey $publicKey
  */
 class ThisIsMyThresholdBroadcastResponse extends P2PMessageResponse
 {
 
     public ThresholdBroadcast $broadcast;
     public BigInteger $share;
+    public PublicKey $publicKey;
 
     /**
      * ThisIsMyThresholdBroadcastResponse constructor.
      * @param \App\Models\PeerServer $requestDestination
      * @param \App\Models\PeerServer $requestSender
      * @param \App\Voting\CryptoSystems\ThresholdBroadcast $broadcast
+     * @param \App\Voting\CryptoSystems\PublicKey $publicKey
      * @param \phpseclib3\Math\BigInteger $share
      */
     public function __construct(PeerServer $requestDestination, PeerServer $requestSender,
-                                ThresholdBroadcast $broadcast, BigInteger $share)
+                                ThresholdBroadcast $broadcast, PublicKey $publicKey,
+                                BigInteger $share)
     {
         parent::__construct($requestDestination, $requestSender);
         $this->broadcast = $broadcast;
         $this->share = $share;
+        $this->publicKey = $publicKey;
     }
 
     /**
@@ -47,6 +51,7 @@ class ThisIsMyThresholdBroadcastResponse extends P2PMessageResponse
     {
         return [
             'my_broadcast' => $this->broadcast->toArray(),
+            'my_public_key' => $this->publicKey->toArray(),
             'my_share' => $this->share->toHex()
         ];
     }
@@ -63,10 +68,17 @@ class ThisIsMyThresholdBroadcastResponse extends P2PMessageResponse
 
         $data = Validator::make($messageData, [
             'my_broadcast' => ['required'],
-            'my_share' =>  ['required'],
+            'my_public_key' => ['required', 'array'],
+            'my_share' => ['required'],
         ])->validate();
 
+
+        /** @var PublicKey $publicKeyClass */
+        $publicKeyClass = $requestMessage->election->cryptosystem->getCryptoSystemClass()::PublicKeyClass;
+        $publicKey = $publicKeyClass::fromArray($data['my_public_key']); // RSA, ELGAMAL
+
         // broadcast
+        /** @var ThresholdBroadcast $thresholdBroadcastClass */
         $thresholdBroadcastClass = $requestMessage->election->cryptosystem->getCryptoSystemClass()::ThresholdBroadcastClass;
         $broadcast = $thresholdBroadcastClass::fromArray($data['my_broadcast']); // RSA, ELGAMAL
 
@@ -77,6 +89,7 @@ class ThisIsMyThresholdBroadcastResponse extends P2PMessageResponse
             $requestDestination,
             PeerServer::me(),
             $broadcast,
+            $publicKey,
             $receivedShare
         );
     }
@@ -101,6 +114,7 @@ class ThisIsMyThresholdBroadcastResponse extends P2PMessageResponse
 
         $trustee->broadcast = $this->broadcast;
         $trustee->share_received = $this->share;
+        $trustee->public_key = $this->publicKey;
         $trustee->save();
 
         if (ThisIsMyThresholdBroadcast::areAllSharesReceived($request->election)) {

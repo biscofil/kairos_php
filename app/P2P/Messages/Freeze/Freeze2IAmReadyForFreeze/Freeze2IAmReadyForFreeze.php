@@ -33,19 +33,23 @@ class Freeze2IAmReadyForFreeze
 
     /**
      * @param \App\Models\Election $election
+     * @throws \Exception
      */
     public static function onAllPeersReady(Election $election)
     {
         Log::debug('Freeze2IAmReadyForFreeze::onAllPeersReady');
 
-//        SendP2PMessage::dispatch(
-//            new Freeze3CommitFailRequest(
-//                PeerServer::me(),
-//                $election->peerServerAuthor,
-//                $election,
-//                $trustees
-//            )
-//        );
+        // foreach peers generate share, store it and read it in message
+        $election->peerServers->each(function (PeerServer $trusteePeerServer) use ($election) {
+            SendP2PMessage::dispatch(
+                new Freeze3CommitFailRequest(
+                    PeerServer::me(),
+                    $trusteePeerServer,
+                    $election,
+                    true // TODO <-------------------------
+                )
+            );
+        });
 
         // TODO send all received broadcast to coordinator, he will check they are the same for all peers
 //           TODO RunP2PTask::dispatch(new ReplyToCoordinator($this->broadcast));
