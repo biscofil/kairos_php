@@ -61,9 +61,14 @@ export default {
         }
     },
 
+    beforeDestroy() {
+        // restore half width
+        this.$root.main_class = "container";
+    },
 
     mounted() {
 
+        // set full width
         this.$root.main_class = "container-fluid";
 
         const pusher = new Pusher('ddf35c236814ea416d00', {
