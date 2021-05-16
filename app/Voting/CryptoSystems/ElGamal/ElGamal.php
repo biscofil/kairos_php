@@ -16,60 +16,92 @@ use App\Voting\CryptoSystems\SupportsReEncryption;
 class ElGamal extends CryptoSystem implements SupportsReEncryption
 {
 
-    public const PublicKeyClass = EGPublicKey::class;
-    public const SecretKeyClass = EGPrivateKey::class;
-    public const PlainTextClass = EGPlaintext::class;
-    public const CipherTextClass = EGCiphertext::class;
-    public const ThresholdBroadcastClass = EGThresholdBroadcast::class;
-
-    private static ?ElGamal $instance = null;
+    // #############################################################################
+    // #############################################################################
+    // #############################################################################
 
     /**
-     * Hidden
-     * ElGamal constructor.
+     * @return string|EGPublicKey
      */
-    private function __construct()
+    public static function getPublicKeyClass(): ?string
     {
-
+        return EGPublicKey::class;
     }
 
     /**
-     * @return ElGamal|null
+     * @return string|EGPrivateKey
      */
-    public static function getInstance()
+    public static function getSecretKeyClass(): ?string
     {
-        if (self::$instance == null) {
-            self::$instance = new ElGamal();
-        }
-        return self::$instance;
+        return EGPrivateKey::class;
     }
+
+    /**
+     * @return string|EGPlaintext
+     */
+    public static function getPlainTextClass(): ?string
+    {
+        return EGPlaintext::class;
+    }
+
+    /**
+     * @return string|EGCiphertext
+     */
+    public static function getCipherTextClass(): ?string
+    {
+        return EGCiphertext::class;
+    }
+
+    /**
+     * @return string|EGThresholdPolynomial
+     */
+    public static function getThresholdPolynomialClass(): ?string
+    {
+        return EGThresholdPolynomial::class;
+    }
+
+    /**
+     * @return string|EGThresholdBroadcast
+     */
+    public static function getThresholdBroadcastClass(): ?string
+    {
+        return EGThresholdBroadcast::class;
+    }
+
+    // #############################################################################
+    // #############################################################################
+    // #############################################################################
 
     /**
      * @return EGKeyPair
      * @noinspection PhpMissingReturnTypeInspection
      */
-    public function generateKeypair()
+    public static function generateKeypair() : EGKeyPair
     {
         return EGKeyPair::generate();
     }
 
     // #########################################################################
-    // #########################################################################
-    // #########################################################################
 
-    public function onElectionFreeze(Election &$election): void
+    /**
+     * @param \App\Models\Election $election
+     * @noinspection PhpMissingParentCallCommonInspection
+     */
+    public static function onElectionFreeze(Election &$election): void
     {
         // TODO only if no threshold
-        // self::generateCombinedPublicKey($election);
+        self::generateCombinedPublicKey($election);
     }
 
-    public function afterAnonymizationProcessEnds(Election &$election): void
+    /**
+     * @param \App\Models\Election $election
+     * @noinspection PhpMissingParentCallCommonInspection
+     */
+    public static function afterAnonymizationProcessEnds(Election &$election): void
     {
-        $this->generateCombinedPrivateKey($election);
+        self::generateCombinedPrivateKey($election);
     }
 
-    // #########################################################################
-    // #########################################################################
     // #########################################################################
 
     /**
@@ -77,7 +109,7 @@ class ElGamal extends CryptoSystem implements SupportsReEncryption
      * @param Election $election
      * @return void
      */
-    public function generateCombinedPublicKey(Election &$election): void
+    public static function generateCombinedPublicKey(Election &$election): void
     {
         $election->public_key = $election->trustees()->get()->reduce(function (?EGPublicKey $carry, Trustee $trustee): EGPublicKey {
             return $trustee->public_key->combine($carry);
@@ -88,7 +120,7 @@ class ElGamal extends CryptoSystem implements SupportsReEncryption
      * @param Election $election
      * @return void
      */
-    public function generateCombinedPrivateKey(Election &$election): void
+    public static function generateCombinedPrivateKey(Election &$election): void
     {
         /** @var EGPrivateKey $out */
         $election->private_key = $election->trustees()->get()->reduce(function (?EGPrivateKey $carry, Trustee $trustee): EGPrivateKey {

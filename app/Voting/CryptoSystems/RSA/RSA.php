@@ -4,7 +4,6 @@
 namespace App\Voting\CryptoSystems\RSA;
 
 
-use App\Models\Election;
 use App\Voting\CryptoSystems\CryptoSystem;
 
 /**
@@ -14,38 +13,67 @@ use App\Voting\CryptoSystems\CryptoSystem;
 class RSA extends CryptoSystem
 {
 
-    public const PublicKeyClass = RSAPublicKey::class;
-    public const SecretKeyClass = RSASecretKey::class;
-    public const PlainTextClass = RSAPlaintext::class;
-    public const CipherTextClass = RSACiphertext::class;
-
-    private static ?RSA $instance = null;
+    // #############################################################################
+    // #############################################################################
+    // #############################################################################
 
     /**
-     * Hidden
-     * RSA constructor.
+     * @return string|\App\Voting\CryptoSystems\RSA\RSAPublicKey
      */
-    private function __construct()
+    public static function getPublicKeyClass(): ?string
     {
-
+        return RSAPublicKey::class;
     }
 
     /**
-     * @return RSA|null
+     * @return string|\App\Voting\CryptoSystems\RSA\RSASecretKey
      */
-    public static function getInstance()
+    public static function getSecretKeyClass(): ?string
     {
-        if (self::$instance == null) {
-            self::$instance = new RSA();
-        }
-        return self::$instance;
+        return RSASecretKey::class;
     }
+
+    /**
+     * @return string|\App\Voting\CryptoSystems\RSA\RSAPlaintext
+     */
+    public static function getPlainTextClass(): ?string
+    {
+        return RSAPlaintext::class;
+    }
+
+    /**
+     * @return string|\App\Voting\CryptoSystems\RSA\RSACiphertext
+     */
+    public static function getCipherTextClass(): ?string
+    {
+        return RSACiphertext::class;
+    }
+
+    /**
+     * @return null
+     */
+    public static function getThresholdPolynomialClass(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * @return null
+     */
+    public static function getThresholdBroadcastClass(): ?string
+    {
+        return null;
+    }
+
+    // #############################################################################
+    // #############################################################################
+    // #############################################################################
 
     /**
      * @return RSAKeyPair
      * @noinspection PhpMissingReturnTypeInspection
      */
-    public function generateKeypair()
+    public static function generateKeypair() : RSAKeyPair
     {
         return RSAKeyPair::generate();
     }

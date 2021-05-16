@@ -4,20 +4,24 @@
 namespace App\Voting\CryptoSystems;
 
 
+use App\Models\Cast\Castable;
+
 /**
  * Class CipherText
  * @package App\Voting\CryptoSystems
  */
-interface CipherText
+interface CipherText extends Castable
 {
 
     /**
      * @param array $data
+     * @param PublicKey|null $publicKey
      * @param bool $ignoreParameterSet
-     * @param PublicKey|null $pk
+     * @param int $base
      * @return CipherText
+     * @noinspection PhpMissingParamTypeInspection
      */
-    public static function fromArray(array $data, bool $ignoreParameterSet = false, $pk = null) : CipherText;
+    public static function fromArray(array $data, $publicKey = null, bool $ignoreParameterSet = false, int $base = 16) : CipherText;
 
     /**
      * @param bool $includePublicKey
@@ -25,6 +29,8 @@ interface CipherText
      * @return array
      */
     public function toArray(bool $includePublicKey = false, bool $ignoreParameterSet = false): array;
+
+    // ################################################################################################
 
     /**
      * @return string

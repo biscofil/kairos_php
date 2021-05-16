@@ -4,7 +4,7 @@
 namespace App\Voting\CryptoSystems\ElGamal;
 
 
-use App\Voting\CryptoSystems\Plaintext;
+use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\PublicKey;
 use phpseclib3\Math\BigInteger;
 
@@ -14,10 +14,10 @@ use phpseclib3\Math\BigInteger;
  * @property EGParameterSet $parameterSet
  * @property BigInteger $y
  */
-class EGPublicKey implements PublicKey
+class EGPublicKey implements PublicKey, BelongsToCryptoSystem
 {
 
-    public const CRYPTOSYSTEM = ElGamal::class;
+    use BelongsToElgamal;
 
     public EGParameterSet $parameterSet;
     public BigInteger $y;

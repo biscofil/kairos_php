@@ -39,7 +39,7 @@ class ElectionTest extends TestCase
 
         $privateKeys = [];
         for ($i = 1; $i < 5; $i++) {
-            $pair = $election->cryptosystem->getCryptoSystemClass()->generateKeypair();
+            $pair = $election->cryptosystem->getCryptoSystemClass()::generateKeypair();
             $trusteeUser = $election->createUserTrustee(User::factory()->create());
             $trusteeUser->public_key = $pair->pk;
             //$trusteeUser->private_key = $pair->sk; // uploaded after election
@@ -48,7 +48,7 @@ class ElectionTest extends TestCase
         }
 
         // For RSA, this does nothing
-        $election->cryptosystem->getCryptoSystemClass()->onElectionFreeze($election);
+        $election->cryptosystem->getCryptoSystemClass()::onElectionFreeze($election);
 
         $plainVote = ['v' => Str::random(3)];
 
@@ -71,7 +71,7 @@ class ElectionTest extends TestCase
 
         // compute private key and decrypt
         //(ElGamal::getInstance())->generateCombinedPrivateKey($election);  // TODO fix!!!
-        $election->cryptosystem->getCryptoSystemClass()->afterAnonymizationProcessEnds($election);
+        $election->cryptosystem->getCryptoSystemClass()::afterAnonymizationProcessEnds($election);
 
         //$out = $election->private_key->decrypt($cipher);
         $this->assertEquals($plainVote, JsonBallotEncoding::decode($out));
@@ -83,7 +83,7 @@ class ElectionTest extends TestCase
 
         // compute private key and decrypt
         //(ElGamal::getInstance())->generateCombinedPrivateKey($election);  // TODO fix!!!
-        $election->cryptosystem->getCryptoSystemClass()->afterAnonymizationProcessEnds($election);
+        $election->cryptosystem->getCryptoSystemClass()::afterAnonymizationProcessEnds($election);
 
         //TODO $out = $election->private_key->decrypt($cipher);
         //TODO $this->assertNotEquals($plainVote, JsonBallotEncoding::decode($out));
@@ -111,7 +111,7 @@ class ElectionTest extends TestCase
         $privateKeys = [];
         for ($i = 1; $i < 5; $i++) {
             $user = User::factory()->create();
-            $pair = $election->cryptosystem->getCryptoSystemClass()->generateKeypair();
+            $pair = $election->cryptosystem->getCryptoSystemClass()::generateKeypair();
             $trusteeUser = $election->createUserTrustee($user);
             $trusteeUser->public_key = $pair->pk;
             //$trusteeUser->private_key = $pair->sk; // uploaded after election
@@ -119,8 +119,13 @@ class ElectionTest extends TestCase
             $privateKeys[strval($trusteeUser->id)] = $pair->sk; // uploaded after election
         }
 
+        $election->min_peer_count_t = count($privateKeys);
+        $election->save();
+
         // generateCombinedPublicKey;
-        $election->cryptosystem->getCryptoSystemClass()->onElectionFreeze($election);
+        $this->assertNull($election->public_key);
+        $election->cryptosystem->getCryptoSystemClass()::onElectionFreeze($election);
+        $this->assertNotNull($election->public_key);
 
         $plainVote = ['v' => Str::random(3)];
         $plaintext = (JsonBallotEncoding::encode($plainVote, EGPlaintext::class))[0];
@@ -136,7 +141,7 @@ class ElectionTest extends TestCase
 
         // compute private key and decrypt
         //(ElGamal::getInstance())->generateCombinedPrivateKey($election);  // TODO fix!!!
-        $election->cryptosystem->getCryptoSystemClass()->afterAnonymizationProcessEnds($election);
+        $election->cryptosystem->getCryptoSystemClass()::afterAnonymizationProcessEnds($election);
 
         $out = $election->private_key->decrypt($cipher);
         $this->assertEquals($plainVote, JsonBallotEncoding::decode($out));
@@ -148,7 +153,7 @@ class ElectionTest extends TestCase
 
         // compute private key and decrypt
         // generateCombinedPrivateKey($election);
-        $election->cryptosystem->getCryptoSystemClass()->afterAnonymizationProcessEnds($election);
+        $election->cryptosystem->getCryptoSystemClass()::afterAnonymizationProcessEnds($election);
 
         $out = $election->private_key->decrypt($cipher);
         $this->assertNotEquals($plainVote, JsonBallotEncoding::decode($out));

@@ -42,14 +42,13 @@ class CastVoteController extends Controller
         ]);
 
         /** @var CipherText $skClass */
-        $skClass = $election->cryptosystem->getCryptoSystemClass()::CipherTextClass;
+        $skClass = $election->cryptosystem->getCryptoSystemClass()::getCipherTextClass();
 
         $voteArray = $skClass::validate($data['vote']);
 
         $userID = $request->get(AuthenticateWithElectionCreatorJwt::UserIdClaimName);
 
-        /** @var CipherText $vote */
-        $vote = $skClass::fromArray($voteArray, false, $election->public_key);
+        $vote = $skClass::fromArray($voteArray, $election->public_key);
 
         $cast_vote = new CastVote();
         $cast_vote->vote = $vote;

@@ -4,6 +4,7 @@
 namespace App\Voting\CryptoSystems\RSA;
 
 
+use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\PublicKey;
 use Exception;
 use phpseclib3\Crypt\PublicKeyLoader;
@@ -14,10 +15,10 @@ use phpseclib3\Crypt\RSA\PublicKey as phpsecRSA;
  * @package App\Voting\CryptoSystems\RSA
  * @property phpsecRSA $value
  */
-class RSAPublicKey implements PublicKey
+class RSAPublicKey implements PublicKey, BelongsToCryptoSystem
 {
 
-    public const CRYPTOSYSTEM = RSA::class;
+    use BelongsToRSA;
 
     public phpsecRSA $value;
 
@@ -40,7 +41,7 @@ class RSAPublicKey implements PublicKey
      * @param int $base
      * @return RSAPublicKey
      */
-    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16) : RSAPublicKey
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): RSAPublicKey
     {
         $pk = PublicKeyLoader::load($data['v']);
         return new static($pk); // TODO

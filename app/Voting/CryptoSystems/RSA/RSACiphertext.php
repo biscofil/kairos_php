@@ -3,9 +3,8 @@
 
 namespace App\Voting\CryptoSystems\RSA;
 
+use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\CipherText;
-use Illuminate\Http\Request;
-use phpseclib3\Math\BigInteger;
 
 /**
  * Class RSACiphertext
@@ -13,8 +12,11 @@ use phpseclib3\Math\BigInteger;
  * @property RSAPublicKey $pk
  * @property string $cipherText
  */
-class RSACiphertext implements CipherText
+class RSACiphertext implements CipherText, BelongsToCryptoSystem
 {
+
+    use BelongsToRSA;
+
     public RSAPublicKey $pk;
     public string $cipherText;
 
@@ -30,14 +32,15 @@ class RSACiphertext implements CipherText
 
     /**
      * @param array $data
+     * @param RSAPublicKey|null $publicKey
      * @param bool $ignoreParameterSet
-     * @param RSAPublicKey|null $pk
+     * @param int $base
      * @return RSACiphertext
      */
-    public static function fromArray(array $data, bool $ignoreParameterSet = false, $pk = null) : RSACiphertext
+    public static function fromArray(array $data, $publicKey = null, bool $ignoreParameterSet = false, int $base = 16): RSACiphertext
     {
         return new static(
-            $pk ?? RSAPublicKey::fromArray($data['pk'], $ignoreParameterSet),
+            $publicKey ?? RSAPublicKey::fromArray($data['pk'], $ignoreParameterSet, $base),
             $data['c'],
         );
     }
@@ -80,7 +83,7 @@ class RSACiphertext implements CipherText
     public function equals($b): bool
     {
         if (!$b instanceof RSACiphertext) {
-            throw new \RuntimeException("RSACiphertext::equals > invalid type, must be RSACiphertext");
+            throw new \RuntimeException('RSACiphertext::equals > invalid type, must be RSACiphertext');
         }
         // TODO $this->pk->ensureSameCryptosystem($b->pk);
         return $this->cipherText === $b->cipherText;
@@ -90,7 +93,8 @@ class RSACiphertext implements CipherText
      * @param array $data
      * @return array
      */
-    public static function validate(array $data): array{
+    public static function validate(array $data): array
+    {
         return []; // TODO
     }
 

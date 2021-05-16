@@ -3,9 +3,7 @@
 
 namespace App\Voting\CryptoSystems\RSA;
 
-use App\Voting\CryptoSystems\CipherText;
 use App\Voting\CryptoSystems\Plaintext;
-use phpseclib3\Math\BigInteger;
 
 /**
  * Class RSACiphertext

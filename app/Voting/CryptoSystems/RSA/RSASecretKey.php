@@ -4,7 +4,7 @@
 namespace App\Voting\CryptoSystems\RSA;
 
 
-use App\Voting\CryptoSystems\Plaintext;
+use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\SecretKey;
 use phpseclib3\Crypt\RSA\PrivateKey;
 
@@ -13,10 +13,10 @@ use phpseclib3\Crypt\RSA\PrivateKey;
  * @package App\Voting\CryptoSystems\RSA
  * @property PrivateKey $value
  */
-class RSASecretKey extends SecretKey
+class RSASecretKey extends SecretKey implements BelongsToCryptoSystem
 {
 
-    public const CRYPTOSYSTEM = RSA::class;
+    use BelongsToRSA;
 
     private PrivateKey $value;
 
@@ -31,6 +31,7 @@ class RSASecretKey extends SecretKey
      */
     public function decrypt($cipherText): RSAPlaintext
     {
+        // TODO new plaintext
         return $this->value->decrypt($cipherText);
     }
 

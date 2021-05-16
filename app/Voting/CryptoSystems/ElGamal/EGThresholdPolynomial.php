@@ -4,6 +4,8 @@
 namespace App\Voting\CryptoSystems\ElGamal;
 
 
+use App\Voting\CryptoSystems\BelongsToCryptoSystem;
+use App\Voting\CryptoSystems\ThresholdPolynomial;
 use phpseclib3\Math\BigInteger;
 
 /**
@@ -12,8 +14,10 @@ use phpseclib3\Math\BigInteger;
  * @property BigInteger[] $factors
  * @property EGParameterSet $ps
  */
-class EGThresholdPolynomial
+class EGThresholdPolynomial implements ThresholdPolynomial, BelongsToCryptoSystem
 {
+
+    use BelongsToElgamal;
 
     public array $factors;
     public EGParameterSet $ps;
@@ -83,7 +87,7 @@ class EGThresholdPolynomial
      * @param int $j
      * @return \phpseclib3\Math\BigInteger
      */
-    public function getShare(int $j)
+    public function getShare(int $j): BigInteger
     {
         return $this->compute(BI($j))->modPow(BI1(), $this->ps->q);
     }
@@ -111,27 +115,33 @@ class EGThresholdPolynomial
     // #######################################################################################################
 
     /**
+     * @param bool $ignoreParameterSet
      * @return array
      */
-    public function toArray(): array
+    public function toArray(bool $ignoreParameterSet = false): array
     {
-        return [
-            'ps' => $this->ps->toArray(),
+        $out = [
             'factors' => array_map(function (BigInteger $f) {
                 return $f->toHex();
             }, $this->factors)
         ];
+        if (!$ignoreParameterSet) {
+            $out['ps'] = $this->ps->toArray();
+        }
+        return $out;
     }
 
     /**
      * @param array $data
+     * @param bool $ignoreParameterSet
+     * @param int $base
      * @return EGThresholdPolynomial
      */
-    public static function fromArray(array $data): EGThresholdPolynomial
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): EGThresholdPolynomial
     {
-        $ps = EGParameterSet::fromArray($data['ps']);
-        $factors = array_map(function (string $f) {
-            return new BigInteger($f, 16);
+        $ps = $ignoreParameterSet ? EGParameterSet::default() : EGParameterSet::fromArray($data['ps'], $base);
+        $factors = array_map(function (string $f) use ($base) {
+            return new BigInteger($f, $base);
         }, $data['factors']);
         return new static($factors, $ps);
     }

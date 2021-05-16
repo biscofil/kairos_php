@@ -72,7 +72,7 @@ class RSAKeyPair implements KeyPair
      * @param string $type Example: "PKCS8"
      * @return bool
      */
-    public function toPemFiles(string $skFilePath, string $pkFilePath, $type = "PKCS8"): bool
+    public function toPemFiles(string $skFilePath, string $pkFilePath, $type = 'PKCS8'): bool
     {
         return $this->sk->toPemFile($skFilePath, $type) && $this->pk->toPemFile($pkFilePath, $type);
     }
@@ -83,7 +83,7 @@ class RSAKeyPair implements KeyPair
      * @param string $type Example: "PKCS8"
      * @return RSAKeyPair
      */
-    public static function fromPemFiles(string $skFilePath, string $pkFilePath, string $type = "PKCS8"): RSAKeyPair
+    public static function fromPemFiles(string $skFilePath, string $pkFilePath, string $type = 'PKCS8'): RSAKeyPair
     {
         $sk = RSASecretKey::fromPemFile($skFilePath, $type);
         $pk = RSAPublicKey::fromPemFile($pkFilePath, $type);

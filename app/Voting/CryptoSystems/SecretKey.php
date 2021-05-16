@@ -4,22 +4,26 @@
 namespace App\Voting\CryptoSystems;
 
 
-abstract class SecretKey
+use App\Models\Cast\Castable;
+
+abstract class SecretKey implements Castable
 {
 
     /**
      * @param array $data
      * @param bool $ignoreParameterSet
      * @param int $base
-     * @return SecretKey
+     * @return static
      */
-    abstract public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): SecretKey;
+    abstract public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): self;
 
     /**
      * @param bool $ignoreParameterSet
      * @return array
      */
     abstract public function toArray(bool $ignoreParameterSet = false): array;
+
+    // ############################################################################################################
 
     /**
      * @param CipherText $cipherText

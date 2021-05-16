@@ -3,6 +3,7 @@
 
 namespace App\Voting\CryptoSystems\ElGamal;
 
+use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\ThresholdBroadcast;
 use phpseclib3\Math\BigInteger;
 
@@ -13,8 +14,10 @@ use phpseclib3\Math\BigInteger;
  * @property BigInteger[] $A_I_K_values
  * @property \App\Voting\CryptoSystems\ElGamal\EGParameterSet $ps
  */
-class EGThresholdBroadcast implements ThresholdBroadcast
+class EGThresholdBroadcast implements ThresholdBroadcast, BelongsToCryptoSystem
 {
+
+    use BelongsToElgamal;
 
     public array $A_I_K_values;
     public EGParameterSet $ps;
@@ -71,7 +74,7 @@ class EGThresholdBroadcast implements ThresholdBroadcast
     /**
      * @return string
      */
-    public function toString()
+    public function toString(): string
     {
         return implode(',', array_map(function (BigInteger $n) {
             return $n->toString();
@@ -79,29 +82,54 @@ class EGThresholdBroadcast implements ThresholdBroadcast
     }
 
     /**
+     * @param bool $ignoreParameterSet
      * @return array
      */
-    public function toArray(): array
+    public function toArray(bool $ignoreParameterSet = false): array
     {
-        return [
-            'ps' => $this->ps->toArray(),
+        $out = [
             'a_i_k_values' => array_map(function (BigInteger $f) {
                 return $f->toHex();
             }, $this->A_I_K_values)
         ];
+        if (!$ignoreParameterSet) {
+            $out['ps'] = $this->ps->toArray();
+        }
+        return $out;
     }
 
     /**
      * @param array $data
+     * @param bool $ignoreParameterSet
+     * @param int $base
      * @return EGThresholdBroadcast
      */
-    public static function fromArray(array $data): EGThresholdBroadcast
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): EGThresholdBroadcast
     {
-        $ps = EGParameterSet::fromArray($data['ps']);
-        $a_i_k_values = array_map(function (string $f) {
-            return new BigInteger($f, 16);
+        $ps = $ignoreParameterSet ? EGParameterSet::default() : EGParameterSet::fromArray($data['ps'], $base);
+        $a_i_k_values = array_map(function (string $f) use ($base) {
+            return new BigInteger($f, $base);
         }, $data['a_i_k_values']);
         return new static($a_i_k_values, $ps);
+    }
+
+    /**
+     * @param \App\Voting\CryptoSystems\ElGamal\EGThresholdBroadcast $broadcast
+     * @return bool
+     */
+    public function equals($broadcast): bool
+    {
+        // check parameter set
+        if (!$this->ps->equals($broadcast->ps)) {
+            return false;
+        }
+        // check factors
+        foreach ($this->A_I_K_values as $idx => $value) {
+            if (!$value->equals($broadcast->A_I_K_values[$idx])) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

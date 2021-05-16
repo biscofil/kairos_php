@@ -470,7 +470,7 @@ class Election extends Model
 //                    $meTrustee = $this->election->trustees()->where('peer_server_id', '=', PeerServer::meID)
 //                        ->firstOrFail();
 //
-//                    $keyPair = $this->election->cryptosystem->getCryptoSystemClass()->generateKeypair();
+//                    $keyPair = $this->election->cryptosystem->getCryptoSystemClass()::generateKeypair();
 //                    $meTrustee->private_key = $keyPair->sk;
 //                    $meTrustee->public_key = $keyPair->pk;
 //
@@ -534,10 +534,10 @@ class Election extends Model
     /**
      *
      */
-    public function actualFreeze() : void
+    public function actualFreeze(): void
     {
         // Elgamal: generate combined public key, RSA: nothing
-        $this->cryptosystem->getCryptoSystemClass()->onElectionFreeze($this);
+        $this->cryptosystem->getCryptoSystemClass()::onElectionFreeze($this);
         $this->frozen_at = now();
         $this->save();
         // TODO $this->setupOutputTables();

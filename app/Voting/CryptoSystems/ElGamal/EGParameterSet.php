@@ -59,6 +59,7 @@ class EGParameterSet implements CryptoSystemParameterSet
     }
 
     /**
+     * TODO p is not not 2q+1
      * @param int $size
      * @return static
      */

@@ -15,12 +15,10 @@ final class CryptoSystemEnum extends Enum
     public const ElGamal = 'eg';
 
     /**
-     * @return CryptoSystem
+     * @return string|CryptoSystem
      */
-    public function getCryptoSystemClass(): CryptoSystem
+    public function getCryptoSystemClass(): string
     {
-        /** @var CryptoSystem $className */
-        $className = (CryptoSystem::getByIdentifier($this->value));
-        return $className::getInstance();
+        return CryptoSystem::getByIdentifier($this->value);
     }
 }

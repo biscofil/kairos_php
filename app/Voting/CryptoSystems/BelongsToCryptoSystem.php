@@ -11,7 +11,7 @@ interface BelongsToCryptoSystem
 {
 
     /**
-     * @return string
+     * @return string|\App\Voting\CryptoSystems\CryptoSystem
      */
     public static function getCryptosystem() : string;
 

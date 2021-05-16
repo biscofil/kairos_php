@@ -3,6 +3,7 @@
 
 namespace App\Voting\CryptoSystems\ElGamal;
 
+use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\CipherText;
 use Exception;
 use Illuminate\Support\Facades\Validator;
@@ -17,8 +18,11 @@ use RuntimeException;
  * @property BigInteger $alpha
  * @property BigInteger $beta
  */
-class EGCiphertext implements CipherText
+class EGCiphertext implements CipherText, BelongsToCryptoSystem
 {
+
+    use BelongsToElgamal;
+
     public EGPublicKey $pk;
     public BigInteger $alpha;
     public BigInteger $beta;
@@ -47,22 +51,26 @@ class EGCiphertext implements CipherText
         ])->validated();
     }
 
+    // ##################################################################################
+
     /**
      * @param array $data
+     * @param null $publicKey
      * @param bool $ignoreParameterSet
-     * @param EGPublicKey|null $pk
+     * @param int $base
      * @return EGCiphertext
      */
-    public static function fromArray(array $data, bool $ignoreParameterSet = false, $pk = null): EGCiphertext
+    public static function fromArray(array $data, $publicKey = null, bool $ignoreParameterSet = false, int $base = 16): EGCiphertext
     {
         return new static(
-            $pk ?? EGPublicKey::fromArray($data['pk'], $ignoreParameterSet),
-            BI($data['alpha'], 16),
-            BI($data['beta'], 16)
+            $publicKey ?? EGPublicKey::fromArray($data['pk'], $ignoreParameterSet, $base),
+            BI($data['alpha'], $base),
+            BI($data['beta'], $base)
         );
     }
 
     /**
+     * TODO does not match castable
      * @param bool $includePublicKey
      * @param bool $ignoreParameterSet
      * @return array
@@ -79,8 +87,6 @@ class EGCiphertext implements CipherText
         return $out;
     }
 
-    // ##################################################################################
-    // ##################################################################################
     // ##################################################################################
 
     /**
@@ -197,7 +203,7 @@ class EGCiphertext implements CipherText
     public function equals($b): bool
     {
         if (!$b instanceof EGCiphertext) {
-            throw new RuntimeException("EGCiphertext::equals > invalid type, must be EGCiphertext");
+            throw new RuntimeException('EGCiphertext::equals > invalid type, must be EGCiphertext');
         }
         $this->pk->ensureSameParameters($b->pk);
         return $this->alpha->equals($b->alpha) && $this->beta->equals($b->beta);

@@ -9,7 +9,6 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Testing\TestResponse;
-use phpseclib3\Math\BigInteger;
 
 abstract class TestCase extends BaseTestCase
 {

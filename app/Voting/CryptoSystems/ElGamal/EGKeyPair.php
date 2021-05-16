@@ -3,6 +3,7 @@
 
 namespace App\Voting\CryptoSystems\ElGamal;
 
+use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\KeyPair;
 use App\Voting\CryptoSystems\SupportsThresholdEncryption;
 use Illuminate\Support\Facades\Storage;
@@ -13,8 +14,11 @@ use Illuminate\Support\Facades\Storage;
  * @property EGPublicKey $pk
  * @property EGPrivateKey $sk
  */
-class EGKeyPair implements KeyPair, SupportsThresholdEncryption
+class EGKeyPair implements KeyPair, SupportsThresholdEncryption, BelongsToCryptoSystem
 {
+
+    use BelongsToElgamal;
+
     public EGPublicKey $pk;
     public EGPrivateKey $sk;
 

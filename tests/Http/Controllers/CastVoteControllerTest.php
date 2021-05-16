@@ -4,6 +4,7 @@ namespace Tests\Http\Controllers;
 
 use App\Models\CastVote;
 use App\Models\Election;
+use App\Models\PeerServer;
 use App\Models\User;
 use App\Models\Voter;
 use App\Voting\BallotEncodings\JsonBallotEncoding;
@@ -17,6 +18,7 @@ class CastVoteControllerTest extends TestCase
 
     /**
      * @test
+     * @throws \Exception
      */
     public function store()
     {
@@ -27,8 +29,8 @@ class CastVoteControllerTest extends TestCase
         /** @var Election $election */
         $election = Election::factory()->withAdmin($user)->frozen()->create();
         $election->cryptosystem = 'rsa';
-        $election->createSystemTrustee();
-        $election->cryptosystem->getCryptoSystemClass()->onElectionFreeze($election); // generateCombinedPublicKey
+        $election->createPeerServerTrustee(PeerServer::me());
+        $election->cryptosystem->getCryptoSystemClass()::onElectionFreeze($election); // generateCombinedPublicKey
         $election->save();
 
         $voter = new Voter();
@@ -39,7 +41,7 @@ class CastVoteControllerTest extends TestCase
         $this->assertEquals(0, $voter->votes()->count());
 
         // generate key
-        $keyPair = EGKeyPair::generate();
+        $keyPair = RSAKeyPair::generate();
 
         // generate a JSON vote structure
         $votePlain = [
@@ -51,13 +53,19 @@ class CastVoteControllerTest extends TestCase
         ];
 
         // encrypt it
+        /** @var RSAPlaintext $plaintext */
         $plaintext = (JsonBallotEncoding::encode($votePlain, RSAPlaintext::class))[0];
         $cipher = $keyPair->pk->encrypt($plaintext);
 
         $data = ['vote' => $cipher->toArray(true)];
 
-        $response = $this->actingAs($user)
+        /**
+         * @see \App\Http\Controllers\CastVoteController::store()
+         */
+        $token = $user->getNewJwtToken();
+        $response = $this->withHeaders(['Authorization' => "Bearer $token"])
             ->json('POST', 'api/elections/' . $election->slug . '/cast', $data);
+
         $this->assertResponseStatusCode(201, $response);
 
         $this->assertEquals(1, $voter->votes()->count());
