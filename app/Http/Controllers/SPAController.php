@@ -16,15 +16,14 @@ use Illuminate\Http\Response;
 class SPAController extends Controller
 {
 
-
     /**
-     * @return array|Application|Factory|View
+     * @return Application|Factory|View
+     * @noinspection PhpMissingParentCallCommonInspection
      */
     public function home()
     {
         return view('spa');
     }
-
 
     /**
      * @return Response

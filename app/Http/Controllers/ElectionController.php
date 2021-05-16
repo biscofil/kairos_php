@@ -151,7 +151,7 @@ class ElectionController extends Controller
 
     /**
      * @param Election $election
-     * @return Election
+     * @return \App\Models\Election
      * @throws Exception
      */
     public function freeze(Election $election): Election

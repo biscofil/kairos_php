@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\ElectionMustBeFrozen;
 use App\Models\Election;
 use Closure;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class ElectionFrozen
      * @param Request $request
      * @param Closure $next
      * @return mixed
+     * @throws \App\Exceptions\ElectionMustBeFrozen
      */
     public function handle(Request $request, Closure $next)
     {
@@ -27,7 +29,7 @@ class ElectionFrozen
         if ($election && $election instanceof Election) {
 
             if (is_null($election->frozen_at)) {
-                return response(["error" => "election is not frozen yet"], 403);
+                throw new ElectionMustBeFrozen();
             }
 
         }
