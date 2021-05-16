@@ -28,6 +28,10 @@
                         :css="css.table"
                         @vuetable:pagination-data="onPaginationData">
 
+                        <template slot="vote" slot-scope="props">
+                            <VueObjectView :value="props.rowData.vote" />
+                        </template>
+
                     </Vuetable>
                 </div>
 
@@ -73,6 +77,7 @@ import VuetablePagination from "vuetable-3/src/components/VuetablePagination";
 import VuetablePaginationInfo from "vuetable-3/src/components/VuetablePaginationInfo";
 import Utils from "../../Models/Utils/Utils";
 import Election from "../../Models/Election";
+import VueObjectView from 'vue-object-view/VueObjectView'
 
 export default {
 
@@ -82,6 +87,7 @@ export default {
         Vuetable,
         VuetablePagination,
         VuetablePaginationInfo,
+        VueObjectView
     },
 
     data() {
@@ -94,6 +100,10 @@ export default {
                     name: 'id',
                     title: 'ID',
                     sortField: 'id',
+                },
+                {
+                    name: 'vote',
+                    title: 'Vote',
                 }
             ],
 
