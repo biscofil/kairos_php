@@ -4,8 +4,8 @@ namespace App\Models;
 
 use App\Enums\CryptoSystemEnum;
 use App\Models\Cast\ModelWithFieldsWithParameterSets;
-use App\Models\Cast\PrivateKeyCasterCryptosystem;
-use App\Models\Cast\PublicKeyCasterCryptosystem;
+use App\Models\Cast\SecretKeyCaster;
+use App\Models\Cast\PublicKeyCaster;
 use App\Voting\CryptoSystems\PublicKey;
 use App\Voting\CryptoSystems\SecretKey;
 use Carbon\Carbon;
@@ -146,8 +146,8 @@ class Election extends Model
         //
         'min_peer_count_t' => 'int',
         'cryptosystem' => CryptoSystemEnum::class,
-        'public_key' => PublicKeyCasterCryptosystem::class,
-        'private_key' => PrivateKeyCasterCryptosystem::class,
+        'public_key' => PublicKeyCaster::class,
+        'private_key' => SecretKeyCaster::class,
         'questions' => 'array',
         //
         'is_private' => 'bool',

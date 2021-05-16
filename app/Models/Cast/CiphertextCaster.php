@@ -4,82 +4,59 @@
 namespace App\Models\Cast;
 
 
-use App\Models\Voter;
-use App\Voting\CryptoSystems\ElGamal\EGCiphertext;
-use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
-use Illuminate\Contracts\Database\Eloquent\SerializesCastableAttributes;
+use App\Models\Election;
+use App\Voting\CryptoSystems\CryptoSystem;
 
 /**
- * Class CiphertextCaster TODO dynamic caster
+ * Class CiphertextCaster
  * @package App\Models\Cast
  */
-class CiphertextCaster extends FieldWithParameterSet
+class CiphertextCaster extends DynamicCryptosystemClassCaster
 {
-
 
     /**
      * Specify the name of the constant of a cryptosystem class (RSA/Elgamal) that contains the name of the class
      * we want to cast the value to
+     * @param string|CryptoSystem $cs
      * @return string
-     * @see \App\Voting\CryptoSystems\CryptoSystem::CipherTextClass
      */
-    public function getTargetClassConstantName(): string
+    public function getTargetClassConstantName(string $cs): string
     {
-        return 'CipherTextClass';
+        return $cs::getCipherTextClass();
     }
 
     /**
+     * From DB record to Model
      * @param ModelWithFieldsWithParameterSets $model
      * @param string $key
      * @param string|null $value
      * @param array $attributes
-     * @return null|EGCiphertext
+     * @return \App\Models\Cast\Castable|\App\Voting\CryptoSystems\CipherText|null
      * @noinspection PhpMissingParamTypeInspection
+     * @noinspection PhpMissingParentCallCommonInspection
      */
-    public function get($model, string $key, $value, array $attributes): ?EGCiphertext
+    public function get($model, string $key, $value, array $attributes)
     {
         if (is_null($value)) {
             return null;
         }
         $data = json_decode($value, true);
+
+        if (is_null($data)) {
+            return null;
+        }
+
         // use the attribute to get the public key y of the election
-        $data['pk'] = [
-            'y' => Voter::findOrFail($attributes['voter_id'])->election->public_key->y->toHex()
-        ];
-        return EGCiphertext::fromArray($data, true);
+        // $pk =  Voter::findOrFail($attributes['voter_id'])->election->public_key
+        $pk = Election::findOrFail($attributes['election_id'])->public_key; // TODO cache
+
+        $cryptoSystemClass = $this->getCryptosystemFromDBRecord($data);
+
+        $cipherTextClass = $cryptoSystemClass::getCipherTextClass();
+
+        $data['pk'] = $pk;
+
+        return $cipherTextClass::fromArray($data, true);
     }
 
-    /**
-     * @param ModelWithFieldsWithParameterSets $model
-     * @param string $key
-     * @param null|EGCiphertext $value
-     * @param array $attributes
-     * @return null|string
-     * @noinspection PhpMissingParamTypeInspection
-     */
-    public function set($model, string $key, $value, array $attributes): ?string
-    {
-        if (is_null($value)) {
-            return null;
-        }
-        $out = $value->toArray();
-        return json_encode($out);
-    }
-
-    /**
-     * @param ModelWithFieldsWithParameterSets $model
-     * @param string $key
-     * @param EGCiphertext|null $value
-     * @param array $attributes
-     * @return null|array
-     * @noinspection PhpMissingParamTypeInspection
-     * @noinspection PhpMissingReturnTypeInspection
-     */
-    public function serialize($model, string $key, $value, array $attributes)
-    {
-        if (is_null($value)) {
-            return null;
-        }
-        return $value->toArray();
-    }
 }

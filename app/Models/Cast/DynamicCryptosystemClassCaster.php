@@ -4,14 +4,10 @@
 namespace App\Models\Cast;
 
 
+use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\CryptoSystem;
-use App\Voting\CryptoSystems\ElGamal\EGPublicKey;
-use App\Voting\CryptoSystems\PublicKey;
-use App\Voting\CryptoSystems\SecretKey;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Contracts\Database\Eloquent\SerializesCastableAttributes;
-use ReflectionClass;
-use ReflectionMethod;
 
 /**
  * Class DynamicCryptosystemClassCaster
@@ -29,9 +25,8 @@ abstract class DynamicCryptosystemClassCaster implements CastsAttributes, Serial
      * @param string $key
      * @param string|null $value
      * @param array $attributes
-     * @return PublicKey|SecretKey
+     * @return null|BelongsToCryptoSystem|\App\Models\Cast\Castable
      * @noinspection PhpMissingParamTypeInspection
-     * @throws \ReflectionException
      */
     public function get($model, string $key, $value, array $attributes)
     {
@@ -41,23 +36,37 @@ abstract class DynamicCryptosystemClassCaster implements CastsAttributes, Serial
 
         $data = json_decode($value, true);
 
+        $cryptoSystemClassName = $this->getCryptosystemFromDBRecord($data);
+
+        $className = $this->getTargetClassConstantName($cryptoSystemClassName);
+//        $className = (new ReflectionClass($cryptoSystemClassName))->getConstant($this->getTargetClassConstantName());
+
+        return $className::fromArray($data, $model->ignoreParameterSet($key));
+//
+//        $reflectionMethod = new ReflectionMethod($className, 'fromArray');
+//        return $reflectionMethod->invokeArgs(NULL, [$data, $model->ignoreParameterSet($key)]);
+    }
+
+    /**
+     * @param array $data
+     * @return string|\App\Voting\CryptoSystems\CryptoSystem
+     */
+    protected function getCryptosystemFromDBRecord(array &$data): string
+    {
         $cryptoSystemIdentifier = $data['_cs'];
-        unset($data['_cs']);
-
+        /** @var CryptoSystem $cryptoSystemClassName */
         $cryptoSystemClassName = CryptoSystem::getByIdentifier($cryptoSystemIdentifier);
-
-        $className = (new ReflectionClass($cryptoSystemClassName))->getConstant($this->getTargetClassConstantName());
-
-        $reflectionMethod = new ReflectionMethod($className, 'fromArray');
-        return $reflectionMethod->invokeArgs(NULL, [$data, $model->ignoreParameterSet($key)]);
+        unset($data['_cs']);
+        return $cryptoSystemClassName;
     }
 
     /**
      * Specify the name of the constant of a cryptosystem class (RSA/Elgamal) that contains the name of the class
      * we want to cast the value to
-     * @return string
+     * @param string $cs
+     * @return string|\App\Models\Cast\Castable
      */
-    abstract public function getTargetClassConstantName(): string;
+    abstract public function getTargetClassConstantName(string $cs): string;
 
     // ########################################################################
     // ############################ MODEL TO DB ###############################
@@ -66,9 +75,9 @@ abstract class DynamicCryptosystemClassCaster implements CastsAttributes, Serial
     /**
      * @param ModelWithFieldsWithParameterSets $model
      * @param string $key
-     * @param null|SecretKey $value
+     * @param null|BelongsToCryptoSystem|\App\Models\Cast\Castable $value
      * @param array $attributes
-     * @return null|string
+     * @return null|BelongsToCryptoSystem|\App\Models\Cast\Castable
      * @noinspection PhpMissingParamTypeInspection
      */
     public function set($model, string $key, $value, array $attributes): ?string
@@ -86,7 +95,7 @@ abstract class DynamicCryptosystemClassCaster implements CastsAttributes, Serial
     /**
      * @param ModelWithFieldsWithParameterSets $model
      * @param string $key
-     * @param EGPublicKey|null $value
+     * @param BelongsToCryptoSystem|null $value
      * @param array $attributes
      * @return null|array
      * @noinspection PhpMissingParamTypeInspection

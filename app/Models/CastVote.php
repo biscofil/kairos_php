@@ -43,7 +43,7 @@ class CastVote extends Model
     ];
 
     protected $casts = [
-        'vote' => ThresholdBroadcastCasterCryptosystem::class,  // TODO
+        'vote' => CiphertextCaster::class,
     ];
 
     /**

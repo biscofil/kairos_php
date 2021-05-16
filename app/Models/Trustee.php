@@ -5,9 +5,10 @@ namespace App\Models;
 use App\Models\Cast\BigIntCaster;
 use App\Models\Cast\ModelWithFieldsWithParameterSets;
 use App\Models\Cast\POKCaster;
-use App\Models\Cast\PrivateKeyCasterCryptosystem;
-use App\Models\Cast\PublicKeyCasterCryptosystem;
-use App\Models\Cast\ThresholdBroadcastCasterCryptosystem;
+use App\Models\Cast\SecretKeyCaster;
+use App\Models\Cast\PublicKeyCaster;
+use App\Models\Cast\ThresholdBroadcastCaster;
+use App\Models\Cast\ThresholdPolynomialCaster;
 use App\Voting\CryptoSystems\ElGamal\DLogProof;
 use App\Voting\CryptoSystems\PublicKey;
 use App\Voting\CryptoSystems\SecretKey;
@@ -80,12 +81,12 @@ class Trustee extends Model
     ];
 
     protected $casts = [
-        'public_key' => PublicKeyCasterCryptosystem::class,
-        'private_key' => PrivateKeyCasterCryptosystem::class,
+        'public_key' => PublicKeyCaster::class,
+        'private_key' => SecretKeyCaster::class,
         'pok' => POKCaster::class,
         'qualified' => 'bool',
-        'polynomial' => ThresholdPolynomialCasterCryptosystem::class,
-        'broadcast' => ThresholdBroadcastCasterCryptosystem::class,
+        'polynomial' => ThresholdPolynomialCaster::class,
+        'broadcast' => ThresholdBroadcastCaster::class,
         'share_sent' => BigIntCaster::class,
         'share_received' => BigIntCaster::class,
         'freeze_ready' => 'bool',
