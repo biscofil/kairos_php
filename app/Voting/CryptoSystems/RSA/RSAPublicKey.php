@@ -62,13 +62,22 @@ class RSAPublicKey implements PublicKey
     // ######################################################################################################
 
     /**
+     * @param string $type
+     * @return string
+     */
+    public function toString(string $type = 'PKCS8'): string
+    {
+        return $this->value->toString($type);
+    }
+
+    /**
      * @param string $filePath
      * @param string $type Example: "PKCS8"
      * @return bool
      */
     public function toPemFile(string $filePath, string $type = 'PKCS8'): bool
     {
-        $content = $this->value->toString($type);
+        $content = $this->toString($type);
         return file_put_contents($filePath, $content);
     }
 
@@ -101,7 +110,7 @@ class RSAPublicKey implements PublicKey
      * @return RSACiphertext
      * @noinspection PhpMissingParamTypeInspection
      */
-    public function encrypt($plainText) : RSACiphertext
+    public function encrypt($plainText): RSACiphertext
     {
         return new RSACiphertext($this, $this->value->encrypt($plainText->cipherText));
     }
