@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CastVoteController;
-use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\ElectionController;
 use App\Http\Controllers\P2PController;
