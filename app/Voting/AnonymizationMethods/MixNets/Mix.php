@@ -40,7 +40,7 @@ class Mix
     {
         return array_reduce($this->ciphertexts, function (string $carry, CipherText $ciphertext) {
             return sha1($carry . $ciphertext->getFingerprint());
-        }, "");
+        }, '');
     }
 
     /**

@@ -5,7 +5,6 @@ namespace App\Voting\BallotEncodings;
 
 
 use App\Voting\CryptoSystems\Plaintext;
-use phpseclib3\Math\BigInteger;
 
 interface BallotEncoding
 {
@@ -15,7 +14,7 @@ interface BallotEncoding
      * @param string $outClass
      * @return Plaintext[]
      */
-    public static function encode($vote, string $outClass) : array;
+    public static function encode($vote, string $outClass): array;
 
     /**
      * @param Plaintext $representation

@@ -24,7 +24,7 @@ class JsonBallotEncoding implements BallotEncoding
     {
         $jsonStr = json_encode($vote);
         // from UTF-8 to ASCII
-        $str = iconv("UTF-8", "ASCII", $jsonStr);
+        $str = iconv('UTF-8', 'ASCII', $jsonStr);
         $str = head(unpack('H*', $str));
         return [new $outClass($str)];
     }
