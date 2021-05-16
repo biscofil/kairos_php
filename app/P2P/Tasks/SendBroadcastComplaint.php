@@ -3,7 +3,6 @@
 
 namespace App\P2P\Tasks;
 
-use App\Models\PeerServer;
 use App\Voting\CryptoSystems\ElGamal\EGThresholdBroadcast;
 
 /**

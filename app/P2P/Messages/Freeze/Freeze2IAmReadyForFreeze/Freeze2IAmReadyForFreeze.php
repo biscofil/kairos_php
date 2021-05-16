@@ -51,6 +51,8 @@ class Freeze2IAmReadyForFreeze
             );
         });
 
+        $election->actualFreeze();
+
         // TODO send all received broadcast to coordinator, he will check they are the same for all peers
 //           TODO RunP2PTask::dispatch(new ReplyToCoordinator($this->broadcast));
     }

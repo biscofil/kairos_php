@@ -4,8 +4,6 @@
 namespace App\P2P\Tasks;
 
 
-use App\Models\PeerServer;
-
 /**
  * Class GenerateShadowMixes
  * @package App\P2P\Tasks

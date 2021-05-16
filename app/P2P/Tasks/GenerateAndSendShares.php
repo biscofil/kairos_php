@@ -4,6 +4,7 @@
 namespace App\P2P\Tasks;
 
 
+use App\Jobs\SendP2PMessage;
 use App\Models\Election;
 use App\Models\PeerServer;
 use App\P2P\Messages\Freeze\ThisIsMyThresholdBroadcast;
@@ -45,7 +46,7 @@ class GenerateAndSendShares extends Task
 
         /**
          * the keypair and the polynomial are generated
-         * in @see \App\P2P\Messages\Freeze\Freeze1IAmFreezingElection::getRequestResponse()
+         * in @see \App\P2P\Messages\Freeze\Freeze1IAmFreezingElection\Freeze1IAmFreezingElectionRequest::onRequestReceived()
          */
 
         $meTrustee->save();
@@ -73,13 +74,16 @@ class GenerateAndSendShares extends Task
             $trustee->share_sent = $share;
             $trustee->save();
 
-            (new ThisIsMyThresholdBroadcast(
-                PeerServer::me(),
-                [$server],
-                $this->election,
-                $meTrustee->broadcast,
-                $share
-            ))->sendSync();
+            SendP2PMessage::dispatchSync(
+                new ThisIsMyThresholdBroadcast\ThisIsMyThresholdBroadcastRequest(
+                    PeerServer::me(),
+                    $server,
+                    $this->election,
+                    $meTrustee->public_key,
+                    $meTrustee->broadcast,
+                    $share
+                )
+            );
 
         });
 

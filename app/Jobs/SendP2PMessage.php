@@ -40,8 +40,8 @@ class SendP2PMessage implements ShouldQueue
      */
     public function handle()
     {
-        Log::debug('SendP2PMessage > SENDING....');
-        $this->message->run();
-        Log::debug('SendP2PMessage > SENT');
+//        Log::debug('SendP2PMessage > SENDING....');
+        $this->message->send();
+//        Log::debug('SendP2PMessage > SENT');
     }
 }

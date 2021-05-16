@@ -149,8 +149,7 @@ class Freeze2IAmReadyForFreezeRequest extends P2PMessageRequest
                 /** @var Trustee $_trustee */
                 $_trustee = $_trustees->get($requestJsonTrustee['uuid']);
 
-                /** @var \App\Voting\CryptoSystems\ThresholdBroadcast $thresholdBroadcastClass */
-                $thresholdBroadcastClass = $this->election->cryptosystem->getCryptoSystemClass()::ThresholdBroadcastClass;
+                $thresholdBroadcastClass = $this->election->cryptosystem->getCryptoSystemClass()::getThresholdBroadcastClass();
                 $broadcast = $thresholdBroadcastClass::fromArray($requestJsonTrustee['broadcast']); // RSA, ELGAMAL
 
                 if ($_trustee->broadcast->equals($broadcast)) {

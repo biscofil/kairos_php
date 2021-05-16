@@ -4,11 +4,11 @@ namespace App\Jobs;
 
 use App\Models\Election;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class OnElectionFreezeTimeout
@@ -41,14 +41,14 @@ class OnElectionFreezeTimeout implements ShouldQueue
      */
     public function handle()
     {
-        // timeout reached
+        // timeout reached after Freeze1IAmFreezingElection sent out
 
         // TODO
         //  check if enough peers are ok
         //    election is actually frozen
         //    if not the freeze is invalid
 
-
+        Log::warning('OnElectionFreezeTimeout > Timeout expired after Freeze1IAmFreezingElection');
 
     }
 }

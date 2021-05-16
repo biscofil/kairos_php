@@ -4,6 +4,7 @@
 namespace App\P2P\Tasks;
 
 
+use App\Jobs\SendP2PMessage;
 use App\Models\Election;
 use App\Models\PeerServer;
 use App\P2P\Messages\AddMeToYourPeers;
@@ -37,12 +38,16 @@ class SendAddMeToYourPeersMessageToUnknownPeers extends Task
 
         // add missing peers
         $this->election->peerServers()->unknown()->each(function (PeerServer $server) {
-            (new AddMeToYourPeers(
-                PeerServer::me(),
-                $server,
-                getJwtRSAKeyPair()->pk,
-                $server->getNewToken()
-            ))->sendSync();
+
+            SendP2PMessage::dispatchSync(
+                new AddMeToYourPeers\AddMeToYourPeersRequest(
+                    PeerServer::me(),
+                    $server,
+                    PeerServer::me()->jwt_public_key,
+                    $server->getNewToken()
+                )
+            );
+
         });
 
         Log::debug('SendAddMeToYourPeersMessageToUnknownPeers > DONE');

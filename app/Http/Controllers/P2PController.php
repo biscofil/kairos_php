@@ -4,10 +4,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\PeerServer;
-use App\P2P\Messages\P2PMessage;
+use App\P2P\P2PHttp;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Class P2PController
@@ -52,34 +51,7 @@ class P2PController extends Controller
      */
     public function receive(Request $request, string $message): JsonResponse
     {
-        try {
-
-            // get message class
-            $instance = P2PMessage::getNewMessageObject($message);
-
-            // check auth / get user
-            $senderPeer = $instance->getAuthPeer($request);
-
-            websocketLog("$message request received from $senderPeer->domain");
-
-            // instanciate it
-            $messageObj = $instance->fromRequest($senderPeer, $request->all());
-
-            // call onRequestReceived method
-            return $messageObj->getRequestResponse();
-
-        } catch (\Exception $e) {
-
-            Log::debug('Responding with error');
-            Log::error($e->getMessage());
-
-            return response()->json([
-                'error_message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ], 500);
-
-        }
+        return P2PHttp::onRequestReceived($request, $message);
     }
 
 }

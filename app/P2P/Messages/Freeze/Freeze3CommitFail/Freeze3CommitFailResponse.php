@@ -5,7 +5,6 @@ namespace App\P2P\Messages\Freeze\Freeze3CommitFail;
 
 
 use App\Models\PeerServer;
-use App\P2P\Messages\P2PMessageRequest;
 use App\P2P\Messages\P2PMessageResponse;
 
 /**

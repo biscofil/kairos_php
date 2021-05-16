@@ -102,16 +102,14 @@ class Freeze1IAmFreezingElectionResponse extends P2PMessageResponse
         // public key without threshold
         $publicKey = null;
         if ($data['public_key']) {
-            /** @var PublicKey $pkClass */
-            $pkClass = $election->cryptosystem->getCryptoSystemClass()::PublicKeyClass;
+            $pkClass = $election->cryptosystem->getCryptoSystemClass()::getPublicKeyClass();
             $publicKey = $pkClass::fromArray($data['public_key']);
         }
 
         // broadcast
         $broadcast = null;
         if ($data['my_broadcast']) {
-            /** @var ThresholdBroadcast $thresholdBroadcastClass */
-            $thresholdBroadcastClass = $election->cryptosystem->getCryptoSystemClass()::ThresholdBroadcastClass;
+            $thresholdBroadcastClass = $election->cryptosystem->getCryptoSystemClass()::getThresholdBroadcastClass();
             $broadcast = $thresholdBroadcastClass::fromArray($data['my_broadcast']); // RSA, ELGAMAL
         }
 

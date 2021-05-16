@@ -152,7 +152,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         // broadcast
         $broadcast = $data['broadcast'];
         if ($broadcast) {
-            $thresholdBroadcastClass = $election->cryptosystem->getCryptoSystemClass()::ThresholdBroadcastClass;
+            $thresholdBroadcastClass = $election->cryptosystem->getCryptoSystemClass()::getThresholdBroadcastClass();
             $broadcast = $thresholdBroadcastClass::fromArray($data['broadcast']); // RSA, ELGAMAL
         }
 
@@ -205,7 +205,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         $meTrustee = $this->election->getTrusteeFromPeerServer(PeerServer::me(), true);
 
         Log::debug('Generating my own keypair');
-        $keyPair = $this->election->cryptosystem->getCryptoSystemClass()->generateKeypair();
+        $keyPair = $this->election->cryptosystem->getCryptoSystemClass()::generateKeypair();
         $meTrustee->private_key = $keyPair->sk;
         $meTrustee->public_key = $keyPair->pk;
         $publicKey = $keyPair->pk;

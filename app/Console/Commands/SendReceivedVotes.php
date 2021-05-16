@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\SendP2PMessage;
 use App\Models\Election;
 use App\Models\PeerServer;
 use App\P2P\Messages\IReceivedTheseVotes;
@@ -37,6 +38,7 @@ class SendReceivedVotes extends Command
      * Execute the console command.
      *
      * @return int
+     * @throws \Exception
      */
     public function handle()
     {
@@ -50,7 +52,9 @@ class SendReceivedVotes extends Command
 
         $this->info("Sending votes of election $election->uuid");
 
-        (new IReceivedTheseVotes($me, $to, $votes))->sendSync();
+        SendP2PMessage::dispatchSync(
+            new IReceivedTheseVotes\IReceivedTheseVotesRequest($me, $to, $votes)
+        );
 
         $this->info('Done');
 

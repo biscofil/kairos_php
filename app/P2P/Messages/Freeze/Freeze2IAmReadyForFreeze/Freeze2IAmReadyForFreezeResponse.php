@@ -4,7 +4,6 @@
 namespace App\P2P\Messages\Freeze\Freeze2IAmReadyForFreeze;
 
 
-use App\Models\Election;
 use App\Models\PeerServer;
 use App\P2P\Messages\P2PMessageResponse;
 
