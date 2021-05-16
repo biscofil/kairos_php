@@ -26,7 +26,7 @@ class ElectionNotFrozen
         if ($election && $election instanceof Election) {
 
             if (!is_null($election->frozen_at)) {
-                return response(["error" => "election is frozen"], 403);
+                return response(['error' => 'election is frozen'], 403);
             }
 
         }

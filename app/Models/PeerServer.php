@@ -5,7 +5,8 @@ namespace App\Models;
 use App\Http\Middleware\AuthenticateWithElectionCreatorJwt;
 use App\Jobs\SendP2PMessage;
 use App\Models\Cast\ModelWithFieldsWithParameterSets;
-use App\Models\Cast\PublicKeyCasterCryptosystem;
+use App\Models\Cast\PublicKeyCaster;
+use App\Models\Cast\SecretKeyCaster;
 use App\P2P\Messages\AddMeToYourPeers;
 use App\Voting\CryptoSystems\RSA\RSAPublicKey;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
@@ -35,6 +36,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * @property int election_id
  * @property Election election
  *
+ * @property \App\Voting\CryptoSystems\RSA\RSASecretKey|null jwt_secret_key
  * @property RSAPublicKey|null jwt_public_key
  * @property string|null token Token used by the current server to authenticate with the server represented by this model
  *
@@ -45,11 +47,13 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * @method static self|Builder unknown()
  * @method static self|Builder withDomain(string $domain)
  * @method static self|null first()
+ * @method static findOrFail($id)
  */
 class PeerServer extends Authenticatable implements JWTSubject
 {
 
     public const meID = 1;
+    public const PeerServerMeCacheKey = '_current_peer_server_';
 
     use ModelWithFieldsWithParameterSets;
     use SpatialTrait;
@@ -64,6 +68,7 @@ class PeerServer extends Authenticatable implements JWTSubject
         'gps',
         'country_code',
         //
+        'jwt_secret_key',
         'jwt_public_key',
         'token'
     ];
@@ -77,11 +82,13 @@ class PeerServer extends Authenticatable implements JWTSubject
     ];
 
     protected $hidden = [
+        'jwt_secret_key',
         'token'
     ];
 
     protected $casts = [
-        'jwt_public_key' => PublicKeyCasterCryptosystem::class
+        'jwt_secret_key' => SecretKeyCaster::class,
+        'jwt_public_key' => PublicKeyCaster::class
     ];
 
     // ############################################# Scopes
@@ -116,11 +123,15 @@ class PeerServer extends Authenticatable implements JWTSubject
     // #############################################
 
     /**
+     * @param bool $fail
      * @return \App\Models\PeerServer
      */
-    public static function me(): PeerServer
+    public static function me(bool $fail = true): PeerServer
     {
-        return Cache::remember('_current_peer_server_', 15, function () {
+        return Cache::remember(self::PeerServerMeCacheKey, 15, function () use ($fail) {
+            if ($fail) {
+                return self::findOrFail(self::meID);
+            }
             return self::find(self::meID);
         });
     }
@@ -176,7 +187,7 @@ class PeerServer extends Authenticatable implements JWTSubject
             new AddMeToYourPeers\AddMeToYourPeersRequest(
                 $me,
                 $peerServer,
-                getJwtRSAKeyPair()->pk,
+                PeerServer::me()->jwt_public_key,
                 $peerServer->getNewToken()
             )
         );

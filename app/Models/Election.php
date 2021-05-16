@@ -270,14 +270,14 @@ class Election extends Model
         if (is_null($this->questions) || count($this->questions) == 0) {
             $issues[] = [
                 'type' => 'questions',
-                'action' => "add questions to the ballot"
+                'action' => 'add questions to the ballot'
             ];
         }
 
         if ($this->trustees()->count() == 0) {
             $issues[] = [
                 'type' => 'trustees',
-                'action' => "add at least one trustee"
+                'action' => 'add at least one trustee'
             ];
         } else {
             foreach ($this->trustees as $trustee) {
@@ -417,7 +417,7 @@ class Election extends Model
      */
     public function generateVotersHash(): string
     {
-        return ""; // TODO Sort email addresses of voters and hash them
+        return ''; // TODO Sort email addresses of voters and hash them
     }
 
     /**

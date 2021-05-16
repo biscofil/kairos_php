@@ -13,8 +13,7 @@ rsync -azP \
     --exclude 'storage/logs/*' \
     --exclude 'mysql-data' \
     --exclude '_docker/*' \
-    --exclude 'private_key.pem' \
-    --exclude 'public_key.pem' \
+    --exclude 'apache2.conf' \
     --exclude 'resources/assets/*' \
     --exclude 'resources/js/*' \
     --exclude 'resources/sass/*' \
@@ -38,8 +37,7 @@ rsync -azP \
     --exclude 'storage/logs/*' \
     --exclude 'mysql-data' \
     --exclude '_docker/*' \
-    --exclude 'private_key.pem' \
-    --exclude 'public_key.pem' \
+    --exclude 'apache2.conf' \
     --exclude 'resources/assets/*' \
     --exclude 'resources/js/*' \
     --exclude 'resources/sass/*' \
@@ -62,8 +60,7 @@ rsync -azP \
     --exclude 'storage/logs/*' \
     --exclude 'mysql-data' \
     --exclude '_docker/*' \
-    --exclude 'private_key.pem' \
-    --exclude 'public_key.pem' \
+    --exclude 'apache2.conf' \
     --exclude 'resources/assets/*' \
     --exclude 'resources/js/*' \
     --exclude 'resources/sass/*' \

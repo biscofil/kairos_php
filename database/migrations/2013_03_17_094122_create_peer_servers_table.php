@@ -25,7 +25,11 @@ class CreatePeerServersTable extends Migration
             $table->point('gps')->nullable();
             $table->string('country_code',5)->nullable();
 
+            $table->text('jwt_secret_key')->nullable();
             $table->text('jwt_public_key')->nullable();
+
+            // token of record of peer server A contains the token the current server should use to authenticate itself
+            // with A
             $table->text('token')->nullable();
 
             $table->timestamps();

@@ -65,10 +65,9 @@ class AddMeToYourPeersRequest extends P2PMessageRequest
      */
     public function serialize(PeerServer $to): array
     {
-        $myKeyPair = getJwtRSAKeyPair();
         /** @noinspection PhpVoidFunctionResultUsedInspection */
         return [
-            'my_jwt_public_key' => $myKeyPair->pk->toArray(),
+            'my_jwt_public_key' => PeerServer::me()->jwt_public_key->toArray(),
             'token' => $this->token,
             /**
              * sender_domain is used by @see AddMeToYourPeersRequest::getAuthPeer()
@@ -121,10 +120,14 @@ class AddMeToYourPeersRequest extends P2PMessageRequest
         Log::debug("Host {$this->requestSender->domain} added as peer");
 
         // prepare values to send back
-        $myKeyPair = getJwtRSAKeyPair();
         $tokenForRequestSender = $this->requestSender->getNewToken();
 
-        return new AddMeToYourPeersResponse(PeerServer::me(), $this->requestSender, $myKeyPair->pk, $tokenForRequestSender);
+        return new AddMeToYourPeersResponse(
+            PeerServer::me(),
+            $this->requestSender,
+            PeerServer::me()->jwt_public_key,
+            $tokenForRequestSender
+        );
     }
 
     /**

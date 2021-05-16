@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\PeerServer;
 use App\Voting\CryptoSystems\RSA\RSAKeyPair;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 
 class GenerateJwtKeypair extends Command
 {
@@ -40,19 +41,14 @@ class GenerateJwtKeypair extends Command
     public function handle()
     {
 
-        $keyPair = RSAKeyPair::generate();
-
-        $result = $keyPair->toPemFiles(
-            config('jwt.keys.private'),
-            config('jwt.keys.public')
-        );
-
-        // copy jwt token to the record corresponding to this server
         $me = PeerServer::me();
-        $me->jwt_public_key = getJwtRSAKeyPair()->pk;
-        $me->save();
+        // copy jwt token to the record corresponding to this server
+        $keyPair = RSAKeyPair::generate();
+        $me->jwt_public_key = $keyPair->pk;
+        $me->jwt_secret_key = $keyPair->sk;
+        Cache::forget(PeerServer::PeerServerMeCacheKey);
 
-        if ($result) {
+        if ($me->save()) {
             $this->info('KeyPair exported');
             return 0;
         } else {

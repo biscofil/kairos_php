@@ -3,6 +3,7 @@
 
 namespace Tests\Unit;
 
+use App\Models\PeerServer;
 use Illuminate\Support\Str;
 use Lcobucci\JWT\Builder;
 use Lcobucci\JWT\Parser;
@@ -19,10 +20,8 @@ class JWTTest extends TestCase
     public function enc_dec()
     {
 
-        $rsaKeyPair = getJwtRSAKeyPair();
-
         $signer = new Sha256();
-        $privateKey = new Key($rsaKeyPair->sk->toArray()['v']);
+        $privateKey = new Key(PeerServer::me()->jwt_secret_key->toArray()['v']);
 
         $claimName = Str::random(10);
         $claimValue = Str::random(10);
@@ -38,7 +37,7 @@ class JWTTest extends TestCase
 
         $token = (new Parser())->parse($tokenStrReceived);
 
-        $publicKey = new Key($rsaKeyPair->pk->toArray()['v']);
+        $publicKey = new Key(PeerServer::me()->jwt_public_key->toArray()['v']);
 
         $this->assertTrue($token->verify($signer, $publicKey));
 

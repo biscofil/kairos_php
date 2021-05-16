@@ -1,9 +1,7 @@
 <?php
 
 use App\Events\WebsocketLog;
-use App\Models\PeerServer;
 use App\Models\User;
-use App\Voting\CryptoSystems\RSA\RSAKeyPair;
 use Illuminate\Support\Facades\Log;
 use phpseclib3\Math\BigInteger;
 
@@ -94,17 +92,6 @@ function ping(string $ip, int $port = 80): bool
     curl_close($ch);
     dump($health);
     return boolval($health);
-}
-
-/**
- * @return RSAKeyPair
- */
-function getJwtRSAKeyPair(): RSAKeyPair
-{
-    return RSAKeyPair::fromPemFiles(
-        config('jwt.keys.private'),
-        config('jwt.keys.public')
-    );
 }
 
 /**
