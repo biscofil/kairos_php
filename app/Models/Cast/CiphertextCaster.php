@@ -54,9 +54,7 @@ class CiphertextCaster extends DynamicCryptosystemClassCaster
 
         $cipherTextClass = $cryptoSystemClass::getCipherTextClass();
 
-        $data['pk'] = $pk;
-
-        return $cipherTextClass::fromArray($data, true);
+        return $cipherTextClass::fromArray($data, $pk, true);
     }
 
 }

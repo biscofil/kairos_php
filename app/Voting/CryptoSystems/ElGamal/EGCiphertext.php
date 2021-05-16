@@ -55,7 +55,7 @@ class EGCiphertext implements CipherText, BelongsToCryptoSystem
 
     /**
      * @param array $data
-     * @param null $publicKey
+     * @param null|\App\Voting\CryptoSystems\ElGamal\EGPublicKey $publicKey
      * @param bool $ignoreParameterSet
      * @param int $base
      * @return EGCiphertext
