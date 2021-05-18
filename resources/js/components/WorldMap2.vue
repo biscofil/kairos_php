@@ -1,6 +1,5 @@
 <template>
     <div>
-        <!--        <button @click="flyPlane">FLY</button>-->
         <div class="hello" ref="chartdiv">
         </div>
     </div>
@@ -20,6 +19,7 @@ let targetSVG = "M9,0C4.029,0,0,4.029,0,9s4.029,9,9,9s9-4.029,9-9S13.971,0,9,0z 
 
 const planeSVG = "m2,106h28l24,30h72l-44,-133h35l80,132h98c21,0 21,34 0,34l-98,0 -80,134h-35l43,-133h-71l-24,30h-28l15,-47";
 const planeShadowSVG = "m2,106h28l24,30h72l-44,-133h35l80,132h98c21,0 21,34 0,34l-98,0 -80,134h-35l43,-133h-71l-24,30h-28l15,-47";
+const envelopeSVG = "m 1664,32 v 768 q -32,-36 -69,-66 -268,-206 -426,-338 -51,-43 -83,-67 -32,-24 -86.5,-48.5 Q 945,256 897,256 h -1 -1 Q 847,256 792.5,280.5 738,305 706,329 674,353 623,396 465,528 197,734 160,764 128,800 V 32 Q 128,19 137.5,9.5 147,0 160,0 h 1472 q 13,0 22.5,9.5 9.5,9.5 9.5,22.5 z m 0,1051 v 11 13.5 q 0,0 -0.5,13 -0.5,13 -3,12.5 -2.5,-0.5 -5.5,9 -3,9.5 -9,7.5 -6,-2 -14,2.5 H 160 q -13,0 -22.5,-9.5 Q 128,1133 128,1120 128,952 275,836 468,684 676,519 682,514 711,489.5 740,465 757,452 774,439 801.5,420.5 829,402 852,393 q 23,-9 43,-9 h 1 1 q 20,0 43,9 23,9 50.5,27.5 27.5,18.5 44.5,31.5 17,13 46,37.5 29,24.5 35,29.5 208,165 401,317 54,43 100.5,115.5 46.5,72.5 46.5,131.5 z m 128,37 V 32 q 0,-66 -47,-113 -47,-47 -113,-47 H 160 Q 94,-128 47,-81 0,-34 0,32 v 1088 q 0,66 47,113 47,47 113,47 h 1472 q 66,0 113,-47 47,-47 47,-113 z";
 
 export default {
 
@@ -36,17 +36,11 @@ export default {
 
     data() {
         return {
-            planeImage: null,
-            shadowPlaneImage: null,
-            shadowPlane: null,
             cities: null,
             chart: null,
-            plane: null,
             lineSeries: null,
             shadowLineSeries: null,
-            // Plane animation
-            currentLine: 0,
-            direction: 1,
+            created_nodes: {},
         }
     },
 
@@ -78,16 +72,18 @@ export default {
         city.strokeWidth = 2;
         city.stroke = am4core.color("#fff");
 
-        let _created_nodes = {};
         this.nodes
             .filter(node => {
                 return node.gps;
             })
             .forEach(node => {
-                _created_nodes[node.id] = self.addNode({
-                    "latitude": node.gps.coordinates[1],
-                    "longitude": node.gps.coordinates[0]
-                }, node.name);
+                this.created_nodes[node.id] = {
+                    node: self.addNode({
+                        "latitude": node.gps.coordinates[1],
+                        "longitude": node.gps.coordinates[0]
+                    }, node.name),
+                    outMapLines: {}
+                };
             });
 
         // Add lines
@@ -109,56 +105,27 @@ export default {
         // links
         Object.keys(this.nodes).forEach(key1 => {
             Object.keys(this.nodes).forEach(key2 => {
-                let node1 = this.nodes[key1];
-                let node2 = this.nodes[key2];
-                let _node1 = _created_nodes[node1.id];
-                let _node2 = _created_nodes[node2.id];
-                if (key1 < key2 && node1.gps && node2.gps) {
-                    self.addLine(_node1, _node2);
+
+                if (key1 < key2) { // k1 < k2
+
+                    let node1 = this.nodes[key1];
+                    let node2 = this.nodes[key2];
+
+                    if (node1.gps && node2.gps) {
+                        let _node1 = this.created_nodes[node1.id].node;
+                        let _node2 = this.created_nodes[node2.id].node;
+
+                        this.created_nodes[node1.id].outMapLines[node2.id] = self.addLine(_node1, _node2);
+                    }
+
                 }
+
             });
         });
 
-
-        // Add plane
-        this.plane = this.lineSeries.mapLines.getIndex(0).lineObjects.create();
-        this.plane.position = 0;
-        this.plane.width = 48;
-        this.plane.height = 48;
-
-        this.plane.adapter.add("scale", function (scale, target) {
-            return 0.5 * (1 - (Math.abs(0.5 - target.position)));
-        });
-
-        this.planeImage = this.plane.createChild(am4core.Sprite);
-        this.planeImage.scale = 0.08;
-        this.planeImage.horizontalCenter = "middle";
-        this.planeImage.verticalCenter = "middle";
-        this.planeImage.path = planeSVG;
-        this.planeImage.fill = chart.colors.getIndex(2).brighten(-0.2);
-        this.planeImage.strokeOpacity = 0;
-
-        this.shadowPlane = this.shadowLineSeries.mapLines.getIndex(0).lineObjects.create();
-        this.shadowPlane.position = 0;
-        this.shadowPlane.width = 48;
-        this.shadowPlane.height = 48;
-        this.shadowPlane.adapter.add("scale", function (scale, target) {
-            target.opacity = (0.6 - (Math.abs(0.5 - target.position)));
-            return 0.5 - 0.3 * (1 - (Math.abs(0.5 - target.position)));
-        });
-
-        this.shadowPlaneImage = this.shadowPlane.createChild(am4core.Sprite);
-        this.shadowPlaneImage.scale = 0.05;
-        this.shadowPlaneImage.horizontalCenter = "middle";
-        this.shadowPlaneImage.verticalCenter = "middle";
-        this.shadowPlaneImage.path = planeShadowSVG;
-        this.shadowPlaneImage.fill = am4core.color("#000");
-        this.shadowPlaneImage.strokeOpacity = 0;
+        console.log(this.created_nodes);
 
         this.chart = chart;
-
-        // Go!
-        this.flyPlane();
     },
 
     methods: {
@@ -181,70 +148,85 @@ export default {
             return line;
         },
 
-        flyPlane() {
+        flyPlane(from_domain, to_domain) {
 
-            console.log("flyPlane");
+            // get id of both by their domains
+            let from = this.servers.find(s => {
+                return s.domain === from_domain;
+            }).id;
+
+            let to = this.servers.find(s => {
+                return s.domain === to_domain;
+            }).id;
+
+            // get path and direction
+            let currentLine = null;
+            if (from < to) {
+                currentLine = this.created_nodes[from].outMapLines[to];
+                from = 0;
+                to = 1;
+            } else {
+                currentLine = this.created_nodes[to].outMapLines[from];
+                from = 1;
+                to = 0;
+            }
+
+            let plane = currentLine.lineObjects.create();
+            // let shadowPlane = currentLine.lineObjects.create();
+
+            plane.position = 0;
+            plane.width = 48;
+            plane.height = 48;
+            plane.adapter.add("scale", function (scale, target) {
+                return 0.5 * (1 - (Math.abs(0.5 - target.position)));
+            });
+
+            let planeImage = plane.createChild(am4core.Sprite);
+            planeImage.scale = 0.02;
+            planeImage.horizontalCenter = "middle";
+            planeImage.verticalCenter = "middle";
+            planeImage.path = envelopeSVG;
+            planeImage.fill = this.chart.colors.getIndex(2).brighten(-0.2);
+            planeImage.strokeOpacity = 0;
+
+            // shadowPlane.position = 0;
+            // shadowPlane.width = 48;
+            // shadowPlane.height = 48;
+            // shadowPlane.adapter.add("scale", function (scale, target) {
+            //     target.opacity = (0.6 - (Math.abs(0.5 - target.position)));
+            //     return 0.5 - 0.3 * (1 - (Math.abs(0.5 - target.position)));
+            // });
+
+            // let shadowPlaneImage = shadowPlane.createChild(am4core.Sprite);
+            // shadowPlaneImage.scale = 0.05;
+            // shadowPlaneImage.horizontalCenter = "middle";
+            // shadowPlaneImage.verticalCenter = "middle";
+            // shadowPlaneImage.path = planeShadowSVG;
+            // shadowPlaneImage.fill = am4core.color("#000");
+            // shadowPlaneImage.strokeOpacity = 0;
 
             // Get current line to attach plane to
-            this.plane.mapLine = this.lineSeries.mapLines.getIndex(this.currentLine);
-            this.plane.parent = this.lineSeries;
-            this.shadowPlane.mapLine = this.shadowLineSeries.mapLines.getIndex(this.currentLine);
-            this.shadowPlane.parent = this.shadowLineSeries;
-            this.shadowPlaneImage.rotation = this.planeImage.rotation;
+            plane.mapLine = currentLine;
+            plane.parent = this.lineSeries;
+            // shadowPlane.mapLine = this.shadowLineSeries.mapLines.getIndex(currentLineIDX);
+            // shadowPlane.parent = this.shadowLineSeries;
+            // shadowPlaneImage.rotation = planeImage.rotation;
 
-            // Set up animation
-            let from = 0, to = 1;
-            let numLines = this.lineSeries.mapLines.length;
-            // if (this.direction === 1) {
-            //     from = 0;
-            //     to = 1;
-            //     if (this.planeImage.rotation !== 0) {
-            // this.planeImage.animate({
-            //     to: 0,
-            //     property: "rotation"
-            // }, 1000).events.on("animationended", this.flyPlane);
-            // return;
-            //     }
-            // } else {
-            //     from = 1;
-            //     to = 0;
-            //     if (this.planeImage.rotation !== 180) {
-            // this.planeImage.animate({
-            //     to: 180,
-            //     property: "rotation"
-            // }, 1000).events.on("animationended", this.flyPlane);
-            // return;
-            //     }
-            // }
-
-            // Start the animation
-            let animation = this.plane.animate({
+            plane.animate({
                 from: from,
                 to: to,
                 property: "position"
-            }, 5000, am4core.ease.sinInOut);
-            // animation.events.on("animationended", this.flyPlane);
-            /*animation.events.on("animationprogress", function(ev) {
-              var progress = Math.abs(ev.progress - 0.5);
-              //console.log(progress);
-              //planeImage.scale += 0.2;
-            });*/
+            }, 2500, am4core.ease.sinInOut).events.on("animationended", a => {
+                currentLine.lineObjects.removeValue(plane);
+            });
 
-            this.shadowPlane.animate({
-                from: from,
-                to: to,
-                property: "position"
-            }, 5000, am4core.ease.sinInOut);
-
-            // Increment line, or reverse the direction
-            this.currentLine += this.direction;
-            if (this.currentLine < 0) {
-                this.currentLine = 0;
-                this.direction = 1;
-            } else if ((this.currentLine + 1) > numLines) {
-                this.currentLine = numLines - 1;
-                this.direction = -1;
-            }
+            // shadowPlane.animate({
+            //     from: from,
+            //     to: to,
+            //     property: "position"
+            // }, 5000, am4core.ease.sinInOut).events.on("animationended", a => {
+            //     currentLine.lineObjects.removeValue(shadowPlane);
+            // });
 
         },
 

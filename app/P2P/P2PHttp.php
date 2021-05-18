@@ -38,7 +38,7 @@ class P2PHttp
             throw new SendingMessageToSelf();
         }
 
-        websocketLog('Sending a message to ' . $url);
+        websocketLog('Sending a message to ' . $url, $destPeerServer);
 
         $serializedRequest = $requestMessage->serialize($destPeerServer);
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Events\WebsocketLog;
+use App\Models\PeerServer;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use phpseclib3\Math\BigInteger;
@@ -120,9 +121,10 @@ function getLagrangianCoefficientMod(array $I, int $j, BigInteger $mod): BigInte
 /**
  * Log
  * @param string $msg
+ * @param \App\Models\PeerServer|null $messageDestinationServer
  */
-function websocketLog(string $msg): void
+function websocketLog(string $msg, ?PeerServer $messageDestinationServer = null): void
 {
     Log::debug($msg);
-    WebsocketLog::dispatch($msg);
+    WebsocketLog::dispatch($msg, $messageDestinationServer);
 }

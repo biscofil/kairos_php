@@ -11,8 +11,9 @@ use Illuminate\Queue\SerializesModels;
 /**
  * Class WebsocketLog
  * @package App\Events
- * @property PeerServer $me
  * @property string $message
+ * @property string $me
+ * @property null|string $messageDestionationServer
  */
 class WebsocketLog implements ShouldBroadcast
 {
@@ -20,13 +21,16 @@ class WebsocketLog implements ShouldBroadcast
     use InteractsWithSockets;
     use SerializesModels;
 
-    public PeerServer $server;
+    public string $me;
+    public ?string $messageDestionationServer;
+
     public string $message;
 
-    public function __construct(string $message)
+    public function __construct(string $message, ?PeerServer $messageDestionationServer = null)
     {
-        $this->server = PeerServer::me();
+        $this->me = PeerServer::me()->domain;
         $this->message = $message;
+        $this->messageDestionationServer = $messageDestionationServer ? $messageDestionationServer->domain : null;
     }
 
     public function broadcastOn()
