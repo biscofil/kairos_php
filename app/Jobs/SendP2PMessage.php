@@ -11,7 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 /**
  * Class SendP2PMessage
  * @package App\Jobs
- * @property P2PMessageRequest $message
+ * @property P2PMessageRequest[] $messages
  */
 class SendP2PMessage implements ShouldQueue
 {
@@ -19,15 +19,18 @@ class SendP2PMessage implements ShouldQueue
     use InteractsWithQueue;
     use Queueable;
 
-    public P2PMessageRequest $message;
+    public array $messages;
 
     /**
      * Create a new job instance.
-     * @param P2PMessageRequest $message
+     * @param $messages
      */
-    public function __construct(P2PMessageRequest $message)
+    public function __construct($messages)
     {
-        $this->message = $message;
+        if (!is_array($messages)) {
+            $messages = [$messages];
+        }
+        $this->messages = $messages;
     }
 
     /**
@@ -36,8 +39,8 @@ class SendP2PMessage implements ShouldQueue
      */
     public function handle()
     {
-//        Log::debug('SendP2PMessage > SENDING....');
-        $this->message->send();
-//        Log::debug('SendP2PMessage > SENT');
+        foreach ($this->messages as $message) {
+            $message->send();
+        }
     }
 }

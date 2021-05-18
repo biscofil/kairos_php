@@ -40,16 +40,15 @@ class Freeze2IAmReadyForFreeze
         Log::debug('Freeze2IAmReadyForFreeze::onAllPeersReady');
 
         // foreach peers generate share, store it and read it in message
-        $election->peerServers->each(function (PeerServer $trusteePeerServer) use ($election) {
-            SendP2PMessage::dispatch(
-                new Freeze3CommitFailRequest(
-                    PeerServer::me(),
-                    $trusteePeerServer,
-                    $election,
-                    true // TODO <-------------------------
-                )
+        $messagesToSend = $election->peerServers->map(function (PeerServer $trusteePeerServer) use ($election) {
+            return new Freeze3CommitFailRequest(
+                PeerServer::me(),
+                $trusteePeerServer,
+                $election,
+                true // TODO <-------------------------
             );
         });
+        SendP2PMessage::dispatch($messagesToSend->toArray());
 
         $election->actualFreeze();
 

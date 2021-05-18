@@ -493,7 +493,7 @@ class Election extends Model
                 }
 
                 // foreach peers generate share, store it and read it in message
-                $this->peerServers->each(function (PeerServer $trusteePeerServer) use ($broadcast, $meTrustee) {
+                $messagesToSend = $this->peerServers->map(function (PeerServer $trusteePeerServer) use ($broadcast, $meTrustee) {
 
                     $share = null;
 
@@ -508,14 +508,14 @@ class Election extends Model
                         $trusteeI->save();
                     }
 
-                    SendP2PMessage::dispatch(
-                        new Freeze1IAmFreezingElectionRequest(
-                            PeerServer::me(), $trusteePeerServer,
-                            $this, $this->trustees->all(),
-                            $broadcast, $share)
+                    return new Freeze1IAmFreezingElectionRequest(
+                        PeerServer::me(), $trusteePeerServer,
+                        $this, $this->trustees->all(),
+                        $broadcast, $share
                     );
-
                 });
+
+                SendP2PMessage::dispatch($messagesToSend->toArray());
 
 
                 // wait for 10 seconds for a confirmation

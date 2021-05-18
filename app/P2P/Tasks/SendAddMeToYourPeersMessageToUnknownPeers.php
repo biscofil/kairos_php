@@ -37,18 +37,15 @@ class SendAddMeToYourPeersMessageToUnknownPeers extends Task
         Log::debug('Running SendAddMeToYourPeersMessageToUnknownPeers task');
 
         // add missing peers
-        $this->election->peerServers()->unknown()->each(function (PeerServer $server) {
-
-            SendP2PMessage::dispatchSync(
-                new AddMeToYourPeers\AddMeToYourPeersRequest(
-                    PeerServer::me(),
-                    $server,
-                    PeerServer::me()->jwt_public_key,
-                    $server->getNewToken()
-                )
+        $messagesToSend = $this->election->peerServers()->unknown()->get()->each(function (PeerServer $server) {
+            return new AddMeToYourPeers\AddMeToYourPeersRequest(
+                PeerServer::me(),
+                $server,
+                PeerServer::me()->jwt_public_key,
+                $server->getNewToken()
             );
-
         });
+        SendP2PMessage::dispatchSync($messagesToSend->toArray());
 
         Log::debug('SendAddMeToYourPeersMessageToUnknownPeers > DONE');
 
