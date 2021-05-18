@@ -27,7 +27,7 @@
                 <h1>Log</h1>
                 <ul>
                     <li v-for="message in messages">
-                        <b>{{ message.me.domain }}</b> {{ message.message }}
+                        <b>{{ message.me }}</b> {{ message.message }}
                     </li>
                 </ul>
             </div>
