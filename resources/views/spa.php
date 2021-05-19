@@ -34,7 +34,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="collapse navbar-collapse" id="navbarCollapse">
+            <div class="navbar-collapse collapse" id="navbarCollapse">
 
                 <ul class="navbar-nav mr-auto">
 
@@ -82,6 +82,8 @@
     </footer>
 
 </div>
+<script src="/js/jquery.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
 <script src="/js/app.js"></script>
 </body>
 </html>

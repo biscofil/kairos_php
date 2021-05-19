@@ -70,6 +70,9 @@ const router = new VueRouter({
 });
 
 router.beforeEach((to, from, next) => {
+
+    window.$("#navbarCollapse").collapse('hide');
+
     if (to.meta.requires_auth) {
         if (!store.getters.isLogged) {
             next({

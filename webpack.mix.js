@@ -39,3 +39,6 @@ mix//.i18n()
 
 mix.copyDirectory('resources/js/github/vuesocial/assets/networks', 'public/vuesocial');
 mix.copyDirectory('resources/assets', 'public/assets');
+
+mix.copy('node_modules/bootstrap/dist/js/bootstrap.min.js', 'public/js');
+mix.copy('node_modules/jquery/dist/jquery.min.js', 'public/js');
