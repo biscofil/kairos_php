@@ -274,22 +274,24 @@ class Election extends Model
             ];
         }
 
-        if ($this->trustees()->count() == 0) {
+        if ($this->peerServers()->count() == 0) {
             $issues[] = [
                 'type' => 'trustees',
-                'action' => 'add at least one trustee'
+                'action' => 'Add at least one [peer server] trustee'
             ];
-        } else {
-            foreach ($this->trustees as $trustee) {
-                if (is_null($trustee->public_key)) {
-                    $issues[] = [
-                        'type' => 'trustee keypairs',
-                        'action' => 'have trustee # ' . $trustee->id . ' generate a keypair'
-                    ];
-                }
+        }
 
+        // make sure that user trustees have uploaded their public key
+        // peer servers will share theirs with the p2p protocol
+        foreach ($this->trustees()->users()->get() as $userTrustee) {
+            if (is_null($userTrustee->public_key)) {
+                $issues[] = [
+                    'type' => 'trustee keypairs',
+                    'action' => 'have trustee # ' . $userTrustee->id . ' generate a keypair'
+                ];
             }
         }
+
 
         if ($this->voters()->count() == 0) { // TODO and not self.reg = open:
             $issues[] = [

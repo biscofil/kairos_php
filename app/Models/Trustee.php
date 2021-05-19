@@ -45,7 +45,8 @@ use phpseclib3\Math\BigInteger;
  * @property null|PeerServer peerServer
  *
  * @method static self make()
- * @method static self|Builder peerServers()
+ * @method self|Builder peerServers() Filters peer server trustees
+ * @method self|Builder users() Filter user trustees
  * @method static self findOrFail($id)
  * @method static self|null find(int|array $array)
  */
@@ -113,13 +114,22 @@ class Trustee extends Model
     // ################################################################
 
     /**
-     * Filters trustees that have a peer server
+     * Filters peer server trustees
      * @param Builder $builder
      * @return Builder
      */
     public function scopePeerServers(Builder $builder): Builder
     {
         return $builder->whereNotNull('peer_server_id');
+    }
+
+    /**
+     * Filter user trustees
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeUsers(Builder $builder): Builder{
+        return $builder->whereNull('peer_server_id');
     }
 
     // ################################################################
