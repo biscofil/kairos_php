@@ -51,6 +51,10 @@ use Illuminate\Support\Str;
  *
  * @property null|Carbon frozen_at
  * @property null|Carbon archived_at
+ *
+ * @property Carbon voting_starts_at
+ * @property null|Carbon voting_started_at
+ *
  * @property Collection|Trustee[] trustees
  * @property array issues
  *
@@ -90,6 +94,7 @@ class Election extends Model
         'questions',
         //
         'cryptosystem',
+        'anonymization_method',
         'public_key', 'private_key',
         'min_peer_count_t',
         //
@@ -102,7 +107,7 @@ class Election extends Model
         'voting_starts_at',
         'voting_started_at',
         'voting_extended_until',
-        'voting_end_at',
+        'voting_ends_at',
         'voting_ended_at',
         //
         'tallying_started_at',
@@ -136,15 +141,14 @@ class Election extends Model
         'randomize_answer_order',
         //
         'registration_starts_at',
-        'voting_starts_at',
         'voting_extended_until',
-        'voting_end_at',
     ];
 
     protected $casts = [
         'id' => 'int',
         //
         'min_peer_count_t' => 'int',
+        'anonymization_method' => AnonymizationMethodEnum::class,
         'cryptosystem' => CryptoSystemEnum::class,
         'public_key' => PublicKeyCaster::class,
         'private_key' => SecretKeyCaster::class,
@@ -160,7 +164,7 @@ class Election extends Model
         'voting_starts_at' => 'datetime',
         'voting_started_at' => 'datetime',
         'voting_extended_until' => 'datetime',
-        'voting_end_at' => 'datetime',
+        'voting_ends_at' => 'datetime',
         'voting_ended_at' => 'datetime',
         //
         'tallying_started_at' => 'datetime',
@@ -270,7 +274,7 @@ class Election extends Model
         if (is_null($this->questions) || count($this->questions) == 0) {
             $issues[] = [
                 'type' => 'questions',
-                'action' => 'add questions to the ballot'
+                'action' => 'Add questions to the ballot'
             ];
         }
 
@@ -661,6 +665,15 @@ class Election extends Model
     public static function findFromUuid(string $uuid): ?Election
     {
         return self::query()->where('uuid', '=', $uuid)->first();
+    }
+
+    /**
+     * Returns TRUE if this election has a L-L threshold scheme (all peers required)
+     * @return bool
+     */
+    public function hasLLThresholdScheme(): bool
+    {
+        return $this->min_peer_count_t === $this->peerServers()->count();
     }
 
 }

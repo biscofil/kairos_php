@@ -2,13 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
 use App\Models\PeerServer;
 use App\Voting\AnonymizationMethods\AnonymizationMethod;
-use App\Voting\CryptoSystems\CryptoSystem;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\In;
+use Illuminate\Validation\Rules\RequiredIf;
 
 /**
  * Class EditCreateElectionRequest
@@ -49,6 +50,7 @@ class EditCreateElectionRequest extends FormRequest
      */
     public function rules()
     {
+        $creatingNew = is_null($this->electionToUpdate);
         return [
 
             'cryptosystem' => ['required', 'string', new In(array_keys(CryptoSystem::CryptoSystems))],
@@ -63,8 +65,8 @@ class EditCreateElectionRequest extends FormRequest
             'use_advanced_audit_features' => ['nullable', 'bool'],
             'randomize_answer_order' => ['nullable', 'bool'],
             //
-            'voting_starts_at' => ['nullable', 'date_format:Y-m-d\TH:i'],
-            'voting_end_at' => ['nullable', 'date_format:Y-m-d\TH:i', 'gte:voting_starts_at'],
+            'voting_starts_at' => ['nullable', new RequiredIf($creatingNew), 'date'],
+            'voting_ends_at' => ['nullable', new RequiredIf($creatingNew), 'date', 'after:voting_starts_at'],
         ];
     }
 
@@ -76,6 +78,7 @@ class EditCreateElectionRequest extends FormRequest
         $data = $this->validated();
         $election = Election::make($data);
         $election->uuid = (string)Str::uuid();
+        // TODO check voting_starts_at, voting_ends_at
         $election->admin()->associate(getAuthUser());
         $election->peerServerAuthor()->associate(PeerServer::me());
         $election->save();
@@ -90,6 +93,7 @@ class EditCreateElectionRequest extends FormRequest
         $data = $this->validated();
         unset($data['cryptosystem']); // can't be changed
         $election = $this->electionToUpdate;
+        // TODO check voting_starts_at, voting_ends_at
         $election->update($data);
         return $election;
     }

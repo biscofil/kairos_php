@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Database\Factories\UserFactory;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -22,6 +24,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * @property string provider_id
  * @method static self|Builder inRandomOrder()
  * @method static self create(array $data)
+ * @method static UserFactory factory()
  */
 class User extends Authenticatable implements JWTSubject
 {
