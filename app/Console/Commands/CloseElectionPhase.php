@@ -52,7 +52,7 @@ class CloseElectionPhase extends Command
             ->update(['voting_ended_at' => Carbon::now()]);
 
         if ($affected) {
-            $this->info("election phase ended for $affected elections");
+            websocketLog("election phase ended for $affected elections");
         }
 
         return 0;

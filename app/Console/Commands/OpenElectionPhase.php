@@ -46,12 +46,13 @@ class OpenElectionPhase extends Command
         $affected = Election::query()
             ->where('voting_starts_at', '>=', $nMinutesAgo)
             ->where('voting_starts_at', '<=', $now)
-            ->whereNull('voting_started_at')
             ->whereNotNull('frozen_at') // frozen
+            ->whereNull('voting_started_at')
+            ->whereNull('voting_ended_at')
             ->update(['voting_started_at' => Carbon::now()]);
 
         if ($affected) {
-            $this->info("election phase opened for $affected elections");
+            websocketLog("election phase opened for $affected elections");
         }
 
         return 0;
