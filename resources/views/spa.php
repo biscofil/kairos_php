@@ -45,6 +45,20 @@
                     <li v-if="$store.getters.isLogged && $store.getters.user.is_admin" class="nav-item">
                         <router-link class="nav-link" :to="{ name: 'admin@home' }">Admin</router-link>
                     </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="javascript:void(0)" id="dropdown09"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <country-flag :country="$root.current_language"></country-flag>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="dropdown09">
+                            <a class="dropdown-item" href="javascript:void(0)" v-for="lang in $root.languages"
+                               v-if="lang !== $root.current_language" @click="current_language=lang">
+                                <country-flag :country="lang"></country-flag>
+                            </a>
+                        </div>
+                    </li>
+
                 </ul>
 
                 <span class="navbar-text">

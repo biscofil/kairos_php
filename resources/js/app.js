@@ -14,8 +14,12 @@ import LoginBox from "./components/LoginBox";
 import 'vue-toastr-2/dist/vue-toastr-2.min.css';
 import VuejsDialog from 'vuejs-dialog';
 import 'vuejs-dialog/dist/vuejs-dialog.min.css'; // include the default style
-require('./bootstrap');
+import CountryFlag from 'vue-country-flag'
 
+Vue.component('country-flag', CountryFlag);
+
+
+require('./bootstrap');
 
 Vue.use(VuejsDialog); // Tell Vue to install the plugin.
 
@@ -40,13 +44,20 @@ const app = new Vue({
     store,
 
     components: {
-        'loginbox': LoginBox
+        'loginbox': LoginBox,
     },
 
     data: {
         login_box: null,
         settings: null,
-        main_class : "container"
+        main_class: "container",
+        current_language: "us",
+        languages: [
+            "us",
+            "it",
+            "fr",
+            "de"
+        ]
     },
 
     created() {
