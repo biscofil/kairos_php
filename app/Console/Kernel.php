@@ -16,8 +16,11 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
+        HeartBeat::class,
         SendReceivedVotes::class,
         AddPeer::class,
+        OpenElectionPhase::class,
+        CloseElectionPhase::class,
     ];
 
     /**
@@ -30,7 +33,20 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
 
-        $me = PeerServer::me();
+        $schedule->command('heartbeat')
+            ->everyFiveMinutes()
+            ->appendOutputTo(config('logging.channels.single.path'));
+
+        $schedule->command('open_election_phase')
+            ->everyMinute()
+            ->appendOutputTo(config('logging.channels.single.path'));
+
+        $schedule->command('close_election_phase')
+            ->everyMinute()
+            ->appendOutputTo(config('logging.channels.single.path'));
+
+        // TODO
+//        $me = PeerServer::me();
 
         $minute = hexdec(substr(sha1($me->domain), 0, 5)) % 60;
 
