@@ -12,7 +12,7 @@ use phpseclib3\Crypt\RSA\PrivateKey;
  * @package App\Voting\CryptoSystems\RSA
  * @property PrivateKey $value
  */
-class RSASecretKey extends SecretKey
+class RSASecretKey implements SecretKey
 {
 
     use BelongsToRSA;

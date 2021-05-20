@@ -12,7 +12,7 @@ use phpseclib3\Math\BigInteger;
  * @property EGPublicKey $pk
  * @property BigInteger $x
  */
-class EGSecretKey extends SecretKey
+class EGSecretKey implements SecretKey
 {
 
     use BelongsToElgamal;

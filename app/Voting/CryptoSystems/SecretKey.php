@@ -6,7 +6,7 @@ namespace App\Voting\CryptoSystems;
 
 use App\Models\Cast\Castable;
 
-abstract class SecretKey implements Castable, BelongsToCryptoSystem
+interface SecretKey extends Castable, BelongsToCryptoSystem
 {
 
     /**
@@ -15,13 +15,13 @@ abstract class SecretKey implements Castable, BelongsToCryptoSystem
      * @param int $base
      * @return static
      */
-    abstract public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): self;
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): self;
 
     /**
      * @param bool $ignoreParameterSet
      * @return array
      */
-    abstract public function toArray(bool $ignoreParameterSet = false): array;
+    public function toArray(bool $ignoreParameterSet = false): array;
 
     // ############################################################################################################
 
@@ -30,6 +30,6 @@ abstract class SecretKey implements Castable, BelongsToCryptoSystem
      * @return Plaintext
      * @noinspection PhpMissingParamTypeInspection
      */
-    abstract public function decrypt($cipherText): Plaintext;
+    public function decrypt($cipherText): Plaintext;
 
 }
