@@ -6,13 +6,12 @@ namespace App\Voting\CryptoSystems\ExpElGamal;
 
 use App\Models\Election;
 use App\Voting\CryptoSystems\CryptoSystem;
-use App\Voting\CryptoSystems\KeyPair;
 
 /**
  * Class ExpElGamal
  * @package App\Voting\CryptoSystems\ExpElGamal
  */
-class ExpElGamal extends CryptoSystem
+class ExpElGamal implements CryptoSystem
 {
 
     /**
@@ -79,6 +78,16 @@ class ExpElGamal extends CryptoSystem
         return ExpEGParameterSet::class;
     }
 
+    /**
+     * @param \App\Models\Election $election
+     */
+    public static function afterAnonymizationProcessEnds(Election &$election): void
+    {
+    }
+
+    /**
+     * @param \App\Models\Election $election
+     */
     public static function onElectionFreeze(Election &$election): void
     {
         // TODO: Implement onElectionFreeze() method.

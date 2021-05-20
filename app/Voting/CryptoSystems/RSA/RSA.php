@@ -11,7 +11,7 @@ use App\Voting\CryptoSystems\CryptoSystem;
  * Class RSA
  * @package App\Voting\CryptoSystems\RSA
  */
-class RSA extends CryptoSystem
+class RSA implements CryptoSystem
 {
 
     // #############################################################################
@@ -83,6 +83,14 @@ class RSA extends CryptoSystem
     }
 
     // #############################################################################
+
+    /**
+     * @param \App\Models\Election $election
+     * @noinspection PhpMissingParentCallCommonInspection
+     */
+    public static function afterAnonymizationProcessEnds(Election &$election): void
+    {
+    }
 
     /**
      * @param \App\Models\Election $election

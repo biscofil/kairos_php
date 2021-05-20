@@ -4,6 +4,7 @@
 namespace App\Models\Cast;
 
 
+use App\Enums\CryptoSystemEnum;
 use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\CryptoSystem;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
@@ -55,7 +56,7 @@ abstract class DynamicCryptosystemClassCaster implements CastsAttributes, Serial
     {
         $cryptoSystemIdentifier = $data['_cs'];
         /** @var CryptoSystem $cryptoSystemClassName */
-        $cryptoSystemClassName = CryptoSystem::getByIdentifier($cryptoSystemIdentifier);
+        $cryptoSystemClassName = CryptoSystemEnum::getByIdentifier($cryptoSystemIdentifier);
         unset($data['_cs']);
         return $cryptoSystemClassName;
     }
@@ -86,7 +87,7 @@ abstract class DynamicCryptosystemClassCaster implements CastsAttributes, Serial
             return null;
         }
         $out = $value->toArray($model->ignoreParameterSet($key));
-        $out['_cs'] = CryptoSystem::getIdentifier($value);
+        $out['_cs'] = CryptoSystemEnum::getIdentifier($value);
         return json_encode($out);
     }
 
@@ -107,7 +108,7 @@ abstract class DynamicCryptosystemClassCaster implements CastsAttributes, Serial
             return null;
         }
         $out = $value->toArray();
-        $out['_cs'] = CryptoSystem::getIdentifier($value);
+        $out['_cs'] = CryptoSystemEnum::getIdentifier($value);
         return $out;
     }
 

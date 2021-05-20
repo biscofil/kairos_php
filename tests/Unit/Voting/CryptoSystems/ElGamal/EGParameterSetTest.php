@@ -30,7 +30,6 @@ class EGParameterSetTest extends TestCase
     {
         $ps = EGParameterSet::random(5);
         $this->assertTrue($ps->isValid());
-        dump($ps->toString());
     }
 
 

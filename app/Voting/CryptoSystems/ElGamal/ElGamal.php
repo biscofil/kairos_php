@@ -13,7 +13,7 @@ use App\Voting\CryptoSystems\SupportsReEncryption;
  * Class ElGamal
  * @package App\Voting\CryptoSystems\ElGamal
  */
-class ElGamal extends CryptoSystem implements SupportsReEncryption
+class ElGamal implements CryptoSystem, SupportsReEncryption
 {
 
     /**
