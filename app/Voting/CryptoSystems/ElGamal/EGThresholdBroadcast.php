@@ -14,13 +14,13 @@ use phpseclib3\Math\BigInteger;
  * @property BigInteger[] $A_I_K_values
  * @property \App\Voting\CryptoSystems\ElGamal\EGParameterSet $ps
  */
-class EGThresholdBroadcast implements ThresholdBroadcast, BelongsToCryptoSystem
+class EGThresholdBroadcast implements ThresholdBroadcast
 {
 
     use BelongsToElgamal;
 
     public array $A_I_K_values;
-    public EGParameterSet $ps;
+    public $ps;
 
     /**
      * EGThresholdBroadcast constructor.
@@ -106,7 +106,10 @@ class EGThresholdBroadcast implements ThresholdBroadcast, BelongsToCryptoSystem
      */
     public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): EGThresholdBroadcast
     {
-        $ps = $ignoreParameterSet ? EGParameterSet::default() : EGParameterSet::fromArray($data['ps'], $base);
+        /** @var self $self */
+        $self = get_called_class();
+        $psClass = $self::getCryptosystem()::getParameterSetClass();
+        $ps = $ignoreParameterSet ? $psClass::getDefault() : $psClass::fromArray($data['ps'], $base);
         $a_i_k_values = array_map(function (string $f) use ($base) {
             return new BigInteger($f, $base);
         }, $data['a_i_k_values']);

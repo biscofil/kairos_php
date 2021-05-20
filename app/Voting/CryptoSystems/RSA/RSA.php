@@ -4,6 +4,7 @@
 namespace App\Voting\CryptoSystems\RSA;
 
 
+use App\Models\Election;
 use App\Voting\CryptoSystems\CryptoSystem;
 
 /**
@@ -31,6 +32,14 @@ class RSA extends CryptoSystem
     public static function getSecretKeyClass(): ?string
     {
         return RSASecretKey::class;
+    }
+
+    /**
+     * @return string|RSAKeyPair
+     */
+    public static function getKeyPairClass(): ?string
+    {
+        return RSAKeyPair::class;
     }
 
     /**
@@ -65,17 +74,23 @@ class RSA extends CryptoSystem
         return null;
     }
 
-    // #############################################################################
-    // #############################################################################
+    /**
+     * @return string|RSAParameterSet
+     */
+    public static function getParameterSetClass(): ?string
+    {
+        return RSAParameterSet::class;
+    }
+
     // #############################################################################
 
     /**
-     * @return RSAKeyPair
-     * @noinspection PhpMissingReturnTypeInspection
+     * @param \App\Models\Election $election
+     * @noinspection PhpMissingParentCallCommonInspection
      */
-    public static function generateKeypair() : RSAKeyPair
+    public static function onElectionFreeze(Election &$election): void
     {
-        return RSAKeyPair::generate();
+        // TODO self::generateCombinedPublicKey($election);
     }
 
 }

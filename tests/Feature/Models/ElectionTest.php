@@ -39,7 +39,7 @@ class ElectionTest extends TestCase
 
         $privateKeys = [];
         for ($i = 1; $i < 5; $i++) {
-            $pair = $election->cryptosystem->getCryptoSystemClass()::generateKeypair();
+            $pair = $election->cryptosystem->getCryptoSystemClass()::getKeyPairClass()::generate();
             $trusteeUser = $election->createUserTrustee(User::factory()->create());
             $trusteeUser->public_key = $pair->pk;
             //$trusteeUser->private_key = $pair->sk; // uploaded after election
@@ -102,6 +102,7 @@ class ElectionTest extends TestCase
         /** @var Election $data */
         $data = Election::factory()->make();
         $data->cryptosystem = CryptoSystemEnum::ElGamal();
+//        dd($data->toArray());
         $response = $this->actingAs($user)
             ->json('POST', 'api/elections', $data->toArray());
         $this->assertResponseStatusCode(201, $response);
@@ -111,7 +112,7 @@ class ElectionTest extends TestCase
         $privateKeys = [];
         for ($i = 1; $i < 5; $i++) {
             $user = User::factory()->create();
-            $pair = $election->cryptosystem->getCryptoSystemClass()::generateKeypair();
+            $pair = $election->cryptosystem->getCryptoSystemClass()::getKeyPairClass()::generate();
             $trusteeUser = $election->createUserTrustee($user);
             $trusteeUser->public_key = $pair->pk;
             //$trusteeUser->private_key = $pair->sk; // uploaded after election

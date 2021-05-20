@@ -10,7 +10,7 @@ use App\Models\Cast\Castable;
  * Interface PublicKey
  * @package App\Voting\CryptoSystems
  */
-interface PublicKey extends Castable
+interface PublicKey extends Castable, BelongsToCryptoSystem
 {
 
     /**
@@ -36,10 +36,11 @@ interface PublicKey extends Castable
 
     /**
      * @param Plaintext $plainText
-     * @return CipherText
+     * @return \App\Voting\CryptoSystems\CipherText
      * @noinspection PhpMissingParamTypeInspection
+     * @noinspection PhpMissingReturnTypeInspection
      */
-    public function encrypt($plainText) : CipherText;
+    public function encrypt($plainText);
 
     /**
      * @param $b

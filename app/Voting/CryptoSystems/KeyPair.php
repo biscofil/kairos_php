@@ -10,12 +10,13 @@ namespace App\Voting\CryptoSystems;
  * @property $pk
  * @property $sk
  */
-interface KeyPair
+interface KeyPair extends BelongsToCryptoSystem
 {
 
     /**
-     * @param \App\Voting\CryptoSystems\CryptoSystemParameterSet|null $parameterSet
+     * @param \App\Voting\CryptoSystems\ParameterSet|null $parameterSet
      * @return KeyPair
+     * @noinspection PhpMissingParamTypeInspection
      */
     public static function generate($parameterSet = null): KeyPair;
 

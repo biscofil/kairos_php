@@ -4,14 +4,16 @@
 namespace App\Voting\CryptoSystems\RSA;
 
 
-use App\Voting\CryptoSystems\CryptoSystemParameterSet;
+use App\Voting\CryptoSystems\ParameterSet;
 
 /**
  * Class RSAParameterSet
  * @package App\Voting\CryptoSystems\ElGamal
  */
-class RSAParameterSet implements CryptoSystemParameterSet
+class RSAParameterSet implements ParameterSet
 {
+
+    use BelongsToRSA;
 
     /**
      * RSAParameterSet constructor.
@@ -23,7 +25,7 @@ class RSAParameterSet implements CryptoSystemParameterSet
     /**
      *
      */
-    public static function default() : RSAParameterSet
+    public static function getDefault() : RSAParameterSet
     {
         return new static();
     }

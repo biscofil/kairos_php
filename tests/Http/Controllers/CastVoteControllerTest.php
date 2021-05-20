@@ -30,7 +30,12 @@ class CastVoteControllerTest extends TestCase
         $election = Election::factory()->withAdmin($user)->frozen()->create();
         $election->cryptosystem = 'rsa';
         $election->createPeerServerTrustee(PeerServer::me());
+
+        // generate key
         $election->cryptosystem->getCryptoSystemClass()::onElectionFreeze($election); // generateCombinedPublicKey
+        $keyPair = RSAKeyPair::generate();
+
+        $election->public_key = $keyPair->pk;
         $election->save();
 
         $voter = new Voter();
@@ -40,8 +45,6 @@ class CastVoteControllerTest extends TestCase
 
         $this->assertEquals(0, $voter->votes()->count());
 
-        // generate key
-        $keyPair = RSAKeyPair::generate();
 
         // generate a JSON vote structure
         $votePlain = [
@@ -64,14 +67,14 @@ class CastVoteControllerTest extends TestCase
          */
         $token = $user->getNewJwtToken();
         $response = $this->withHeaders(['Authorization' => "Bearer $token"])
-            ->json('POST', 'api/elections/' . $election->slug . '/cast', $data);
+            ->json('POST', "api/elections/$election->slug/cast", $data);
 
         $this->assertResponseStatusCode(201, $response);
 
-        $this->assertEquals(1, $voter->votes()->count());
+        $this->assertEquals(1, $election->votes()->count());
 
         /** @var CastVote $voteCast */
-        $voteCast = $voter->votes()->first();
+        $voteCast = $election->votes()->first();
 
         $out = $keyPair->sk->decrypt($voteCast->vote);
         $this->assertEquals($votePlain, JsonBallotEncoding::decode($out));

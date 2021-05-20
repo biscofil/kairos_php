@@ -6,7 +6,7 @@ namespace App\Voting\CryptoSystems;
 
 use App\Models\Cast\Castable;
 
-abstract class SecretKey implements Castable
+abstract class SecretKey implements Castable, BelongsToCryptoSystem
 {
 
     /**

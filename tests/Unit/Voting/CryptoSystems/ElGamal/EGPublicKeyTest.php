@@ -3,7 +3,7 @@
 namespace Tests\Unit\Voting\CryptoSystems\ElGamal;
 
 use App\Voting\CryptoSystems\ElGamal\DLogProof;
-use App\Voting\CryptoSystems\ElGamal\EGPrivateKey;
+use App\Voting\CryptoSystems\ElGamal\EGSecretKey;
 use App\Voting\CryptoSystems\ElGamal\EGPublicKey;
 use Exception;
 use Tests\TestCase;
@@ -83,7 +83,7 @@ class EGPublicKeyTest extends TestCase
         ], 10);
 
         $this->assertTrue(
-            $public_key->verifySecretKeyProof($dlog_proof, [EGPrivateKey::class, 'DLogChallengeGenerator'])
+            $public_key->verifySecretKeyProof($dlog_proof, [EGSecretKey::class, 'DLogChallengeGenerator'])
         );
 
     }

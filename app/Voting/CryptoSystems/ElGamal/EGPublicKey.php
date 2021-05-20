@@ -14,12 +14,12 @@ use phpseclib3\Math\BigInteger;
  * @property EGParameterSet $parameterSet
  * @property BigInteger $y
  */
-class EGPublicKey implements PublicKey, BelongsToCryptoSystem
+class EGPublicKey implements PublicKey
 {
 
     use BelongsToElgamal;
 
-    public EGParameterSet $parameterSet;
+    public $parameterSet;
     public BigInteger $y;
 
     /**
@@ -57,16 +57,19 @@ class EGPublicKey implements PublicKey, BelongsToCryptoSystem
     public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): EGPublicKey
     {
 
+        /** @var self $self */
+        $self = get_called_class();
+
         if ($ignoreParameterSet) {
             // Copy from config
             return new static(
-                EGParameterSet::default(),
+                $self::getCryptosystem()::getParameterSetClass()::getDefault(),
                 BI($data['y'], $base)
             );
         }
 
         return new static(
-            EGParameterSet::fromArray($data, $base),
+            $self::getCryptosystem()::getParameterSetClass()::fromArray($data, $base),
             BI($data['y'], $base)
         );
     }
@@ -161,10 +164,11 @@ class EGPublicKey implements PublicKey, BelongsToCryptoSystem
 
     /**
      * @param EGPlaintext $plainText
-     * @return EGCiphertext
+     * @return \App\Voting\CryptoSystems\ElGamal\EGCiphertext
      * @noinspection PhpMissingParamTypeInspection
+     * @noinspection PhpMissingReturnTypeInspection
      */
-    public function encrypt($plainText): EGCiphertext
+    public function encrypt($plainText)
     {
         /** @var EGCiphertext $ciphertext */
         /** @var BigInteger $r */
@@ -189,19 +193,35 @@ class EGPublicKey implements PublicKey, BelongsToCryptoSystem
      * @param EGPlaintext $plainText
      * @param BigInteger $randomness r
      * @return EGCiphertext
+     * @noinspection PhpMissingReturnTypeInspection
      */
-    public function encryptWithRandomness(EGPlaintext $plainText, BigInteger $randomness): EGCiphertext
+    public function encryptWithRandomness(EGPlaintext $plainText, BigInteger $randomness)
     {
 
         $m = $plainText->m;
+
         $m = $this->parameterSet->mapMessageIntoSubgroup($m);
+
+        $m = $this->getMToEncrypt($m);
 
         // alpha = g^r mod p
         $alpha = $this->parameterSet->g->modPow($randomness, $this->parameterSet->p);
         // beta = m*(y^r) mod p
         $beta = $m->multiply($this->y->modPow($randomness, $this->parameterSet->p))->modPow(BI1(), $this->parameterSet->p);
 
-        return new EGCiphertext($this, $alpha, $beta);
+        /** @var self $self */
+        $self = get_called_class();
+        $ctClass = $self::getCryptosystem()::getCipherTextClass();
+        return new $ctClass($this, $alpha, $beta);
+    }
+
+    /**
+     * @param \phpseclib3\Math\BigInteger $m
+     * @return \phpseclib3\Math\BigInteger
+     */
+    public function getMToEncrypt(BigInteger $m): BigInteger
+    {
+        return $m;
     }
 
 }

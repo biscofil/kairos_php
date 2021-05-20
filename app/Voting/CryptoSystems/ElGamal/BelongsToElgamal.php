@@ -12,7 +12,7 @@ trait BelongsToElgamal
 {
 
     /**
-     * @return string
+     * @return string|ElGamal
      */
     public static function getCryptosystem() : string
     {

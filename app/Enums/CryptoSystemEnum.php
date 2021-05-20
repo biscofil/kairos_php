@@ -8,11 +8,13 @@ use BenSampo\Enum\Enum;
 /**
  * @method static static RSA()
  * @method static static ElGamal()
+ * @method static static ExponentialElGamal()
  */
 final class CryptoSystemEnum extends Enum
 {
     public const RSA = 'rsa';
     public const ElGamal = 'eg';
+    public const ExponentialElGamal = 'exp_eg';
 
     /**
      * @return string|CryptoSystem

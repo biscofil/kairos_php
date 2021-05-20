@@ -3,22 +3,21 @@
 
 namespace App\Voting\CryptoSystems\ElGamal;
 
-use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\SecretKey;
 use phpseclib3\Math\BigInteger;
 
 /**
- * Class EGPrivateKey
+ * Class EGSecretKey
  * @package App
  * @property EGPublicKey $pk
  * @property BigInteger $x
  */
-class EGPrivateKey extends SecretKey implements BelongsToCryptoSystem
+class EGSecretKey extends SecretKey
 {
 
     use BelongsToElgamal;
 
-    public EGPublicKey $pk;
+    public $pk;
     public BigInteger $x;
 
     /**
@@ -33,11 +32,11 @@ class EGPrivateKey extends SecretKey implements BelongsToCryptoSystem
     }
 
     /**
-     * @param \App\Voting\CryptoSystems\ElGamal\EGPrivateKey $b
+     * @param \App\Voting\CryptoSystems\ElGamal\EGSecretKey $b
      * @return bool
      * @throws \Exception
      */
-    public function equals(EGPrivateKey $b): bool
+    public function equals(EGSecretKey $b): bool
     {
         return $this->x->equals($b->x) && $this->pk->equals($b->pk);
     }
@@ -50,12 +49,13 @@ class EGPrivateKey extends SecretKey implements BelongsToCryptoSystem
      * @param array $data
      * @param bool $ignoreParameterSet
      * @param int $base
-     * @return EGPrivateKey
+     * @return EGSecretKey
      */
-    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): EGPrivateKey
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): self
     {
-        return new EGPrivateKey(
-            EGPublicKey::fromArray($data['pk'], $ignoreParameterSet, $base),
+        $pkClass = self::getCryptosystem()::getPublicKeyClass();
+        return new static(
+            $pkClass::fromArray($data['pk'], $ignoreParameterSet, $base),
             BI($data['x'], $base)
         );
     }
@@ -124,7 +124,22 @@ class EGPrivateKey extends SecretKey implements BelongsToCryptoSystem
 
         $m = $this->pk->parameterSet->extractMessageFromSubgroup($m);
 
-        return new EGPlaintext($m);
+        $m = $this->getMOnceFullyDecrypted($m); // extractMessageFromSubgroup
+
+        /** @var self $self */
+        $self = get_called_class();
+
+        $ptClass = $self::getCryptosystem()::getPlainTextClass();
+        return new $ptClass($m);
+    }
+
+    /**
+     * @param \phpseclib3\Math\BigInteger $m
+     * @return \phpseclib3\Math\BigInteger
+     */
+    public function getMOnceFullyDecrypted(BigInteger $m): BigInteger
+    {
+        return $m;
     }
 
     // ##############################################################
@@ -170,11 +185,11 @@ class EGPrivateKey extends SecretKey implements BelongsToCryptoSystem
     // ##############################################################
 
     /**
-     * @param EGPrivateKey|null $b
-     * @return EGPrivateKey
+     * @param EGSecretKey|null $b
+     * @return EGSecretKey
      * @throws \Exception
      */
-    public function combine(?EGPrivateKey $b): EGPrivateKey
+    public function combine(?EGSecretKey $b): self
     {
 
         if (is_null($b)) {
@@ -183,7 +198,7 @@ class EGPrivateKey extends SecretKey implements BelongsToCryptoSystem
 
         $this->pk->ensureSameParameters($b->pk);
 
-        return new EGPrivateKey(
+        return new static(
             $this->pk,
             $this->x->add($b->x->powMod(BI1(), $this->pk->parameterSet->p))
         );
@@ -204,10 +219,14 @@ class EGPrivateKey extends SecretKey implements BelongsToCryptoSystem
         if ($lastStep) {
             // if this is the last partial decryption we must extract from the subgroup
             $beta = $this->pk->parameterSet->extractMessageFromSubgroup($beta);
+            $beta = $this->getMOnceFullyDecrypted($beta); // extractMessageFromSubgroup
             // TODO return plaintext
         }
 
-        return new EGCiphertext(
+        /** @var self $self */
+        $self = get_called_class();
+        $ctClass = $self::getCryptosystem()::getCipherTextClass();
+        return new $ctClass(
             $cipher->pk,
             $cipher->alpha,
             $beta
@@ -224,7 +243,10 @@ class EGPrivateKey extends SecretKey implements BelongsToCryptoSystem
      */
     public function getThresholdPolynomial(int $t): EGThresholdPolynomial
     {
-        return EGThresholdPolynomial::random($this->x, $t, $this->pk->parameterSet);
+        /** @var self $self */
+        $self = get_called_class();
+        $tpClass = $self::getCryptosystem()::getThresholdPolynomialClass();
+        return $tpClass::random($this->x, $t, $this->pk->parameterSet);
     }
 
 }

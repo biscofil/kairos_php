@@ -19,7 +19,7 @@ class EGParameterSetTest extends TestCase
      */
     public function default_ps()
     {
-        $ps = EGParameterSet::default();
+        $ps = EGParameterSet::getDefault();
         $this->assertTrue($ps->isValid());
     }
 

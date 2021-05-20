@@ -6,6 +6,7 @@ namespace App\Voting\CryptoSystems;
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
 use App\Voting\CryptoSystems\ElGamal\ElGamal;
+use App\Voting\CryptoSystems\ExpElGamal\ExpElGamal;
 use App\Voting\CryptoSystems\RSA\RSA;
 
 /**
@@ -17,11 +18,10 @@ abstract class CryptoSystem
 
     public const CRYPTOSYSTEMS = [
         CryptoSystemEnum::ElGamal => ElGamal::class,
+        CryptoSystemEnum::ExponentialElGamal => ExpElGamal::class,
         CryptoSystemEnum::RSA => RSA::class
     ];
 
-    // #############################################################################
-    // #############################################################################
     // #############################################################################
 
     /**
@@ -33,6 +33,11 @@ abstract class CryptoSystem
      * @return string|null|\App\Voting\CryptoSystems\SecretKey
      */
     abstract public static function getSecretKeyClass(): ?string;
+
+    /**
+     * @return string|null|\App\Voting\CryptoSystems\KeyPair
+     */
+    abstract public static function getKeyPairClass(): ?string;
 
     /**
      * @return string|null|\App\Voting\CryptoSystems\Plaintext
@@ -54,8 +59,11 @@ abstract class CryptoSystem
      */
     abstract public static function getThresholdBroadcastClass(): ?string;
 
-    // #############################################################################
-    // #############################################################################
+    /**
+     * @return string|null|\App\Voting\CryptoSystems\ParameterSet
+     */
+    abstract public static function getParameterSetClass(): ?string;
+
     // #############################################################################
 
     /**
@@ -87,19 +95,9 @@ abstract class CryptoSystem
     // #############################################################################
 
     /**
-     * @return KeyPair
-     */
-    abstract public static function generateKeypair() : KeyPair;
-
-    // #############################################################################
-
-    /**
      * @param Election $election
      */
-    public static function onElectionFreeze(Election &$election): void
-    {
-        // do nothing, Example: RSA
-    }
+    abstract public static function onElectionFreeze(Election &$election): void;
 
     /**
      * @param Election $election

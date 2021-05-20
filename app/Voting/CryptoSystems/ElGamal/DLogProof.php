@@ -6,6 +6,7 @@ namespace App\Voting\CryptoSystems\ElGamal;
 use phpseclib3\Math\BigInteger;
 
 /**
+ * TODO
  * Class DLogProof
  * @package App\Voting\CryptoSystems\ElGamal;
  * Discrete Logarithm

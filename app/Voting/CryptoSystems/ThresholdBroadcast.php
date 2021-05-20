@@ -7,7 +7,7 @@ namespace App\Voting\CryptoSystems;
 use App\Models\Cast\Castable;
 use phpseclib3\Math\BigInteger;
 
-interface ThresholdBroadcast extends Castable
+interface ThresholdBroadcast extends Castable, BelongsToCryptoSystem
 {
 
     /**

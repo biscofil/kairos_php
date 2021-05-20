@@ -12,6 +12,8 @@ use App\Voting\CryptoSystems\Plaintext;
  */
 class RSAPlaintext implements Plaintext
 {
+    use BelongsToRSA;
+
     public string $plainText;
 
     /**

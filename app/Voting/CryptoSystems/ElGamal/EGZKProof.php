@@ -7,6 +7,7 @@ namespace App\Voting\CryptoSystems\ElGamal;
 use phpseclib3\Math\BigInteger;
 
 /**
+ *
  * Class EGZKProof
  * @package App\Voting\CryptoSystems\ElGamal;
  * @property Commitment commitment

@@ -3,8 +3,8 @@
 
 namespace App\Voting\CryptoSystems\RSA;
 
-use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\CipherText;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * Class RSACiphertext
@@ -12,7 +12,7 @@ use App\Voting\CryptoSystems\CipherText;
  * @property RSAPublicKey $pk
  * @property string $cipherText
  */
-class RSACiphertext implements CipherText, BelongsToCryptoSystem
+class RSACiphertext implements CipherText
 {
 
     use BelongsToRSA;
@@ -41,7 +41,7 @@ class RSACiphertext implements CipherText, BelongsToCryptoSystem
     {
         return new static(
             $publicKey ?? RSAPublicKey::fromArray($data['pk'], $ignoreParameterSet, $base),
-            $data['c'],
+            base64_decode($data['c'])
         );
     }
 
@@ -53,7 +53,7 @@ class RSACiphertext implements CipherText, BelongsToCryptoSystem
     public function toArray(bool $includePublicKey = false, bool $ignoreParameterSet = false): array
     {
         $out = [
-            'c' => $this->cipherText
+            'c' => base64_encode($this->cipherText)
         ];
         if ($includePublicKey) {
             $out['pk'] = $this->pk->toArray($ignoreParameterSet);
@@ -92,10 +92,13 @@ class RSACiphertext implements CipherText, BelongsToCryptoSystem
     /**
      * @param array $data
      * @return array
+     * @throws \Illuminate\Validation\ValidationException
      */
     public static function validate(array $data): array
     {
-        return []; // TODO
+        return Validator::make($data, [
+            'c' => ['required', 'string'],
+        ])->validated();
     }
 
 }

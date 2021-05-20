@@ -7,7 +7,7 @@ namespace App\Voting\CryptoSystems;
 use App\Models\Cast\Castable;
 use phpseclib3\Math\BigInteger;
 
-interface ThresholdPolynomial extends Castable
+interface ThresholdPolynomial extends Castable, BelongsToCryptoSystem
 {
 
     /**
@@ -16,7 +16,7 @@ interface ThresholdPolynomial extends Castable
      * @param int $base
      * @return static
      */
-    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16) : self;
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): self;
 
     /**
      * @param bool $ignoreParameterSet
@@ -35,6 +35,6 @@ interface ThresholdPolynomial extends Castable
      * @param int $j
      * @return \phpseclib3\Math\BigInteger
      */
-    public function getShare(int $j) : BigInteger;
+    public function getShare(int $j): BigInteger;
 
 }

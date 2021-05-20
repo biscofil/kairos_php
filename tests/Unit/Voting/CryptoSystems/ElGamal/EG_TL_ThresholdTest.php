@@ -39,7 +39,7 @@ class EG_TL_ThresholdTest extends TestCase
 //            BI(311),
 //            BI(31),
 //        );
-        $parameterSet = EGParameterSet::default();
+        $parameterSet = EGParameterSet::getDefault();
 //        dump($parameterSet->toString());
 
         $t = 3;
@@ -151,7 +151,7 @@ class EG_TL_ThresholdTest extends TestCase
 
         // G=49, P=311, Q=31
 //        $parameterSet = new EGParameterSet(BI(49), BI(311), BI(31),);
-        $parameterSet = EGParameterSet::default();
+        $parameterSet = EGParameterSet::getDefault();
 //        dump($parameterSet->toString());
 
         $t = rand(4, 8);

@@ -16,6 +16,7 @@ use phpseclib3\Crypt\RSA\PrivateKey;
  */
 class RSAKeyPair implements KeyPair
 {
+    use BelongsToRSA;
 
     public RSAPublicKey $pk;
     public RSASecretKey $sk;

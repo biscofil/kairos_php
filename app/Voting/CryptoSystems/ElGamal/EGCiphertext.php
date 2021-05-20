@@ -18,14 +18,14 @@ use RuntimeException;
  * @property BigInteger $alpha
  * @property BigInteger $beta
  */
-class EGCiphertext implements CipherText, BelongsToCryptoSystem
+class EGCiphertext implements CipherText
 {
 
     use BelongsToElgamal;
 
-    public EGPublicKey $pk;
-    public BigInteger $alpha;
-    public BigInteger $beta;
+    public $pk;
+    public $alpha;
+    public $beta;
 
     public function __construct(EGPublicKey $pk, BigInteger $alpha, BigInteger $beta)
     {
@@ -60,10 +60,14 @@ class EGCiphertext implements CipherText, BelongsToCryptoSystem
      * @param int $base
      * @return EGCiphertext
      */
-    public static function fromArray(array $data, $publicKey = null, bool $ignoreParameterSet = false, int $base = 16): EGCiphertext
+    public static function fromArray(array $data, $publicKey = null, bool $ignoreParameterSet = false, int $base = 16): self
     {
+
+        /** @var self $self */
+        $self = get_called_class();
+
         return new static(
-            $publicKey ?? EGPublicKey::fromArray($data['pk'], $ignoreParameterSet, $base),
+            $publicKey ?? $self::getCryptosystem()::getPublicKeyClass()::fromArray($data['pk'], $ignoreParameterSet, $base),
             BI($data['alpha'], $base),
             BI($data['beta'], $base)
         );
@@ -156,7 +160,7 @@ class EGCiphertext implements CipherText, BelongsToCryptoSystem
      * @param BigInteger $randomness
      * @return EGCiphertext
      */
-    public function decryptWithRandomness(BigInteger $randomness): EGCiphertext
+    public function decryptWithRandomness(BigInteger $randomness): self
     {
 
         // a = a * (g ^ r mod p)^-1
@@ -202,7 +206,13 @@ class EGCiphertext implements CipherText, BelongsToCryptoSystem
      */
     public function equals($b): bool
     {
-        if (!$b instanceof EGCiphertext) {
+
+        /** @var self $self */
+        $self = get_called_class();
+
+        $cpClass = $self::getCryptosystem()::getCipherTextClass();
+
+        if (!$b instanceof $cpClass) {
             throw new RuntimeException('EGCiphertext::equals > invalid type, must be EGCiphertext');
         }
         $this->pk->ensureSameParameters($b->pk);

@@ -5,30 +5,30 @@ namespace App\Voting\CryptoSystems;
 
 
 /**
- * Interface CryptoSystemParameterSet
+ * Interface ParameterSet
  * @package App\Voting\CryptoSystems
  */
-interface CryptoSystemParameterSet
+interface ParameterSet extends BelongsToCryptoSystem
 {
 
     /**
-     * @return CryptoSystemParameterSet
+     * @return ParameterSet
      * @noinspection PhpMissingReturnTypeInspection
      */
-    public static function default() : CryptoSystemParameterSet;
+    public static function getDefault(): self;
 
     /**
      * @return string
      */
-    public function toString() : string;
+    public function toString(): string;
 
     /**
      * @param array $data
      * @param int $base
-     * @return CryptoSystemParameterSet
+     * @return ParameterSet
      * @noinspection PhpMissingReturnTypeInspection
      */
-    public static function fromArray(array $data, int $base = 16) : CryptoSystemParameterSet;
+    public static function fromArray(array $data, int $base = 16): self;
 
     /**
      * @return array
@@ -36,7 +36,7 @@ interface CryptoSystemParameterSet
     public function toArray(): array;
 
     /**
-     * @param CryptoSystemParameterSet $parameterSet
+     * @param ParameterSet $parameterSet
      * @return bool
      * @noinspection PhpMissingParamTypeInspection
      */

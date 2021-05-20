@@ -15,7 +15,7 @@ use phpseclib3\Crypt\RSA\PublicKey as phpsecRSA;
  * @package App\Voting\CryptoSystems\RSA
  * @property phpsecRSA $value
  */
-class RSAPublicKey implements PublicKey, BelongsToCryptoSystem
+class RSAPublicKey implements PublicKey
 {
 
     use BelongsToRSA;
@@ -108,10 +108,10 @@ class RSAPublicKey implements PublicKey, BelongsToCryptoSystem
 
     /**
      * @param RSAPlaintext $plainText
-     * @return RSACiphertext
+     * @return
      * @noinspection PhpMissingParamTypeInspection
      */
-    public function encrypt($plainText): RSACiphertext
+    public function encrypt($plainText)
     {
         return new RSACiphertext($this, $this->value->encrypt($plainText->cipherText));
     }

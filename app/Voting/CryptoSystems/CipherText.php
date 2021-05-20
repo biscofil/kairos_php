@@ -10,7 +10,7 @@ use App\Models\Cast\Castable;
  * Class CipherText
  * @package App\Voting\CryptoSystems
  */
-interface CipherText extends Castable
+interface CipherText extends Castable, BelongsToCryptoSystem
 {
 
     /**

@@ -4,7 +4,7 @@
 namespace App\Voting\CryptoSystems\ElGamal;
 
 
-use App\Voting\CryptoSystems\CryptoSystemParameterSet;
+use App\Voting\CryptoSystems\ParameterSet;
 use phpseclib3\Math\BigInteger;
 
 /**
@@ -14,8 +14,10 @@ use phpseclib3\Math\BigInteger;
  * @property BigInteger $q big prime which is a factor of $p-1
  * @property BigInteger $g q such that q^g mod p = 1
  */
-class EGParameterSet implements CryptoSystemParameterSet
+class EGParameterSet implements ParameterSet
 {
+
+    use BelongsToElgamal;
 
     /**
      * @var BigInteger
@@ -48,7 +50,7 @@ class EGParameterSet implements CryptoSystemParameterSet
     /**
      *
      */
-    public static function default(): EGParameterSet
+    public static function getDefault(): self
     {
         $p = BI(config('elgamal.p'), config('elgamal.base')); // prime p
         // NOTE: Q,G are inverted!!!
@@ -63,7 +65,7 @@ class EGParameterSet implements CryptoSystemParameterSet
      * @param int $size
      * @return static
      */
-    public static function random(int $size = 10): EGParameterSet
+    public static function random(int $size = 10): self
     {
         // find a prime g
         $q = BigInteger::randomPrime($size);
@@ -85,8 +87,6 @@ class EGParameterSet implements CryptoSystemParameterSet
     }
 
     // ############################################################
-    // ############################################################
-    // ############################################################
 
     /**
      * @return string
@@ -101,7 +101,7 @@ class EGParameterSet implements CryptoSystemParameterSet
      * @param int $base
      * @return static
      */
-    public static function fromArray(array $data, int $base = 16): EGParameterSet
+    public static function fromArray(array $data, int $base = 16): self
     {
         return new static(
             BI($data['g'], $base),
@@ -122,8 +122,6 @@ class EGParameterSet implements CryptoSystemParameterSet
         ];
     }
 
-    // ############################################################
-    // ############################################################
     // ############################################################
 
     /**
@@ -153,8 +151,6 @@ class EGParameterSet implements CryptoSystemParameterSet
         return $m->subtract(BI1());
     }
 
-    // ############################################################
-    // ############################################################
     // ############################################################
 
     /**

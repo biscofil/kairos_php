@@ -20,7 +20,7 @@ class EGKeyPairTest extends TestCase
     public function generate()
     {
 
-        $ps = EGParameterSet::default();
+        $ps = EGParameterSet::getDefault();
         $pair = EGKeyPair::generate($ps);
         $this->assertValidEGKeyPair($pair->pk, $pair->sk);
 

@@ -3,7 +3,7 @@
 namespace Tests;
 
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
-use App\Voting\CryptoSystems\ElGamal\EGPrivateKey;
+use App\Voting\CryptoSystems\ElGamal\EGSecretKey;
 use App\Voting\CryptoSystems\ElGamal\EGPublicKey;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
@@ -35,9 +35,9 @@ abstract class TestCase extends BaseTestCase
 
     /**
      * @param \App\Voting\CryptoSystems\ElGamal\EGPublicKey $pk
-     * @param \App\Voting\CryptoSystems\ElGamal\EGPrivateKey $sk
+     * @param \App\Voting\CryptoSystems\ElGamal\EGSecretKey $sk
      */
-    public function assertValidEGKeyPair(EGPublicKey $pk, EGPrivateKey $sk)
+    public function assertValidEGKeyPair(EGPublicKey $pk, EGSecretKey $sk)
     {
         $p = new EGPlaintext(randomBIgt($pk->parameterSet->q));
         $c = $pk->encrypt($p);

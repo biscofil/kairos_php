@@ -14,13 +14,13 @@ use phpseclib3\Math\BigInteger;
  * @property BigInteger[] $factors
  * @property EGParameterSet $ps
  */
-class EGThresholdPolynomial implements ThresholdPolynomial, BelongsToCryptoSystem
+class EGThresholdPolynomial implements ThresholdPolynomial
 {
 
     use BelongsToElgamal;
 
     public array $factors;
-    public EGParameterSet $ps;
+    public $ps;
 
     /**
      * EGThresholdPolynomial constructor.
@@ -80,7 +80,10 @@ class EGThresholdPolynomial implements ThresholdPolynomial, BelongsToCryptoSyste
             $values[] = $A_i_k;
         }
 //        dump("{$this->id} is broadcasting " . $b->toString());
-        return new EGThresholdBroadcast($values, $this->ps);
+        /** @var self $self */
+        $self = get_called_class();
+        $tbClass = $self::getCryptosystem()::getThresholdBroadcastClass();
+        return new $tbClass($values, $this->ps);
     }
 
     /**
@@ -139,7 +142,10 @@ class EGThresholdPolynomial implements ThresholdPolynomial, BelongsToCryptoSyste
      */
     public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): EGThresholdPolynomial
     {
-        $ps = $ignoreParameterSet ? EGParameterSet::default() : EGParameterSet::fromArray($data['ps'], $base);
+        /** @var self $self */
+        $self = get_called_class();
+        $psClass = $self::getCryptosystem()::getParameterSetClass();
+        $ps = $ignoreParameterSet ? $psClass::getDefault() : $psClass::fromArray($data['ps'], $base);
         $factors = array_map(function (string $f) use ($base) {
             return new BigInteger($f, $base);
         }, $data['factors']);

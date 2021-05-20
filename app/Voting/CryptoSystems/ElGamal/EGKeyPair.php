@@ -12,17 +12,17 @@ use Illuminate\Support\Facades\Storage;
  * Class EGKeyPair
  * @package App\Voting\CryptoSystems\ElGamal;
  * @property EGPublicKey $pk
- * @property EGPrivateKey $sk
+ * @property EGSecretKey $sk
  */
-class EGKeyPair implements KeyPair, SupportsThresholdEncryption, BelongsToCryptoSystem
+class EGKeyPair implements KeyPair, SupportsThresholdEncryption
 {
 
     use BelongsToElgamal;
 
-    public EGPublicKey $pk;
-    public EGPrivateKey $sk;
+    public $pk;
+    public $sk;
 
-    public function __construct(EGPublicKey $pk, EGPrivateKey $sk)
+    public function __construct(EGPublicKey $pk, EGSecretKey $sk)
     {
         $this->pk = $pk;
         $this->sk = $sk;
@@ -32,10 +32,13 @@ class EGKeyPair implements KeyPair, SupportsThresholdEncryption, BelongsToCrypto
      * Generate an ElGamal keypair
      * @param \App\Voting\CryptoSystems\ElGamal\EGParameterSet $parameterSet
      */
-    public static function generate($parameterSet = null): EGKeyPair // TODO add threshold boolean
+    public static function generate($parameterSet = null): self // TODO add threshold boolean
     {
 
-        $parameterSet = is_null($parameterSet) ? EGParameterSet::default() : $parameterSet;
+        /** @var self $self */
+        $self = get_called_class();
+
+        $parameterSet = is_null($parameterSet) ? $self::getCryptosystem()::getParameterSetClass()::getDefault() : $parameterSet;
 
         // TODO if threshold {
         // TODO     EGThresholdPolynomial::random($degree, $this->pk);
@@ -44,11 +47,15 @@ class EGKeyPair implements KeyPair, SupportsThresholdEncryption, BelongsToCrypto
         $x = randomBIgt($parameterSet->q); // TODO check
         $y = $parameterSet->g->modPow($x, $parameterSet->p); // also called h
 
-        $pk = new EGPublicKey($parameterSet, $y);
-        $sk = new EGPrivateKey($pk, $x);
+        $pkCLass = $self::getCryptosystem()::getPublicKeyClass();
+        $pk = new $pkCLass($parameterSet, $y);
+
+//        $pk = new EGPublicKey($parameterSet, $y);
+        $skCLass = $self::getCryptosystem()::getSecretKeyClass();
+        $sk = new $skCLass($pk, $x);
         // TODO }
 
-        return new EGKeyPair($pk, $sk);
+        return new static($pk, $sk);
     }
 
     /**
@@ -64,12 +71,15 @@ class EGKeyPair implements KeyPair, SupportsThresholdEncryption, BelongsToCrypto
      * @param string $filePath Example: "private_key.json"
      * @return EGKeyPair
      */
-    public static function fromFile(string $filePath): EGKeyPair
+    public static function fromFile(string $filePath): self
     {
         $content = Storage::get($filePath);
-        $sk = EGPrivateKey::fromArray(json_decode($content, true));
+
+        /** @var self $self */
+        $self = get_called_class();
+        $sk = $self::getCryptosystem()::getSecretKeyClass()::fromArray(json_decode($content, true));
         $pk = $sk->pk;
-        return new EGKeyPair($pk, $sk);
+        return new static($pk, $sk);
     }
 
 }

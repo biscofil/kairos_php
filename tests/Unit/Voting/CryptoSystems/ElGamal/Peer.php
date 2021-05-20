@@ -6,7 +6,7 @@ namespace Tests\Unit\Voting\CryptoSystems\ElGamal;
 
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\ElGamal\EGParameterSet;
-use App\Voting\CryptoSystems\ElGamal\EGPrivateKey;
+use App\Voting\CryptoSystems\ElGamal\EGSecretKey;
 use App\Voting\CryptoSystems\ElGamal\EGPublicKey;
 use App\Voting\CryptoSystems\ElGamal\EGThresholdBroadcast;
 use App\Voting\CryptoSystems\ElGamal\EGThresholdPolynomial;
@@ -20,8 +20,8 @@ use phpseclib3\Math\BigInteger;
  * @property EGParameterSet $ps
  * @property EGThresholdPolynomial $polynomial
  * @property EGThresholdBroadcast[] $receivedBroadcasts
- * @property EGPrivateKey $sk
- * @property EGPrivateKey $skShare
+ * @property EGSecretKey $sk
+ * @property EGSecretKey $skShare
  * @property EGPublicKey $pk
  * @property BigInteger[] $shareSent
  * @property BigInteger[] $receivedShares
@@ -36,8 +36,8 @@ class Peer
     public EGParameterSet $ps;
     public EGThresholdPolynomial $polynomial;
     public array $receivedBroadcasts = [];
-    public EGPrivateKey $sk;
-    public EGPrivateKey $skShare;
+    public EGSecretKey $sk;
+    public EGSecretKey $skShare;
     public EGPublicKey $pk;
     public array $sharesSent = [];
     public array $receivedShares = [];
@@ -101,9 +101,9 @@ class Peer
 
     /**
      * @param \App\Voting\CryptoSystems\ElGamal\EGPublicKey $pk
-     * @return \App\Voting\CryptoSystems\ElGamal\EGPrivateKey
+     * @return \App\Voting\CryptoSystems\ElGamal\EGSecretKey
      */
-    public function computeX_j(EGPublicKey $pk): EGPrivateKey
+    public function computeX_j(EGPublicKey $pk): EGSecretKey
     {
         $this->receivedShares["$this->id"] = $this->getShareToSend($this->id);
         $s = $this->getShareToSend($this->id); // self share
@@ -114,7 +114,7 @@ class Peer
             $str .= "+{$recSh->toString()}";
         }
 //        dump("     > x_{$this->id}  = $str mod {$this->ps->p} = " . $s->toString());
-        return new EGPrivateKey($pk, $s);
+        return new EGSecretKey($pk, $s);
     }
 
     /**

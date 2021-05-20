@@ -5,6 +5,7 @@ namespace App\Voting\CryptoSystems\ElGamal;
 use phpseclib3\Math\BigInteger;
 
 /**
+ * TODO
  * Class Commitment
  * @package App\Voting\CryptoSystems\ElGamal;
  * @property BigInteger a

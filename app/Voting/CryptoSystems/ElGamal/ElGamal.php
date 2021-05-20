@@ -16,10 +16,6 @@ use App\Voting\CryptoSystems\SupportsReEncryption;
 class ElGamal extends CryptoSystem implements SupportsReEncryption
 {
 
-    // #############################################################################
-    // #############################################################################
-    // #############################################################################
-
     /**
      * @return string|EGPublicKey
      */
@@ -29,11 +25,19 @@ class ElGamal extends CryptoSystem implements SupportsReEncryption
     }
 
     /**
-     * @return string|EGPrivateKey
+     * @return string|EGSecretKey
      */
     public static function getSecretKeyClass(): ?string
     {
-        return EGPrivateKey::class;
+        return EGSecretKey::class;
+    }
+
+    /**
+     * @return string|EGKeyPair
+     */
+    public static function getKeyPairClass(): ?string
+    {
+        return EGKeyPair::class;
     }
 
     /**
@@ -68,17 +72,12 @@ class ElGamal extends CryptoSystem implements SupportsReEncryption
         return EGThresholdBroadcast::class;
     }
 
-    // #############################################################################
-    // #############################################################################
-    // #############################################################################
-
     /**
-     * @return EGKeyPair
-     * @noinspection PhpMissingReturnTypeInspection
+     * @return string|EGParameterSet
      */
-    public static function generateKeypair() : EGKeyPair
+    public static function getParameterSetClass(): ?string
     {
-        return EGKeyPair::generate();
+        return EGParameterSet::class;
     }
 
     // #########################################################################
@@ -122,8 +121,8 @@ class ElGamal extends CryptoSystem implements SupportsReEncryption
      */
     public static function generateCombinedPrivateKey(Election &$election): void
     {
-        /** @var EGPrivateKey $out */
-        $election->private_key = $election->trustees()->get()->reduce(function (?EGPrivateKey $carry, Trustee $trustee): EGPrivateKey {
+        /** @var EGSecretKey $out */
+        $election->private_key = $election->trustees()->get()->reduce(function (?EGSecretKey $carry, Trustee $trustee): EGSecretKey {
             return $trustee->private_key->combine($carry);
         });
     }
