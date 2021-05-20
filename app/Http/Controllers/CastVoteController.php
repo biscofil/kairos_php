@@ -7,6 +7,7 @@ use App\Models\CastVote;
 use App\Models\Election;
 use App\Voting\CryptoSystems\CipherText;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Vuetable\Vuetable;
 
 /**
@@ -17,10 +18,11 @@ class CastVoteController extends Controller
 {
 
     /**
+     * @param \App\Models\Election $election
      * @return \Illuminate\Pagination\LengthAwarePaginator
      * @throws \Exception
      */
-    public function index(Election $election)
+    public function index(Election $election): LengthAwarePaginator
     {
         return Vuetable::of($election->votes()->getQuery())->make();
     }
