@@ -122,9 +122,11 @@ function getLagrangianCoefficientMod(array $I, int $j, BigInteger $mod): BigInte
  * Log
  * @param string $msg
  * @param \App\Models\PeerServer|null $messageDestinationServer
+ * @param \App\Models\PeerServer|null $messageSenderServer
  */
-function websocketLog(string $msg, ?PeerServer $messageDestinationServer = null): void
+function websocketLog(string $msg, ?PeerServer $messageDestinationServer = null, ?PeerServer $messageSenderServer = null): void
 {
     Log::debug($msg);
-    WebsocketLog::dispatch($msg, $messageDestinationServer);
+    $messageSenderServer = $messageSenderServer ?? PeerServer::me();
+    WebsocketLog::dispatch($msg, $messageDestinationServer, $messageSenderServer);
 }

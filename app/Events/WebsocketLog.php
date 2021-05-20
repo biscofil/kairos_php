@@ -12,7 +12,7 @@ use Illuminate\Queue\SerializesModels;
  * Class WebsocketLog
  * @package App\Events
  * @property string $message
- * @property string $me
+ * @property null|string $messageSenderServer
  * @property null|string $messageDestionationServer
  */
 class WebsocketLog implements ShouldBroadcast
@@ -21,15 +21,15 @@ class WebsocketLog implements ShouldBroadcast
     use InteractsWithSockets;
     use SerializesModels;
 
-    public string $me;
+    public ?string $messageSenderServer;
     public ?string $messageDestionationServer;
 
     public string $message;
 
-    public function __construct(string $message, ?PeerServer $messageDestionationServer = null)
+    public function __construct(string $message, ?PeerServer $messageDestionationServer = null, ?PeerServer $messageSenderServer = null)
     {
-        $this->me = PeerServer::me()->domain;
         $this->message = $message;
+        $this->messageSenderServer = $messageSenderServer ? $messageSenderServer->domain : null;
         $this->messageDestionationServer = $messageDestionationServer ? $messageDestionationServer->domain : null;
     }
 

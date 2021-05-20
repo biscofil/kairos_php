@@ -45,6 +45,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * @method static self|null find(int|array $array)
  * @method static self firstOrFail()
  * @method static self|Builder unknown()
+ * @method static self|Builder ignoreMyself()
  * @method static self|Builder withDomain(string $domain)
  * @method static self|null first()
  * @method static findOrFail($id)
@@ -103,6 +104,15 @@ class PeerServer extends Authenticatable implements JWTSubject
     {
         return $builder->whereNull('token')
             ->where('peer_servers.id', '<>', PeerServer::meID); // ignore myself
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     * @return \Illuminate\Database\Eloquent\Builder
+     * @noinspection PhpUnused
+     */
+    public static function scopeIgnoreMyself(Builder $builder): Builder{
+        return $builder->where('peer_servers.id', '<>', PeerServer::meID); // ignore myself
     }
 
     /**

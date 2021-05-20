@@ -10,6 +10,7 @@ use App\P2P\Messages\Freeze\Freeze2IAmReadyForFreeze\Freeze2IAmReadyForFreezeReq
 use App\P2P\Messages\Freeze\Freeze3CommitFail\Freeze3CommitFailRequest;
 use App\P2P\Messages\Freeze\ThisIsMyThresholdBroadcast\ThisIsMyThresholdBroadcastRequest;
 use App\P2P\Messages\GiveMeYourMixSet\GiveMeYourMixSetRequest;
+use App\P2P\Messages\Heartbeat\HeartBeatRequest;
 use App\P2P\Messages\IReceivedTheseVotes\IReceivedTheseVotesRequest;
 use App\P2P\Messages\WillYouBeAElectionTrusteeForMyElection\WillYouBeAElectionTrusteeForMyElectionRequest;
 use App\P2P\P2PHttp;
@@ -36,6 +37,8 @@ abstract class P2PMessageRequest extends P2PMessage
     // register here all the messages
     public static array $requestMessages = [
         AddMeToYourPeersRequest::class,
+        //
+        HeartBeatRequest::class,
         //
         WillYouBeAElectionTrusteeForMyElectionRequest::class,
         // freeze

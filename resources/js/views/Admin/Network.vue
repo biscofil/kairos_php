@@ -27,7 +27,7 @@
                 <h1>Log</h1>
                 <ul>
                     <li v-for="message in messages">
-                        <b>{{ message.me }}</b> {{ message.message }}
+                        <b>{{ message.messageSenderServer }}</b> {{ message.message }}
                     </li>
                 </ul>
             </div>
@@ -104,8 +104,8 @@ export default {
     methods: {
         onMessageReceived(message) {
             this.messages.unshift(message);
-            if (message.me && message.messageDestionationServer) {
-                let from_domain = message.me;
+            if (message.messageSenderServer && message.messageDestionationServer) {
+                let from_domain = message.messageSenderServer;
                 let to_domain = message.messageDestionationServer;
                 this.$refs.map.flyPlane(from_domain, to_domain);
             }

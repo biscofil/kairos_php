@@ -99,9 +99,11 @@ class P2PHttp
             // TODO ($senderPeer, $request->all())
 
             // call onRequestReceived method
-            return response()->json(
-                $messageObj->onRequestReceived()->serialize()
-            );
+            $out = $messageObj->onRequestReceived()->serialize();
+
+            websocketLog("responding to $messageName", $senderPeer);
+
+            return response()->json($out);
 
         } catch (ValidationException $e) {
 
