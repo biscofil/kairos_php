@@ -17,4 +17,9 @@ interface Plaintext
      */
     public function equals(self $b): bool;
 
+    /**
+     * @return string
+     */
+    public function toString() : string;
+
 }

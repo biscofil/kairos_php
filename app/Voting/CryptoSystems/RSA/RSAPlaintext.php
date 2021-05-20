@@ -38,4 +38,12 @@ class RSAPlaintext implements Plaintext
         return $this->cipherText === $b->cipherText;
     }
 
+    /**
+     * @return string
+     */
+    public function toString(): string
+    {
+        return $this->cipherText;
+    }
+
 }

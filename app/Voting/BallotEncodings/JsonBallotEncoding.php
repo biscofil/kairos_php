@@ -36,7 +36,7 @@ class JsonBallotEncoding implements BallotEncoding
      */
     public static function decode(Plaintext $representation)
     {
-        $jsonStr = pack('H*', $representation->m->toHex());
+        $jsonStr = pack('H*', $representation->toString());
         return json_decode($jsonStr, true);
     }
 

@@ -38,4 +38,12 @@ class EGPlaintext implements Plaintext
     {
         return $this->m->equals($b->m);
     }
+
+    /**
+     * @return string
+     */
+    public function toString(): string
+    {
+        return $this->m->toHex();
+    }
 }
