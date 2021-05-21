@@ -12,6 +12,7 @@
                                              :to="{ name: 'election@view', params: {slug: election.slug}}">
                                     {{ election.name }}
                                 </router-link>
+                                <ElectionPhaseBadge :election="election"/>
                                 <div v-if="$root.settings.SHOW_USER_INFO">
                                     <br> by {{ election.admin_name }}
                                 </div>
@@ -33,6 +34,7 @@
                             <router-link :to="{name: 'election@view', params:  { slug: election.slug }}">
                                 {{ election.name }}
                             </router-link>
+                            <ElectionPhaseBadge :election="election"/>
                         </li>
                     </ul>
                     <span v-else>none yet</span>
@@ -49,9 +51,10 @@
                     <h5>Recent Votes</h5>
                     <ul v-if="elections_voted">
                         <li v-for="election in elections_voted">
-                            <router-link :to="{name: 'election@view', params:  { slug :election.slug }}">
+                            <router-link :to="{name: 'election@view', params:  { slug: election.slug }}">
                                 {{ election.name }}
                             </router-link>
+                            <ElectionPhaseBadge :election="election"/>
                         </li>
                     </ul>
                     <span v-else>None yet</span>
@@ -65,11 +68,12 @@
 
 <script>
 import LoginBox from "../components/LoginBox";
+import ElectionPhaseBadge from "../components/ElectionPhaseBadge";
 
 export default {
     name: "Home",
 
-    components: {LoginBox},
+    components: {ElectionPhaseBadge, LoginBox},
 
     data() {
         return {

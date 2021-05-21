@@ -9,6 +9,7 @@
                 <router-link :to="{name: 'election@view', params: { slug: election.slug }}">
                     {{ election.name }}
                 </router-link>
+                <ElectionPhaseBadge :election="election"/>
                 <span> - {{ election.voter_count }} voters / {{ election.cast_votes_count }} cast votes</span>
             </li>
         </ul>
@@ -17,8 +18,14 @@
 
 <script>
 
+import ElectionPhaseBadge from "../components/ElectionPhaseBadge";
+
 export default {
     name: "ElectionsAdministered",
+
+    components : {
+        ElectionPhaseBadge
+    },
 
     data() {
         return {

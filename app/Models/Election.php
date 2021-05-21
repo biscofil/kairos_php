@@ -185,7 +185,8 @@ class Election extends Model
         'voter_count',
         'cast_votes_count',
         'admin_name',
-        'issues'
+        'issues',
+        'current_phase',
     ];
 
     /**
@@ -307,6 +308,22 @@ class Election extends Model
         }
 
         return $issues;
+    }
+
+    /**
+     * @return null|array
+     */
+    public function getCurrentPhaseAttribute(): ?array
+    {
+        if (is_null($this->frozen_at)) {
+            return ['name' => 'Not frozen yet', 'class' => 'danger'];
+        } elseif (is_null($this->voting_started_at)) {
+            return ['name' => 'Waiting for scheduled opening', 'class' => 'warning'];
+        } elseif (is_null($this->voting_ended_at)) {
+            return ['name' => 'Voting phase. Waiting for scheduled closing', 'class' => 'success'];
+        } else {
+            return ['name' => 'Voting phase ended. Waiting for anonymization and tally', 'class' => 'info'];
+        }
     }
 
     // ############################################ Scopes ############################################
