@@ -2,18 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Voting\CryptoSystems\ElGamal\EGPublicKey;
 use App\Models\Election;
 use App\Models\PeerServer;
 use App\Models\Trustee;
 use App\Models\User;
-use App\P2P\Messages\WillYouBeAElectionTrusteeForMyElection;
-use App\Rules\ExistingPeerServer;
 use App\Rules\ValidPublicKey;
+use App\Voting\CryptoSystems\ElGamal\EGPublicKey;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
 
 /**
  * Class TrusteeController
@@ -75,11 +73,12 @@ class TrusteeController extends Controller
     public function store(Election $election, Request $request): JsonResponse
     {
         $data = $request->validate([
-            'email' => ['nullable', 'required_if:url,null', 'email', 'exists:users,email'],
-            'url' => ['nullable', 'required_if:email,null', 'active_url', new ExistingPeerServer()] // TODO check valid url
+            'type' => ['required', 'string', Rule::in(['user', 'server'])],
+            'email' => ['nullable', 'required_if:type,user', 'email', 'exists:users,email'],
+            'peer_server_id' => ['nullable', 'required_if:type,server', 'numeric', 'exists:peer_servers,id']
         ]);
 
-        if ($data['email']) { // user
+        if ($data['type'] === 'user') { // user
 
             /** @var User $user */
             $user = User::query()->where('email', '=', $data['email'])->firstOrFail();
@@ -87,37 +86,14 @@ class TrusteeController extends Controller
 
         } else { // peer server
 
-            $host = parse_url($data['url'], PHP_URL_HOST);
-
-            /** @var PeerServer $server */
-            $server = PeerServer::query()->where('ip', '=', $host)->firstOrFail();
+            $server = PeerServer::findOrFail(intval($data['peer_server_id']));
             $election->createPeerServerTrustee($server);
-
-            (new WillYouBeAElectionTrusteeForMyElection($election->toArray(), config('app.url'), $host))->sendAsync();
 
         }
 
         return response()->json([
             'election' => [
                 'trustees' => $election->trustees()->with(['user', 'peerServer'])->get(),
-                'has_system_trustee' => $election->has_system_trustee
-            ]
-        ]);
-    }
-
-    /**
-     * @param Election $election
-     * @return JsonResponse
-     */
-    public function store_system_trustee(Election $election): JsonResponse
-    {
-
-        $election->createSystemTrustee();
-
-        return response()->json([
-            'election' => [
-                'trustees' => $election->trustees()->with(['user', 'peerServer'])->get(),
-                'has_system_trustee' => $election->has_system_trustee
             ]
         ]);
     }
