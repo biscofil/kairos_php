@@ -49,7 +49,11 @@ class CloseElectionPhase extends Command
             ->whereNotNull('frozen_at') // frozen
             ->whereNotNull('voting_started_at') // open
             ->whereNull('voting_ended_at')
-            ->update(['voting_ended_at' => Carbon::now()]);
+            ->get()
+            ->reduce(function (int $carry, Election $election) {
+                $result = $election->closeVotingPhase();
+                return $carry + intval($result);
+            },0);
 
         if ($affected) {
             websocketLog("election phase ended for $affected elections");

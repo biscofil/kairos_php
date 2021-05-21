@@ -676,4 +676,26 @@ class Election extends Model
         return $this->min_peer_count_t === $this->peerServers()->count();
     }
 
+    /**
+     * Returns TRUE if this election has a T-L threshold scheme (some peers required)
+     * @return bool
+     */
+    public function hasTLThresholdScheme(): bool
+    {
+        return $this->min_peer_count_t < $this->peerServers()->count();
+    }
+
+    /**
+     * @return bool
+     */
+    public function closeVotingPhase(): bool
+    {
+        $this->voting_ended_at = Carbon::now();
+        if (!$this->save()) {
+            return false;
+        }
+        $this->anonymization_method->getAnonymizationSystemClass()::afterVotingPhaseEnds($this);
+        return true;
+    }
+
 }
