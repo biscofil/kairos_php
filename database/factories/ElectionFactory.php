@@ -2,10 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
+use App\Models\PeerServer;
 use App\Models\User;
-use App\Voting\CryptoSystems\CryptoSystem;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -23,12 +25,13 @@ class ElectionFactory extends Factory
      */
     public function definition()
     {
-        $cryptosystems = [CryptoSystemEnum::RSA(), CryptoSystemEnum::ElGamal()];
         return [
-            'peer_server_id' => 1,
+            'peer_server_id' => PeerServer::meID,
             //
-            'cryptosystem' => CryptoSystemEnum::ElGamal(), //$cryptosystems[array_rand($cryptosystems)],
+            'cryptosystem' => array_rand(CryptoSystemEnum::CRYPTOSYSTEMS),
+            'anonymization_method' => array_rand(AnonymizationMethodEnum::ANONYMIZATION_METHODS),
             //
+            'min_peer_count_t' => 1,
             'name' => $this->faker->name,
             'uuid' => $this->faker->uuid,
             'slug' => Str::random(100),
@@ -45,10 +48,11 @@ class ElectionFactory extends Factory
             'randomize_answer_order' => $this->faker->boolean,
             //
             'registration_starts_at' => null,
-            'voting_starts_at' => null,
+            'frozen_at' => null,
+            'voting_starts_at' => Carbon::now()->addMinutes(1),
             'voting_started_at' => null,
             'voting_extended_until' => null,
-            'voting_end_at' => null,
+            'voting_ends_at' => Carbon::now()->addMinutes(2),
             'voting_ended_at' => null,
             //
             'tallying_started_at' => null,
@@ -56,7 +60,6 @@ class ElectionFactory extends Factory
             'tallying_combined_at' => null,
             'results_released_at' => null,
             //
-            'frozen_at' => null,
             'archived_at' => null,
         ];
     }
