@@ -142,17 +142,15 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
         $meTrustee = $this->election->getTrusteeFromPeerServer(PeerServer::me(), true);
         // TODO what if same server is not a trustee?
 
-        $j = $trusteeI->getPeerServerIndex();
-        $shareToSendBack = $meTrustee->polynomial->getShare($j);
-
         // TODO set polynomial
         Log::debug('Received broadcast : ' . $this->broadcast->toString());
 //        Log::debug($this->broadcast->toArray());
 
+        $j = $trusteeI->getPeerServerIndex();
         $trusteeI->broadcast = $this->broadcast;
         $trusteeI->share_received = $this->share;
         $trusteeI->public_key = $this->publicKey;
-        $trusteeI->share_sent = $shareToSendBack;
+        $trusteeI->share_sent = $meTrustee->polynomial->getShare($j);
         $trusteeI->save();
 
         if (ThisIsMyThresholdBroadcast::areAllSharesReceived($this->election)) {
