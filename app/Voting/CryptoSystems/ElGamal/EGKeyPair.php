@@ -34,11 +34,7 @@ class EGKeyPair implements KeyPair, SupportsThresholdEncryption
      */
     public static function generate($parameterSet = null): self // TODO add threshold boolean
     {
-
-        /** @var self $self */
-        $self = get_called_class();
-
-        $parameterSet = is_null($parameterSet) ? $self::getCryptosystem()::getParameterSetClass()::getDefault() : $parameterSet;
+        $parameterSet = is_null($parameterSet) ? static::getCryptosystem()::getParameterSetClass()::getDefault() : $parameterSet;
 
         // TODO if threshold {
         // TODO     EGThresholdPolynomial::random($degree, $this->pk);
@@ -47,11 +43,11 @@ class EGKeyPair implements KeyPair, SupportsThresholdEncryption
         $x = randomBIgt($parameterSet->q); // TODO check
         $y = $parameterSet->g->modPow($x, $parameterSet->p); // also called h
 
-        $pkCLass = $self::getCryptosystem()::getPublicKeyClass();
+        $pkCLass = static::getCryptosystem()::getPublicKeyClass();
         $pk = new $pkCLass($parameterSet, $y);
 
 //        $pk = new EGPublicKey($parameterSet, $y);
-        $skCLass = $self::getCryptosystem()::getSecretKeyClass();
+        $skCLass = static::getCryptosystem()::getSecretKeyClass();
         $sk = new $skCLass($pk, $x);
         // TODO }
 
@@ -74,10 +70,7 @@ class EGKeyPair implements KeyPair, SupportsThresholdEncryption
     public static function fromFile(string $filePath): self
     {
         $content = Storage::get($filePath);
-
-        /** @var self $self */
-        $self = get_called_class();
-        $sk = $self::getCryptosystem()::getSecretKeyClass()::fromArray(json_decode($content, true));
+        $sk = static::getCryptosystem()::getSecretKeyClass()::fromArray(json_decode($content, true));
         $pk = $sk->pk;
         return new static($pk, $sk);
     }

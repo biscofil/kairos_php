@@ -126,10 +126,7 @@ class EGSecretKey implements SecretKey
 
         $m = $this->getMOnceFullyDecrypted($m); // extractMessageFromSubgroup
 
-        /** @var self $self */
-        $self = get_called_class();
-
-        $ptClass = $self::getCryptosystem()::getPlainTextClass();
+        $ptClass = static::getCryptosystem()::getPlainTextClass();
         return new $ptClass($m);
     }
 
@@ -223,9 +220,7 @@ class EGSecretKey implements SecretKey
             // TODO return plaintext
         }
 
-        /** @var self $self */
-        $self = get_called_class();
-        $ctClass = $self::getCryptosystem()::getCipherTextClass();
+        $ctClass = static::getCryptosystem()::getCipherTextClass();
         return new $ctClass(
             $cipher->pk,
             $cipher->alpha,
@@ -243,9 +238,7 @@ class EGSecretKey implements SecretKey
      */
     public function getThresholdPolynomial(int $t): EGThresholdPolynomial
     {
-        /** @var self $self */
-        $self = get_called_class();
-        $tpClass = $self::getCryptosystem()::getThresholdPolynomialClass();
+        $tpClass = static::getCryptosystem()::getThresholdPolynomialClass();
         return $tpClass::random($this->x, $t, $this->pk->parameterSet);
     }
 

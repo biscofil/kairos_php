@@ -80,9 +80,7 @@ class EGThresholdPolynomial implements ThresholdPolynomial
             $values[] = $A_i_k;
         }
 //        dump("{$this->id} is broadcasting " . $b->toString());
-        /** @var self $self */
-        $self = get_called_class();
-        $tbClass = $self::getCryptosystem()::getThresholdBroadcastClass();
+        $tbClass = static::getCryptosystem()::getThresholdBroadcastClass();
         return new $tbClass($values, $this->ps);
     }
 
@@ -142,9 +140,7 @@ class EGThresholdPolynomial implements ThresholdPolynomial
      */
     public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): EGThresholdPolynomial
     {
-        /** @var self $self */
-        $self = get_called_class();
-        $psClass = $self::getCryptosystem()::getParameterSetClass();
+        $psClass = static::getCryptosystem()::getParameterSetClass();
         $ps = $ignoreParameterSet ? $psClass::getDefault() : $psClass::fromArray($data['ps'], $base);
         $factors = array_map(function (string $f) use ($base) {
             return new BigInteger($f, $base);

@@ -56,20 +56,16 @@ class EGPublicKey implements PublicKey
      */
     public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): EGPublicKey
     {
-
-        /** @var self $self */
-        $self = get_called_class();
-
         if ($ignoreParameterSet) {
             // Copy from config
             return new static(
-                $self::getCryptosystem()::getParameterSetClass()::getDefault(),
+                static::getCryptosystem()::getParameterSetClass()::getDefault(),
                 BI($data['y'], $base)
             );
         }
 
         return new static(
-            $self::getCryptosystem()::getParameterSetClass()::fromArray($data, $base),
+            static::getCryptosystem()::getParameterSetClass()::fromArray($data, $base),
             BI($data['y'], $base)
         );
     }
@@ -209,9 +205,7 @@ class EGPublicKey implements PublicKey
         // beta = m*(y^r) mod p
         $beta = $m->multiply($this->y->modPow($randomness, $this->parameterSet->p))->modPow(BI1(), $this->parameterSet->p);
 
-        /** @var self $self */
-        $self = get_called_class();
-        $ctClass = $self::getCryptosystem()::getCipherTextClass();
+        $ctClass = static::getCryptosystem()::getCipherTextClass();
         return new $ctClass($this, $alpha, $beta);
     }
 

@@ -62,12 +62,8 @@ class EGCiphertext implements CipherText
      */
     public static function fromArray(array $data, $publicKey = null, bool $ignoreParameterSet = false, int $base = 16): self
     {
-
-        /** @var self $self */
-        $self = get_called_class();
-
         return new static(
-            $publicKey ?? $self::getCryptosystem()::getPublicKeyClass()::fromArray($data['pk'], $ignoreParameterSet, $base),
+            $publicKey ?? static::getCryptosystem()::getPublicKeyClass()::fromArray($data['pk'], $ignoreParameterSet, $base),
             BI($data['alpha'], $base),
             BI($data['beta'], $base)
         );
@@ -206,11 +202,7 @@ class EGCiphertext implements CipherText
      */
     public function equals($b): bool
     {
-
-        /** @var self $self */
-        $self = get_called_class();
-
-        $cpClass = $self::getCryptosystem()::getCipherTextClass();
+        $cpClass = static::getCryptosystem()::getCipherTextClass();
 
         if (!$b instanceof $cpClass) {
             throw new RuntimeException('EGCiphertext::equals > invalid type, must be EGCiphertext');

@@ -106,9 +106,7 @@ class EGThresholdBroadcast implements ThresholdBroadcast
      */
     public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): EGThresholdBroadcast
     {
-        /** @var self $self */
-        $self = get_called_class();
-        $psClass = $self::getCryptosystem()::getParameterSetClass();
+        $psClass = static::getCryptosystem()::getParameterSetClass();
         $ps = $ignoreParameterSet ? $psClass::getDefault() : $psClass::fromArray($data['ps'], $base);
         $a_i_k_values = array_map(function (string $f) use ($base) {
             return new BigInteger($f, $base);
