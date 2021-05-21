@@ -7,8 +7,10 @@ use App\Models\Election;
 use App\Models\Trustee;
 use App\Models\User;
 use App\Voting\BallotEncodings\JsonBallotEncoding;
+use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use App\Voting\CryptoSystems\RSA\RSAPlaintext;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -158,6 +160,64 @@ class ElectionTest extends TestCase
 
         $out = $election->private_key->decrypt($cipher);
         $this->assertNotEquals($plainVote, JsonBallotEncoding::decode($out));
+
+    }
+
+    /**
+     * @test
+     */
+    public function ElGamal_close_voting_phase()
+    {
+        $user = User::factory()->create();
+
+        // create election
+        /** @var Election $data */
+        $data = Election::factory()->make();
+        $data->cryptosystem = CryptoSystemEnum::ElGamal();
+//        dd($data->toArray());
+        $response = $this->actingAs($user)
+            ->json('POST', 'api/elections', $data->toArray());
+        $this->assertResponseStatusCode(201, $response);
+
+        $keypair = EGKeyPair::generate();
+
+        $election = Election::findOrFail($response->json('id'));
+        $election->frozen_at = Carbon::now();
+        $election->voting_starts_at = Carbon::now();
+        $election->voting_started_at = Carbon::now();
+        $election->voting_ends_at = Carbon::now();
+        $election->public_key = $keypair->pk;
+        $election->save();
+
+
+        for ($i = 0; $i < rand(3, 5); $i++) {
+
+            // generate a JSON vote structure
+            $votePlain = [
+                Str::random(10) => Str::random(10),
+                Str::random(10) => [
+                    Str::random(10),
+                    Str::random(10),
+                ]
+            ];
+
+            /** @var RSAPlaintext $plaintext */
+            $plaintext = (JsonBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
+            $cipher = $keypair->pk->encrypt($plaintext); // encrypt it
+            $data = ['vote' => $cipher->toArray(true)];
+            /**
+             * @see \App\Http\Controllers\CastVoteController::store()
+             */
+            $token = $user->getNewJwtToken();
+            $response = $this->withHeaders(['Authorization' => "Bearer $token"])
+                ->json('POST', "api/elections/$election->slug/cast", $data);
+            $this->assertResponseStatusCode(201, $response);
+
+        }
+
+        $election->closeVotingPhase();
+        $this->assertNotNull($election->voting_ended_at);
+
 
     }
 
