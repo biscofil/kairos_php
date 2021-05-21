@@ -1,14 +1,14 @@
 <?php
 
 
-namespace App\Voting\MixNets;
+namespace App\Voting\AnonymizationMethods\MixNets;
 
 
 use App\Voting\CryptoSystems\PublicKey;
 
 /**
  * Class DecryptingMixNode
- * @package App\Voting\MixNets
+ * @package App\Voting\AnonymizationMethods\MixNets
  */
 class DecryptingMixNode extends MixNode
 {

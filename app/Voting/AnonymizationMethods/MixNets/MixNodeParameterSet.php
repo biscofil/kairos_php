@@ -1,7 +1,7 @@
 <?php
 
 
-namespace App\Voting\MixNets;
+namespace App\Voting\AnonymizationMethods\MixNets;
 
 
 use App\Voting\CryptoSystems\PublicKey;
@@ -49,7 +49,7 @@ class MixNodeParameterSet
 
         $reEncryptionFactors = [];
         for ($i = 0; $i < $count; $i++) {
-            $reEncryptionFactors[] = randomBIgt($pk->q);
+            $reEncryptionFactors[] = randomBIgt($pk->parameterSet->q);
         }
 
         // if not provided, generate permutation
@@ -73,9 +73,9 @@ class MixNodeParameterSet
 
         $encryption = array_map(function (string $randomnessStr) {
             return BI($randomnessStr, 16);
-        }, $data["encryption"]);
+        }, $data['encryption']);
 
-        $permutation = $data["permutation"];
+        $permutation = $data['permutation'];
 
         return new static(
             $pk,
@@ -91,11 +91,11 @@ class MixNodeParameterSet
     public function toArray(): array
     {
         return [
-            "encryption" => array_map(function (BigInteger $randomness) {
+            'encryption' => array_map(function (BigInteger $randomness) {
                 //return $randomness;
                 return $randomness->toHex();
             }, $this->reEncryptionFactors),
-            "permutation" => $this->permutation,
+            'permutation' => $this->permutation,
         ];
     }
 
@@ -115,7 +115,7 @@ class MixNodeParameterSet
         for ($i = 0; $i < count($this->reEncryptionFactors); $i++) {
             $newReEncryptionFactor[] = $primaryMixPS->reEncryptionFactors[$i]
                 ->subtract($this->reEncryptionFactors[$i])
-                ->modPow(BI1(), $this->pk->p);
+                ->modPow(BI1(), $this->pk->parameterSet->p); // TODO check
         }
 
         // undo shadow mix shuffling (this)

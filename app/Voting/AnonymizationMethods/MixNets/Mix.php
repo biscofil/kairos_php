@@ -1,7 +1,7 @@
 <?php
 
 
-namespace App\Voting\MixNets;
+namespace App\Voting\AnonymizationMethods\MixNets;
 
 
 use App\Voting\CryptoSystems\CipherText;

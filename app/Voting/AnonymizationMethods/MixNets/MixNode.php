@@ -1,17 +1,20 @@
 <?php
 
 
-namespace App\Voting\MixNets;
+namespace App\Voting\AnonymizationMethods\MixNets;
 
 
+use App\Jobs\GenerateMix;
+use App\Models\Election;
+use App\Voting\AnonymizationMethods\AnonymizationMethod;
 use App\Voting\CryptoSystems\CipherText;
 use App\Voting\CryptoSystems\PublicKey;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
-use phpseclib3\Math\BigInteger;
 use SQLite3;
 
 /**
@@ -24,7 +27,7 @@ use SQLite3;
  * @property Ciphertext[] originalCiphertexts
  * @property string $challengeBits
  */
-abstract class MixNode
+abstract class MixNode implements AnonymizationMethod
 {
 
     public PublicKey $pk;
@@ -45,16 +48,16 @@ abstract class MixNode
         $this->pk = $pk;
 
         if ($shadowMixCount > 160) {
-            throw new \Exception("The max is 160"); // TODO only for elgamal
+            throw new \Exception('The max is 160'); // TODO only for elgamal
         }
         $this->originalCiphertexts = $ciphertexts;
 
-        $this->primaryMix = $this->forward($this->pk, $this->originalCiphertexts);
+        $this->primaryMix = static::forward($this->pk, $this->originalCiphertexts);
 
         $this->shadowMixCount = $shadowMixCount;
         $this->shadowMixes = [];
         for ($i = 0; $i < $shadowMixCount; $i++) {
-            $this->shadowMixes[] = $this->forward($this->pk, $this->originalCiphertexts);
+            $this->shadowMixes[] = static::forward($this->pk, $this->originalCiphertexts);
         }
     }
 
@@ -64,7 +67,7 @@ abstract class MixNode
      * @param MixNodeParameterSet|null $parameterSet
      * @return Mix
      */
-    public static abstract function forward(PublicKey $pk, array $ciphertexts, MixNodeParameterSet $parameterSet = null): Mix;
+    abstract public static function forward(PublicKey $pk, array $ciphertexts, MixNodeParameterSet $parameterSet = null): Mix;
 
     /**
      * @param PublicKey $pk
@@ -72,10 +75,8 @@ abstract class MixNode
      * @param MixNodeParameterSet|null $parameterSet
      * @return Mix
      */
-    public static abstract function backward(PublicKey $pk, array $ciphertexts, MixNodeParameterSet $parameterSet = null): Mix;
+    abstract public static function backward(PublicKey $pk, array $ciphertexts, MixNodeParameterSet $parameterSet = null): Mix;
 
-    // ########################################################################
-    // ########################################################################
     // ########################################################################
 
     /**
@@ -83,7 +84,7 @@ abstract class MixNode
      */
     public function generateFiatShamirChallengeBits(): void
     {
-        $hex = sha1(implode("", array_map(function (Mix $mix) {
+        $hex = sha1(implode('', array_map(function (Mix $mix) {
             return $mix->getHash();
         }, $this->shadowMixes)));
         $fullLen = (BI($hex, 16))->toBits();
@@ -100,7 +101,7 @@ abstract class MixNode
         for ($i = 0; $i < strlen($this->challengeBits); $i++) {
             $bit = $this->challengeBits[$i];
             $mix = $this->shadowMixes[$i];
-            if ($bit === "0") {
+            if ($bit === '0') {
                 $out[] = $mix->parameterSet;
             } else {
                 $out[] = $mix->parameterSet->combine($this->primaryMix->parameterSet);
@@ -121,8 +122,6 @@ abstract class MixNode
         return true;
     }
 
-    // ########################################################################
-    // ########################################################################
     // ########################################################################
 
     /**
@@ -196,8 +195,6 @@ abstract class MixNode
     }
 
     // ########################################################################
-    // ########################################################################
-    // ########################################################################
 
     /**
      * @param array $data
@@ -235,6 +232,18 @@ abstract class MixNode
                 return $shadowMix->toArray($storePrivateValues);
             }, $this->shadowMixes)
         ];
+    }
+
+    // ########################################################################
+
+    /**
+     * @param \App\Models\Election $election
+     */
+    public static function afterVotingPhaseEnds(Election &$election)
+    {
+        Log::debug('MixNode afterVotingPhaseEnds > dispatching GenerateMix');
+        // dispatch mix job
+        GenerateMix::dispatch($election);
     }
 
 }
