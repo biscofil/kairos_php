@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Election;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class OpenElectionPhase extends Command
 {
@@ -41,10 +42,9 @@ class OpenElectionPhase extends Command
     {
 
         $now = Carbon::now();
-        $nMinutesAgo = $now->clone()->addMinutes(-3);
 
         $affected = Election::query()
-            ->where('voting_starts_at', '>=', $nMinutesAgo)
+            ->where(DB::raw('DATE_ADD(voting_starts_at, INTERVAL 3 MINUTE)'), '>=', $now)
             ->where('voting_starts_at', '<=', $now)
             ->whereNotNull('frozen_at') // frozen
             ->whereNull('voting_started_at')
