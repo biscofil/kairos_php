@@ -14,7 +14,9 @@ use App\P2P\Messages\Freeze\ThisIsMyThresholdBroadcast\ThisIsMyThresholdBroadcas
 use App\P2P\Messages\P2PMessageRequest;
 use App\P2P\Tasks\GenerateAndSendShares;
 use App\P2P\Tasks\SendAddMeToYourPeersMessageToUnknownPeers;
+use App\Voting\CryptoSystems\PublicKey;
 use App\Voting\CryptoSystems\ThresholdBroadcast;
+use Exception;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -29,6 +31,7 @@ use phpseclib3\Math\BigInteger;
  * @property Trustee[] $trustees
  * @property null|ThresholdBroadcast $senderThresholdBroadcast
  * @property null|BigInteger $senderShare
+ * @property null|PublicKey $senderPublicKey
  */
 class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
 {
@@ -37,6 +40,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
     public array $trustees;
     public ?ThresholdBroadcast $senderThresholdBroadcast;
     public ?BigInteger $senderShare;
+    public ?PublicKey $senderPublicKey;
 
     /**
      * @return string
@@ -52,6 +56,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
      * @param \App\Models\PeerServer $requestDestination
      * @param \App\Models\Election $election
      * @param \App\Models\Trustee[] $trustees
+     * @param \App\Voting\CryptoSystems\PublicKey|null $senderPublicKey
      * @param \App\Voting\CryptoSystems\ThresholdBroadcast|null $senderThresholdBroadcast
      * @param \phpseclib3\Math\BigInteger|null $senderShare
      * @throws \Exception
@@ -60,6 +65,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
                                 PeerServer $requestDestination,
                                 Election $election,
                                 array $trustees,
+                                ?PublicKey $senderPublicKey,
                                 ?ThresholdBroadcast $senderThresholdBroadcast = null,
                                 ?BigInteger $senderShare = null
     )
@@ -69,6 +75,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         $this->trustees = $trustees;
         $this->senderThresholdBroadcast = $senderThresholdBroadcast;
         $this->senderShare = $senderShare;
+        $this->senderPublicKey = $senderPublicKey;
     }
 
     // #####################################################################
@@ -85,25 +92,26 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         $trusteeData = $this->trustees; // TODO
 
         /** @var \App\Models\Trustee $meTrustee */
-        $meTrustee = $this->election->getTrusteeFromPeerServer(PeerServer::me());
+//        $meTrustee = $this->election->getTrusteeFromPeerServer(PeerServer::me());
 
-        $broadcast = null;
-        $share = null;
-
-        if ($meTrustee) {
-            // broadcast
-            $broadcast = $meTrustee->broadcast;
-            // share
-            $senderTrustee = $this->election->getTrusteeFromPeerServer($to);
-            $share = $senderTrustee->share_sent;
-        }
+//        $broadcast = null;
+//        $share = null;
+//
+//        if ($meTrustee) {
+//            // broadcast
+//            $broadcast = $meTrustee->broadcast;
+//            // share
+//            $senderTrustee = $this->election->getTrusteeFromPeerServer($to);
+//            $share = $senderTrustee->share_sent;
+//        }
 
         return [
             'election' => $electionData,
             'trustees' => $trusteeData,
             //
-            'broadcast' => $broadcast ? $broadcast->toArray() : null,
-            'share' => $share ? $share->toHex() : null,
+            'public_key' => $this->senderPublicKey ? $this->senderPublicKey->toArray() : null,
+            'broadcast' => $this->senderThresholdBroadcast ? $this->senderThresholdBroadcast->toArray() : null,
+            'share' => $this->senderShare ? $this->senderShare->toHex() : null,
         ];
     }
 
@@ -116,7 +124,8 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
      */
     public static function unserialize(PeerServer $sender, array $messageData): Freeze1IAmFreezingElectionRequest
     {
-        // TODO validation
+        $required = $messageData['election']['min_peer_count_t'] > 0
+            && in_array($sender->domain, array_column($messageData['trustees'], 'domain')); // TODO change to < peer count!!
 
         $data = Validator::make($messageData, [
             'election' => ['required'],
@@ -125,19 +134,18 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
 
             'trustees' => ['required', 'array'],
 
+            'public_key' => [
+                'nullable',
+                Rule::requiredIf($required)
+            ],
+
             'broadcast' => [
                 'nullable',
-                Rule::requiredIf(function () use ($sender, $messageData) {
-                    return $messageData['election']['min_peer_count_t'] > 0
-                        && in_array($sender->domain, array_column($messageData['trustees'], 'domain'));
-                })
+                Rule::requiredIf($required)
             ],
             'share' => [
                 'nullable',
-                Rule::requiredIf(function () use ($sender, $messageData) {
-                    return $messageData['election']['min_peer_count_t'] > 0
-                        && in_array($sender->domain, array_column($messageData['trustees'], 'domain'));
-                })
+                Rule::requiredIf($required)
             ]
         ])->validate();
 
@@ -149,11 +157,18 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         // trustee data
         $trusteeData = $data['trustees'];
 
+        // public key
+        $publicKey = $data['public_key'];
+        if($publicKey){
+            $publicKeyClass = $election->cryptosystem->getCryptoSystemClass()::getPublicKeyClass();
+            $publicKey = $publicKeyClass::fromArray($publicKey); // RSA, ELGAMAL
+        }
+
         // broadcast
         $broadcast = $data['broadcast'];
         if ($broadcast) {
             $thresholdBroadcastClass = $election->cryptosystem->getCryptoSystemClass()::getThresholdBroadcastClass();
-            $broadcast = $thresholdBroadcastClass::fromArray($data['broadcast']); // RSA, ELGAMAL
+            $broadcast = $thresholdBroadcastClass::fromArray($broadcast); // RSA, ELGAMAL
         }
 
         // share
@@ -167,6 +182,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
             PeerServer::me(),
             $election,
             $trusteeData,
+            $publicKey,
             $broadcast,
             $share);
     }
@@ -191,6 +207,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         $trustees = self::getOrCreateTrustees($this->election, $this->trustees); // TODO check $trustees
 
         if ($senderTrustee = $this->election->getTrusteeFromPeerServer($this->requestSender)) {
+            $senderTrustee->setPublicKey($this->senderPublicKey);
             $senderTrustee->broadcast = $this->senderThresholdBroadcast;
             $senderTrustee->share_received = $this->senderShare;
             $senderTrustee->save();
@@ -208,7 +225,6 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         $keyPair = $this->election->cryptosystem->getCryptoSystemClass()::getKeyPairClass()::generate();
         $meTrustee->private_key = $keyPair->sk;
         $meTrustee->public_key = $keyPair->pk;
-        $publicKey = $keyPair->pk;
 
         if ($this->election->hasLLThresholdScheme()) {
 
@@ -269,7 +285,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
             PeerServer::me(),
             $this->requestSender,
             $this->election,
-            $publicKey,
+            $meTrustee->public_key,
             $meTrustee->broadcast,
             $shareToSendBack,
             $freezeReady
@@ -318,7 +334,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
                 $u->fillFromSharedArray($trusteeData['user']);
                 $t->user()->associate($u)->save();
             } else {
-                throw new \Exception("peer_server_id and user_id can't both be null");
+                throw new Exception("peer_server_id and user_id can't both be null");
             }
 
             $t->save();
