@@ -3,8 +3,10 @@
 namespace App\Console;
 
 use App\Console\Commands\AddPeer;
+use App\Console\Commands\CloseElectionPhase;
+use App\Console\Commands\HeartBeat;
+use App\Console\Commands\OpenElectionPhase;
 use App\Console\Commands\SendReceivedVotes;
-use App\Models\PeerServer;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 

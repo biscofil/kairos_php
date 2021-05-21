@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use App\Models\PeerServer;
-use App\P2P\Messages\AddMeToYourPeers;
 use Illuminate\Console\Command;
 
 class AddPeer extends Command
