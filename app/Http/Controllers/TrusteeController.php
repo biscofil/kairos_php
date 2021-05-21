@@ -130,7 +130,12 @@ class TrusteeController extends Controller
     public function threshold(Election $election, Request $request): JsonResponse
     {
         $data = $request->validate([
-            'min_peer_count_t' => ['required', 'integer']
+            'min_peer_count_t' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:' . $election->peerServers()->count()
+            ]
         ]);
         $election->min_peer_count_t = $data['min_peer_count_t'];
         $election->save();
