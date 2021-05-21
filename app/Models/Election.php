@@ -46,6 +46,8 @@ use Illuminate\Support\Str;
  *
  * @property int|null min_peer_count_t
  * @property CryptoSystemEnum cryptosystem
+ * @property \App\Enums\AnonymizationMethodEnum anonymization_method
+ *
  * @property null|PublicKey public_key
  * @property null|SecretKey private_key
  *

@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
 use App\Models\PeerServer;
-use App\Voting\AnonymizationMethods\AnonymizationMethod;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\In;
@@ -53,7 +53,8 @@ class EditCreateElectionRequest extends FormRequest
         $creatingNew = is_null($this->electionToUpdate);
         return [
 
-            'cryptosystem' => ['required', 'string', new In(array_keys(CryptoSystem::CryptoSystems))],
+            'cryptosystem' => ['required', 'string', new In(array_keys(CryptoSystemEnum::CRYPTOSYSTEMS))],
+            'anonymization_method' => ['required', 'string', new In(array_keys(AnonymizationMethodEnum::ANONYMIZATION_METHODS))],
 
             'name' => ['required', 'string'],
             'slug' => ['required', 'string'],
@@ -92,6 +93,7 @@ class EditCreateElectionRequest extends FormRequest
     {
         $data = $this->validated();
         unset($data['cryptosystem']); // can't be changed
+        unset($data['anonymization_method']); // can't be changed
         $election = $this->electionToUpdate;
         // TODO check voting_starts_at, voting_ends_at
         $election->update($data);
