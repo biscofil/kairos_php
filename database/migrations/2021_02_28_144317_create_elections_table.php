@@ -36,6 +36,7 @@ class CreateElectionsTable extends Migration
 
             $table->text('questions')->nullable();
 
+            $table->string('anonymization_method', 40);
             $table->string('cryptosystem', 20);
             $table->unsignedSmallInteger('min_peer_count_t')->nullable();
             $table->text('public_key')->nullable();
@@ -45,22 +46,22 @@ class CreateElectionsTable extends Migration
             $table->boolean('use_advanced_audit_features')->default(false);
             $table->boolean('randomize_answer_order')->default(false);
 
-            $table->timestamp('registration_starts_at')->nullable();
+            $table->dateTime('registration_starts_at')->nullable();
 
-            $table->timestamp('voting_starts_at')->nullable();
-            $table->timestamp('voting_started_at')->nullable();
-            $table->timestamp('voting_extended_until')->nullable();
-            $table->timestamp('voting_end_at')->nullable();
-            $table->timestamp('voting_ended_at')->nullable();
+            $table->dateTime('voting_starts_at')->nullable();
+            $table->dateTime('voting_started_at')->nullable();
+            $table->dateTime('voting_extended_until')->nullable();
+            $table->dateTime('voting_ends_at')->nullable();
+            $table->dateTime('voting_ended_at')->nullable();
 
-            $table->timestamp('tallying_started_at')->nullable();
-            $table->timestamp('tallying_finished_at')->nullable();
-            $table->timestamp('tallying_combined_at')->nullable();
+            $table->dateTime('tallying_started_at')->nullable();
+            $table->dateTime('tallying_finished_at')->nullable();
+            $table->dateTime('tallying_combined_at')->nullable();
 
-            $table->timestamp('results_released_at')->nullable();
+            $table->dateTime('results_released_at')->nullable();
 
-            $table->timestamp('frozen_at')->nullable();
-            $table->timestamp('archived_at')->nullable();
+            $table->dateTime('frozen_at')->nullable();
+            $table->dateTime('archived_at')->nullable();
 
             // TODO voter hash
             // TODO encrypted tally
