@@ -354,7 +354,7 @@ class Election extends Model
      */
     public function scopeOfThisServer(Builder $builder): Builder
     {
-        return $builder->whereNull('peer_server_id');
+        return $builder->where('peer_server_id', '=', PeerServer::meID);
     }
 
     // ############################################ Relations ############################################
