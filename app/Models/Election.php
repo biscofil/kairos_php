@@ -288,6 +288,16 @@ class Election extends Model
             ];
         }
 
+        if ($this->hasTLThresholdScheme()) {
+            //t-l
+            if ($this->trustees()->users()->count()) {
+                $issues[] = [
+                    'type' => 'trustees',
+                    'action' => "User trustees can't be specified when using a T-L-threshold"
+                ];
+            }
+        }
+
         // make sure that user trustees have uploaded their public key
         // peer servers will share theirs with the p2p protocol
         foreach ($this->trustees()->users()->get() as $userTrustee) {
@@ -300,12 +310,12 @@ class Election extends Model
         }
 
 
-        if ($this->voters()->count() == 0) { // TODO and not self.reg = open:
-            $issues[] = [
-                'type' => 'voters',
-                'action' => 'enter your voter list (or open registration to the public)'
-            ];
-        }
+//        if ($this->voters()->count() == 0) { // TODO and not self.reg = open:
+//            $issues[] = [
+//                'type' => 'voters',
+//                'action' => 'enter your voter list (or open registration to the public)'
+//            ];
+//        }
 
         return $issues;
     }
