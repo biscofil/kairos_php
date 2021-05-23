@@ -14,11 +14,6 @@ import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 
 am4core.useTheme(am4themes_animated);
 
-// Define marker path
-let targetSVG = "M9,0C4.029,0,0,4.029,0,9s4.029,9,9,9s9-4.029,9-9S13.971,0,9,0z M9,15.93 c-3.83,0-6.93-3.1-6.93-6.93S5.17,2.07,9,2.07s6.93,3.1,6.93,6.93S12.83,15.93,9,15.93 M12.5,9c0,1.933-1.567,3.5-3.5,3.5S5.5,10.933,5.5,9S7.067,5.5,9,5.5 S12.5,7.067,12.5,9z";
-
-const planeSVG = "m2,106h28l24,30h72l-44,-133h35l80,132h98c21,0 21,34 0,34l-98,0 -80,134h-35l43,-133h-71l-24,30h-28l15,-47";
-const planeShadowSVG = "m2,106h28l24,30h72l-44,-133h35l80,132h98c21,0 21,34 0,34l-98,0 -80,134h-35l43,-133h-71l-24,30h-28l15,-47";
 const envelopeSVG = "m 1664,32 v 768 q -32,-36 -69,-66 -268,-206 -426,-338 -51,-43 -83,-67 -32,-24 -86.5,-48.5 Q 945,256 897,256 h -1 -1 Q 847,256 792.5,280.5 738,305 706,329 674,353 623,396 465,528 197,734 160,764 128,800 V 32 Q 128,19 137.5,9.5 147,0 160,0 h 1472 q 13,0 22.5,9.5 9.5,9.5 9.5,22.5 z m 0,1051 v 11 13.5 q 0,0 -0.5,13 -0.5,13 -3,12.5 -2.5,-0.5 -5.5,9 -3,9.5 -9,7.5 -6,-2 -14,2.5 H 160 q -13,0 -22.5,-9.5 Q 128,1133 128,1120 128,952 275,836 468,684 676,519 682,514 711,489.5 740,465 757,452 774,439 801.5,420.5 829,402 852,393 q 23,-9 43,-9 h 1 1 q 20,0 43,9 23,9 50.5,27.5 27.5,18.5 44.5,31.5 17,13 46,37.5 29,24.5 35,29.5 208,165 401,317 54,43 100.5,115.5 46.5,72.5 46.5,131.5 z m 128,37 V 32 q 0,-66 -47,-113 -47,-47 -113,-47 H 160 Q 94,-128 47,-81 0,-34 0,32 v 1088 q 0,66 47,113 47,47 113,47 h 1472 q 66,0 113,-47 47,-47 47,-113 z";
 
 export default {
@@ -60,7 +55,6 @@ export default {
         polygonSeries.useGeodata = true;
         polygonSeries.mapPolygons.template.fill = chart.colors.getIndex(0).lighten(0.5);
         polygonSeries.mapPolygons.template.nonScalingStroke = true;
-        // polygonSeries.exclude = ["AQ"];
 
         // Add line bullets
         this.cities = chart.series.push(new am4maps.MapImageSeries());
@@ -68,7 +62,7 @@ export default {
 
         let city = this.cities.mapImages.template.createChild(am4core.Circle);
         city.radius = 6;
-        city.fill = am4core.color("#f00"); // chart.colors.getIndex(0).brighten(-0.2);
+        city.fill = am4core.color("#f00");
         city.strokeWidth = 2;
         city.stroke = am4core.color("#fff");
 
@@ -141,8 +135,6 @@ export default {
         addLine(from, to) {
             let line = this.lineSeries.mapLines.create();
             line.imagesToConnect = [from, to];
-            // line.line.controlPointDistance = 0;
-            // line.line.shortestDistance = true;
             let shadowLine = this.shadowLineSeries.mapLines.create();
             shadowLine.imagesToConnect = [from, to];
             return line;
@@ -172,7 +164,6 @@ export default {
             }
 
             let plane = currentLine.lineObjects.create();
-            // let shadowPlane = currentLine.lineObjects.create();
 
             plane.position = 0;
             plane.width = 48;
@@ -189,28 +180,10 @@ export default {
             planeImage.fill = this.chart.colors.getIndex(2).brighten(-0.2);
             planeImage.strokeOpacity = 0;
 
-            // shadowPlane.position = 0;
-            // shadowPlane.width = 48;
-            // shadowPlane.height = 48;
-            // shadowPlane.adapter.add("scale", function (scale, target) {
-            //     target.opacity = (0.6 - (Math.abs(0.5 - target.position)));
-            //     return 0.5 - 0.3 * (1 - (Math.abs(0.5 - target.position)));
-            // });
-
-            // let shadowPlaneImage = shadowPlane.createChild(am4core.Sprite);
-            // shadowPlaneImage.scale = 0.05;
-            // shadowPlaneImage.horizontalCenter = "middle";
-            // shadowPlaneImage.verticalCenter = "middle";
-            // shadowPlaneImage.path = planeShadowSVG;
-            // shadowPlaneImage.fill = am4core.color("#000");
-            // shadowPlaneImage.strokeOpacity = 0;
 
             // Get current line to attach plane to
             plane.mapLine = currentLine;
             plane.parent = this.lineSeries;
-            // shadowPlane.mapLine = this.shadowLineSeries.mapLines.getIndex(currentLineIDX);
-            // shadowPlane.parent = this.shadowLineSeries;
-            // shadowPlaneImage.rotation = planeImage.rotation;
 
             plane.animate({
                 from: from,
@@ -219,14 +192,6 @@ export default {
             }, 2500, am4core.ease.sinInOut).events.on("animationended", a => {
                 currentLine.lineObjects.removeValue(plane);
             });
-
-            // shadowPlane.animate({
-            //     from: from,
-            //     to: to,
-            //     property: "position"
-            // }, 5000, am4core.ease.sinInOut).events.on("animationended", a => {
-            //     currentLine.lineObjects.removeValue(shadowPlane);
-            // });
 
         },
 
