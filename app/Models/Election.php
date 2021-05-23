@@ -58,6 +58,8 @@ use Illuminate\Support\Str;
  * @property null|Carbon voting_started_at
  *
  * @property Collection|Trustee[] trustees
+ * @property Collection|\App\Models\PeerServer[] peerServers
+ *
  * @property array issues
  *
  * @property bool use_voter_alias
@@ -373,6 +375,19 @@ class Election extends Model
     public function trustees(): HasMany
     {
         return $this->hasMany(Trustee::class, 'election_id');
+    }
+
+    /**
+     * Returns Peer servers who act as trustees
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough|\App\Models\PeerServer
+     */
+    public function peerServers(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            PeerServer::class, Trustee::class,
+            'election_id', 'id',
+            null, 'peer_server_id')
+            ->whereNotNull('trustees.peer_server_id');
     }
 
     /**
