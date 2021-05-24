@@ -79,7 +79,6 @@ class EditCreateElectionRequest extends FormRequest
         $data = $this->validated();
         $election = Election::make($data);
         $election->uuid = (string)Str::uuid();
-        // TODO check voting_starts_at, voting_ends_at
         $election->admin()->associate(getAuthUser());
         $election->peerServerAuthor()->associate(PeerServer::me());
         $election->save();
@@ -95,7 +94,6 @@ class EditCreateElectionRequest extends FormRequest
         unset($data['cryptosystem']); // can't be changed
         unset($data['anonymization_method']); // can't be changed
         $election = $this->electionToUpdate;
-        // TODO check voting_starts_at, voting_ends_at
         $election->update($data);
         return $election;
     }
