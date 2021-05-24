@@ -3,6 +3,7 @@
 
 namespace App\Voting\CryptoSystems\ElGamal;
 
+use App\Voting\CryptoSystems\PartialDecryptionSecretKey;
 use App\Voting\CryptoSystems\SecretKey;
 use phpseclib3\Math\BigInteger;
 
@@ -12,7 +13,7 @@ use phpseclib3\Math\BigInteger;
  * @property EGPublicKey $pk
  * @property BigInteger $x
  */
-class EGSecretKey implements SecretKey
+class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
 {
 
     use BelongsToElgamal;
@@ -206,7 +207,7 @@ class EGSecretKey implements SecretKey
      * @param bool $lastStep
      * @return EGCiphertext
      */
-    public function partiallyDecrypt(EGCiphertext $cipher, bool $lastStep = false): EGCiphertext
+    public function partiallyDecrypt($cipher, bool $lastStep = false): EGCiphertext
     {
         $inv = $cipher->alpha->powMod($this->x, $cipher->pk->parameterSet->p)
             ->modInverse($cipher->pk->parameterSet->p);

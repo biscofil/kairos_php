@@ -25,6 +25,7 @@ class ExpEGKeyPair extends EGKeyPair
      * ExpEGKeyPair constructor.
      * @param \App\Voting\CryptoSystems\ExpElGamal\ExpEGPublicKey $pk
      * @param \App\Voting\CryptoSystems\ExpElGamal\ExpEGSecretKey $sk
+     * @noinspection PhpMissingParentConstructorInspection
      */
     public function __construct(ExpEGPublicKey $pk, ExpEGSecretKey $sk)
     {
