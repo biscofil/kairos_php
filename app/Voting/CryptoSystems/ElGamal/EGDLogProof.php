@@ -1,0 +1,133 @@
+<?php
+
+
+namespace App\Voting\CryptoSystems\ElGamal;
+
+
+use phpseclib3\Math\BigInteger;
+
+/**
+ * Class EGDLogProof
+ * @package App\Voting\CryptoSystems\ElGamal;
+ * @property EGDLogCommitment commitment (A=g^w, B=alpha^w)
+ * @property BigInteger challenge (c)
+ * @property BigInteger response (t)
+ */
+class EGDLogProof
+{
+
+    public EGDLogCommitment $commitment;
+    public BigInteger $challenge;
+    public BigInteger $response;
+
+    /**
+     * DLogProof constructor.
+     * @param EGDLogCommitment $commitment
+     * @param BigInteger $challenge
+     * @param BigInteger $response
+     */
+    public function __construct(EGDLogCommitment $commitment, BigInteger $challenge, BigInteger $response)
+    {
+        $this->commitment = $commitment;
+        $this->challenge = $challenge;
+        $this->response = $response;
+    }
+
+    /**
+     * generate a DDH tuple proof, where challenge generator is almost certainly EG_fiatshamir_challenge_generator
+     * @param \App\Voting\CryptoSystems\ElGamal\EGSecretKey $sk
+     * @param \App\Voting\CryptoSystems\ElGamal\EGCiphertext $ciphertext
+     * @param callable $challenge_generator
+     * @return EGDLogProof
+     */
+    public static function generate(EGSecretKey $sk, EGCiphertext $ciphertext, callable $challenge_generator): EGDLogProof
+    {
+
+        # generate random w
+        $w = randomBIgt($sk->pk->parameterSet->q);
+
+        # generate commitment A,B
+        $commitment_a = $sk->pk->parameterSet->g->modPow($w, $sk->pk->parameterSet->p); # A = g ^ w mod p
+        $commitment_b = $ciphertext->alpha->modPow($w, $sk->pk->parameterSet->p); # B = alpha ^ w mod p
+        $commitment = new EGDLogCommitment($commitment_a, $commitment_b);
+
+        # get challenge c
+        $challenge = $challenge_generator($commitment);
+
+        # compute response t
+        $response = $w->add($sk->x->multiply($challenge))->modPow(BI1(), $sk->pk->parameterSet->p);
+
+        # create proof instance
+        return new EGDLogProof(
+            new EGDLogCommitment($commitment_a, $commitment_b),
+            $challenge,
+            $response
+        );
+
+    }
+
+    /**
+     * Verify a DH tuple proof
+     * @param EGPublicKey $pk
+     * @param \App\Voting\CryptoSystems\ElGamal\EGCiphertext $ciphertext
+     * @param \App\Voting\CryptoSystems\ElGamal\EGPlaintext $plain
+     * @param callable $challenge_generator
+     * @return bool
+     */
+    public function verify(EGPublicKey $pk, EGCiphertext $ciphertext, EGPlaintext $plain, callable $challenge_generator): bool
+    {
+
+        # check that A, B are in the correct group
+        if (!(
+            $this->commitment->a->modPow($pk->parameterSet->q, $pk->parameterSet->p)->equals(BI(1))
+            && $this->commitment->b->modPow($pk->parameterSet->q, $pk->parameterSet->p)->equals(BI(1))
+        )) {
+            return false;
+        }
+
+        # g ^ t mod p
+        $first_check_left = $pk->parameterSet->g->modPow($this->response, $pk->parameterSet->p);
+        // A * y ^ challenge mod p
+        $first_check_right = $this->commitment->a->multiply($pk->y->modPow($this->challenge, $pk->parameterSet->p))
+            ->modPow(BI(1), $pk->parameterSet->p);
+        # check that g ^ response = A * big_g ^ challenge
+        $first_check = $first_check_left->equals($first_check_right);
+
+
+        # little_h ^ t mod p
+        $second_check_left = $ciphertext->alpha->modPow($this->response, $pk->parameterSet->p);
+        // B * big_h ^ challenge
+        $m = $pk->parameterSet->mapMessageIntoSubgroup($plain->m);
+        $big_h = $ciphertext->beta->multiply($m->modInverse($pk->parameterSet->p))
+            ->modPow(BI(1), $pk->parameterSet->p);
+
+        $second_check_right = $this->commitment->b->multiply($big_h->modPow($this->challenge, $pk->parameterSet->p))
+            ->modPow(BI(1), $pk->parameterSet->p);
+        # check that little_h ^ response = B * big_h ^ challenge
+        $second_check = $second_check_left->equals($second_check_right);
+
+
+        # check the challenge?
+        $third_check = true;
+        if ($challenge_generator) {
+            $third_check = $this->challenge->equals($challenge_generator($this->commitment));
+        }
+
+        return $first_check && $second_check && $third_check;
+    }
+
+    /**
+     * @param \App\Voting\CryptoSystems\ElGamal\EGDLogCommitment $commitment
+     * @return BigInteger
+     */
+    public static function DLogChallengeGenerator(EGDLogCommitment $commitment): BigInteger
+    {
+        $array_to_hash = [];
+        $array_to_hash[] = $commitment->a->toString();
+        $array_to_hash[] = $commitment->b->toString();
+        $string_to_hash = implode(',', $array_to_hash);
+        // compute sha1 of the commitment
+        return BI(sha1(utf8_encode($string_to_hash)), 16);
+    }
+
+}

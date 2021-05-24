@@ -20,15 +20,15 @@ class DLogProofTest extends TestCase
 
         $keyPair = EGKeyPair::generate();
 
-        $proof = $keyPair->sk->generateDLogProof([EGSecretKey::class, 'DLogChallengeGenerator']);
+        $proof = $keyPair->sk->generateDLogProof([DLogProof::class, 'DLogChallengeGenerator']);
 
-        $r = $proof->verify($keyPair->pk, [EGSecretKey::class, 'DLogChallengeGenerator']);
+        $r = $proof->verify($keyPair->pk, [DLogProof::class, 'DLogChallengeGenerator']);
         static::assertTrue($r);
 
         $proof = $proof->toArray();
         $proof = DLogProof::fromArray($proof);
 
-        $r = $proof->verify($keyPair->pk, [EGSecretKey::class, 'DLogChallengeGenerator']);
+        $r = $proof->verify($keyPair->pk, [DLogProof::class, 'DLogChallengeGenerator']);
         static::assertTrue($r);
 
     }

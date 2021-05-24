@@ -8,7 +8,7 @@ use phpseclib3\Math\BigInteger;
 /**
  * Class DLogProof
  * @package App\Voting\CryptoSystems\ElGamal;
- * Discrete Logarithm
+ * Discrete Logarithm, ZKProof
  * @property BigInteger commitment (A=g^w)
  * @property BigInteger challenge (c)
  * @property BigInteger response (t)
@@ -47,6 +47,18 @@ class DLogProof
             BI($data['challenge'], $base),
             BI($data['response'], $base)
         );
+    }
+
+    /**
+     * Returns the BigInteger computed from the sha1 hashing of the
+     * commitment (in base 10) encoded in UTF-8
+     * @param BigInteger $commitment
+     * @return BigInteger
+     */
+    public static function DLogChallengeGenerator(BigInteger $commitment): BigInteger
+    {
+        $string_to_hash = $commitment->toString();
+        return BI(sha1(utf8_encode($string_to_hash)), 16);
     }
 
     /**

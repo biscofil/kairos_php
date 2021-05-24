@@ -101,7 +101,9 @@ class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
             // TODO $challenge_generator = EG_fiatshamir_challenge_generator;
         }
         $dec_factor = $this->decryptionFactor($ciphertext);
-        $proof = EGZKProof::generate($this->pk->parameterSet, $this->x, $ciphertext->alpha, $challenge_generator);
+
+        $proof = EGDLogProof::generate($this, $ciphertext, $challenge_generator);
+
         return [$dec_factor, $proof];
     }
 
@@ -143,18 +145,6 @@ class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
     // ##############################################################
     // ##############################################################
     // ##############################################################
-
-    /**
-     * Returns the BigInteger computed from the sha1 hashing of the
-     * commitment (in base 10) encoded in UTF-8
-     * @param BigInteger $commitment
-     * @return BigInteger
-     */
-    public static function DLogChallengeGenerator(BigInteger $commitment): BigInteger
-    {
-        $string_to_hash = $commitment->toString();
-        return BI(sha1(utf8_encode($string_to_hash)), 16);
-    }
 
     /**
      * Generate a PoK of the secret key
