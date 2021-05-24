@@ -94,6 +94,8 @@ class Trustee extends Model
     ];
 
     protected $hidden = [
+        'polynomial',
+        'private_key',
         'share_sent',
         'share_received'
     ];
@@ -107,6 +109,18 @@ class Trustee extends Model
     public function getRouteKeyName()
     {
         return 'uuid';
+    }
+
+    /**
+     * @param string $uuid
+     * @return \App\Models\Trustee|null
+     * @noinspection PhpIncompatibleReturnTypeInspection
+     */
+    public static function findUUID(string $uuid): ?Trustee
+    {
+        return self::query()
+            ->where('uuid', '=', $uuid)
+            ->first();
     }
 
     // ################################################################

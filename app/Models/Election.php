@@ -56,16 +56,18 @@ use Illuminate\Support\Str;
  *
  * @property Carbon voting_starts_at
  * @property null|Carbon voting_started_at
+ * @property Carbon voting_ends_at
+ * @property null|Carbon voting_ended_at
  *
  * @property Collection|Trustee[] trustees
  * @property Collection|\App\Models\PeerServer[] peerServers
  *
- * @property array issues
+ * @property-read array issues
  *
  * @property bool use_voter_alias
  * @property bool use_advanced_audit_features
  * @property bool randomize_answer_order
- * @property CastVote[] votes
+ * @property CastVote[]|Collection votes
  * @property-read bool has_system_trustee
  *
  * @method static self create(array $data)
@@ -497,7 +499,7 @@ class Election extends Model
         return $voter;
     }
 
-    // ############################################
+    // ############################################ Freeze
 
     /**
      * @throws \Exception
