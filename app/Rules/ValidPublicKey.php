@@ -42,7 +42,7 @@ class ValidPublicKey implements Rule
             $dlog_proof = json_decode($key['pok'], true);
             $dlog_proof = DLogProof::fromArray($dlog_proof);
 
-            return $public_key->verifySecretKeyProof($dlog_proof, function (BigInteger $commitment) {
+            return $dlog_proof->verify($public_key, function (BigInteger $commitment) {
                 $string_to_hash = $commitment->toString();
                 // compute sha1 of the commitment
                 return BI(sha1(utf8_encode($string_to_hash)), 16);

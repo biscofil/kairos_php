@@ -157,25 +157,13 @@ class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
     }
 
     /**
-     * Old name: proveSecretKey
      * Generate a PoK of the secret key
-     * Prover generates w, a random integer modulo q, and computes commitment = g^w mod p.
-     * Verifier provides challenge modulo q.
-     * Prover computes response = w + x * challenge mod q, where x is the secret key.
      * @param callable $challenge_generator
      * @return DLogProof
      */
     public function generateDLogProof(callable $challenge_generator): DLogProof
     {
-        $w = randomBIgt($this->pk->parameterSet->g);
-        $commitment = $this->pk->parameterSet->q->modPow($w, $this->pk->parameterSet->p);
-        /** @var BigInteger $challenge */
-        $challenge = $challenge_generator($commitment);
-        // challenge = challenge mod p
-        $challenge = $challenge->modPow(BI1(), $this->pk->parameterSet->g);
-        // w + x * challenge mod q, where x is the secret key.
-        $response = $w->add($this->x->multiply($challenge)->powMod(BI1(), $this->pk->parameterSet->g));
-        return new DLogProof($commitment, $challenge, $response);
+        return DLogProof::generate($this, $challenge_generator);
     }
 
     // ##############################################################
