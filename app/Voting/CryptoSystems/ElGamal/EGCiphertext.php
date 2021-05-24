@@ -3,7 +3,6 @@
 
 namespace App\Voting\CryptoSystems\ElGamal;
 
-use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\CipherText;
 use Exception;
 use Illuminate\Support\Facades\Validator;
@@ -46,8 +45,8 @@ class EGCiphertext implements CipherText
     public static function validate(array $data): array
     {
         return Validator::make($data, [
-            'alpha' => ['required', 'string'], // TODO hex?
-            'beta' => ['required', 'string'], //  TODO hex?
+            'alpha' => ['required', 'string', 'regex:/^([A-Fa-f0-9]+)$/'], // hex
+            'beta' => ['required', 'string', 'regex:/^([A-Fa-f0-9]+)$/'], // hex
         ])->validated();
     }
 
