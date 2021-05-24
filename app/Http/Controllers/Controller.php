@@ -37,7 +37,7 @@ class Controller extends BaseController
         if (auth('user_api')->check()) {
             $elections_administered = getAuthUser()->administeredElections()
                 ->limit(10)
-                ->select(['id', 'name', 'slug', 'admin_id'])
+                ->orderByDesc('id')
                 ->get();
         }
 
