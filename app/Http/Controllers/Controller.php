@@ -65,10 +65,10 @@ class Controller extends BaseController
                         'name' => 'google',
                         'clientId' => config('services.google.client_id')
                     ],
-                    [
-                        'name' => 'facebook',
-                        'clientId' => config('services.facebook.client_id')
-                    ],
+//                    [
+//                        'name' => 'facebook',
+//                        'clientId' => config('services.facebook.client_id')
+//                    ],
                 ],
             ];
         }
