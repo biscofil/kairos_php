@@ -23,7 +23,7 @@ class EG_TL_ThresholdTest extends TestCase
         $parameterSet = new EGParameterSet(BI(10), BI(10), BI(10));
         $t = 4;
         $p = EGThresholdPolynomial::random(BI(1), $t, $parameterSet);
-        $this->assertCount($t, $p->factors);
+        static::assertCount($t, $p->factors);
     }
 
     /**
@@ -68,11 +68,11 @@ class EG_TL_ThresholdTest extends TestCase
 
         // check broadcast and shares
         foreach ($peers as $peer) {
-            $this->assertCount($n - 1, $peer->receivedBroadcasts); // not self
-            $this->assertCount($n - 1, $peer->receivedShares); // not self
-            $this->assertCount($n - 1, $peer->shareSent); // not self
+            static::assertCount($n - 1, $peer->receivedBroadcasts); // not self
+            static::assertCount($n - 1, $peer->receivedShares); // not self
+            static::assertCount($n - 1, $peer->shareSent); // not self
             foreach ($peer->receivedBroadcasts as $broadcast) {
-                $this->assertCount($t, $broadcast->A_I_K_values);
+                static::assertCount($t, $broadcast->A_I_K_values);
             }
         }
 
@@ -82,7 +82,7 @@ class EG_TL_ThresholdTest extends TestCase
                 if ($peer_i->id === $peer_j->id) {
                     continue; // not self
                 }
-                $this->assertTrue($peer_i->isShareValid($peer_j->id));
+                static::assertTrue($peer_i->isShareValid($peer_j->id));
                 $peer_i->addQualifiedPeer($peer_j->id);
             }
         }
@@ -94,7 +94,7 @@ class EG_TL_ThresholdTest extends TestCase
             $y = $peer->getCombinedPublicKey();
             $pk[] = $y;
             if (count($pk)) {
-                $this->assertTrue($pk[0]->equals($y));
+                static::assertTrue($pk[0]->equals($y));
             }
         }
         $pk = $pk[0];
@@ -139,7 +139,7 @@ class EG_TL_ThresholdTest extends TestCase
         }
         $share_secret_x->x = $share_secret_x->x->modPow(BI1(), $parameterSet->q);
 //        dump('################### share_secret_x : ' . $share_secret_x->x->toString());
-        $this->assertTrue($share_secret_x->x->equals($virtual_secret_x->x));
+        static::assertTrue($share_secret_x->x->equals($virtual_secret_x->x));
 
     }
 
@@ -174,7 +174,7 @@ class EG_TL_ThresholdTest extends TestCase
             }
 
             // if the number of peers $_t is enough (gte t) the value should match
-            $this->assertEquals(
+            static::assertEquals(
                 $k->equals($p->sk->x),
                 $_t >= $t
             );

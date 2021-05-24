@@ -32,8 +32,8 @@ class EGCiphertextTest extends TestCase
         $cipher2 = $cipher->reEncryptWithRandomness($randomness)
             ->decryptWithRandomness($randomness);
 
-        $this->assertTrue($cipher->equals($cipher2));
-        $this->assertTrue($cipher->equals($cipher2));
+        static::assertTrue($cipher->equals($cipher2));
+        static::assertTrue($cipher->equals($cipher2));
 
     }
 
@@ -59,8 +59,8 @@ class EGCiphertextTest extends TestCase
 
         $reEncryptedCipher = $shadowMixCipher->reEncryptWithRandomness($diff);
 
-        $this->assertTrue($keyPair->sk->decrypt($reEncryptedCipher)->equals($plain));
-        $this->assertTrue($keyPair->sk->decrypt($mainMixCipher)->equals($plain));
+        static::assertTrue($keyPair->sk->decrypt($reEncryptedCipher)->equals($plain));
+        static::assertTrue($keyPair->sk->decrypt($mainMixCipher)->equals($plain));
     }
 
 }

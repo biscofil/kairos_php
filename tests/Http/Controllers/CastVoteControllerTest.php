@@ -43,7 +43,7 @@ class CastVoteControllerTest extends TestCase
         $voter->election_id = $election->id;
         $voter->save();
 
-        $this->assertEquals(0, $voter->votes()->count());
+        static::assertEquals(0, $voter->votes()->count());
 
 
         // generate a JSON vote structure
@@ -71,13 +71,13 @@ class CastVoteControllerTest extends TestCase
 
         $this->assertResponseStatusCode(201, $response);
 
-        $this->assertEquals(1, $election->votes()->count());
+        static::assertEquals(1, $election->votes()->count());
 
         /** @var CastVote $voteCast */
         $voteCast = $election->votes()->first();
 
         $out = $keyPair->sk->decrypt($voteCast->vote);
-        $this->assertEquals($votePlain, JsonBallotEncoding::decode($out));
+        static::assertEquals($votePlain, JsonBallotEncoding::decode($out));
 
     }
 }

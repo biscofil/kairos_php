@@ -52,12 +52,12 @@ class EGKeyPairTest extends TestCase
 
         $kp1->storeToFile($path);
 
-        $this->assertTrue(Storage::exists($path));
+        static::assertTrue(Storage::exists($path));
 
         $loadedKP = EGKeyPair::fromFile($path);
 
-        $this->assertTrue($kp1->sk->x->equals($loadedKP->sk->x));
-        $this->assertTrue($kp1->pk->y->equals($loadedKP->pk->y));
+        static::assertTrue($kp1->sk->x->equals($loadedKP->sk->x));
+        static::assertTrue($kp1->pk->y->equals($loadedKP->pk->y));
 
     }
 

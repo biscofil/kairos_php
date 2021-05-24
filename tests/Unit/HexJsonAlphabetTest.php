@@ -54,7 +54,7 @@ class HexJsonAlphabetTest extends TestCase
         $a = ['1' => 124, '2' => 3522, '4' => 2];
         // TODO add spaces
         $d = $this->hex2json($this->json2hex($a));
-        $this->assertEquals($a, $d);
+        static::assertEquals($a, $d);
     }
 
     /**
@@ -64,7 +64,7 @@ class HexJsonAlphabetTest extends TestCase
     {
         $a = ['1' => 124, '2' => 3522, '4' => [2]];
         $d = $this->hex2json($this->json2hex($a));
-        $this->assertNotEquals($a, $d);
+        static::assertNotEquals($a, $d);
     }
 
 

@@ -20,7 +20,7 @@ class EGParameterSetTest extends TestCase
     public function default_ps()
     {
         $ps = EGParameterSet::getDefault();
-        $this->assertTrue($ps->isValid());
+        static::assertTrue($ps->isValid());
     }
 
     /**
@@ -29,7 +29,7 @@ class EGParameterSetTest extends TestCase
     public function random_ps()
     {
         $ps = EGParameterSet::random(5);
-        $this->assertTrue($ps->isValid());
+        static::assertTrue($ps->isValid());
     }
 
 

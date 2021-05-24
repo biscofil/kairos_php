@@ -30,7 +30,7 @@ abstract class TestCase extends BaseTestCase
                 }
             }
         }
-        $this->assertEquals($expectedCode, $response->getStatusCode());
+        static::assertEquals($expectedCode, $response->getStatusCode());
     }
 
     /**
@@ -42,7 +42,7 @@ abstract class TestCase extends BaseTestCase
         $p = new EGPlaintext(randomBIgt($pk->parameterSet->q));
         $c = $pk->encrypt($p);
         $p2 = $sk->decrypt($c);
-        $this->assertTrue($p->equals($p2));
+        static::assertTrue($p->equals($p2));
     }
 
 }

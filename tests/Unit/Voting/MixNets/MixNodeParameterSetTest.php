@@ -41,9 +41,9 @@ class MixNodeParameterSetTest extends TestCase
 
         $comb = $shadowMixPS->combine($primaryMixPS);
 
-        $this->assertEquals([3, 0, 4, 1, 2], $comb->permutation);
+        static::assertEquals([3, 0, 4, 1, 2], $comb->permutation);
         foreach ($comb->reEncryptionFactors as $factor) {
-            $this->assertTrue($factor->equals(BI(20)));
+            static::assertTrue($factor->equals(BI(20)));
         }
 
     }

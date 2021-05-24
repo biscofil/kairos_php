@@ -39,11 +39,11 @@ class JWTTest extends TestCase
 
         $publicKey = new Key(PeerServer::me()->jwt_public_key->toArray()['v']);
 
-        $this->assertTrue($token->verify($signer, $publicKey));
+        static::assertTrue($token->verify($signer, $publicKey));
 
         $claims = $token->getClaims();
-        $this->assertArrayHasKey($claimName, $claims);
-        $this->assertEquals($claimValue, $claims[$claimName]);
+        static::assertArrayHasKey($claimName, $claims);
+        static::assertEquals($claimValue, $claims[$claimName]);
 
     }
 
