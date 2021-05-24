@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 use App\Models\PeerServer;
 use Illuminate\Database\Migrations\Migration;
