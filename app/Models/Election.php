@@ -619,9 +619,14 @@ class Election extends Model
         $e->admin()->associate(getAuthUser());
 
         $e->name = 'Copy of ' . $this->name;
-        $e->slug = $e->uuid;
+        $e->slug = $e->slug . '_copy';
+        $e->peer_server_id = PeerServer::meID;
+
         $e->cryptosystem = $this->cryptosystem;
+        $e->anonymization_method = $this->anonymization_method;
+
         $e->min_peer_count_t = $this->min_peer_count_t;
+
         $e->description = $this->description;
         $e->help_email = $this->help_email;
         $e->info_url = $this->info_url;
