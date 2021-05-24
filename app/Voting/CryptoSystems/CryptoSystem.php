@@ -13,44 +13,34 @@ interface CryptoSystem
 {
 
     /**
-     * @return string|null|\App\Voting\CryptoSystems\PublicKey
+     * @return string
      */
-    public static function getPublicKeyClass(): ?string;
+    public static function getPublicKeyClass(): string;
 
     /**
      * @return string|null|\App\Voting\CryptoSystems\SecretKey
      */
-    public static function getSecretKeyClass(): ?string;
+    public static function getSecretKeyClass(): string;
 
     /**
      * @return string|null|\App\Voting\CryptoSystems\KeyPair
      */
-    public static function getKeyPairClass(): ?string;
+    public static function getKeyPairClass(): string;
 
     /**
      * @return string|null|\App\Voting\CryptoSystems\Plaintext
      */
-    public static function getPlainTextClass(): ?string;
+    public static function getPlainTextClass(): string;
 
     /**
      * @return string|null|\App\Voting\CryptoSystems\CipherText
      */
-    public static function getCipherTextClass(): ?string;
-
-    /**
-     * @return string|null|\App\Voting\CryptoSystems\ThresholdPolynomial
-     */
-    public static function getThresholdPolynomialClass(): ?string;
-
-    /**
-     * @return string|null|\App\Voting\CryptoSystems\ThresholdBroadcast
-     */
-    public static function getThresholdBroadcastClass(): ?string;
+    public static function getCipherTextClass(): string;
 
     /**
      * @return string|null|\App\Voting\CryptoSystems\ParameterSet
      */
-    public static function getParameterSetClass(): ?string;
+    public static function getParameterSetClass(): string;
 
     // #############################################################################
 

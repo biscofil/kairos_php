@@ -3,9 +3,7 @@
 
 namespace App\Voting\CryptoSystems\ElGamal;
 
-use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\KeyPair;
-use App\Voting\CryptoSystems\SupportsThresholdEncryption;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -14,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
  * @property EGPublicKey $pk
  * @property EGSecretKey $sk
  */
-class EGKeyPair implements KeyPair, SupportsThresholdEncryption
+class EGKeyPair implements KeyPair
 {
 
     use BelongsToElgamal;
@@ -34,7 +32,9 @@ class EGKeyPair implements KeyPair, SupportsThresholdEncryption
      */
     public static function generate($parameterSet = null): self // TODO add threshold boolean
     {
-        $parameterSet = is_null($parameterSet) ? static::getCryptosystem()::getParameterSetClass()::getDefault() : $parameterSet;
+        $parameterSet = is_null($parameterSet)
+            ? static::getCryptosystem()::getParameterSetClass()::getDefault()
+            : $parameterSet;
 
         // TODO if threshold {
         // TODO     EGThresholdPolynomial::random($degree, $this->pk);

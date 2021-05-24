@@ -14,14 +14,10 @@ use App\Voting\CryptoSystems\CryptoSystem;
 class RSA implements CryptoSystem
 {
 
-    // #############################################################################
-    // #############################################################################
-    // #############################################################################
-
     /**
-     * @return string|\App\Voting\CryptoSystems\RSA\RSAPublicKey
+     * @return string
      */
-    public static function getPublicKeyClass(): ?string
+    public static function getPublicKeyClass(): string
     {
         return RSAPublicKey::class;
     }
@@ -29,7 +25,7 @@ class RSA implements CryptoSystem
     /**
      * @return string|\App\Voting\CryptoSystems\RSA\RSASecretKey
      */
-    public static function getSecretKeyClass(): ?string
+    public static function getSecretKeyClass(): string
     {
         return RSASecretKey::class;
     }
@@ -37,7 +33,7 @@ class RSA implements CryptoSystem
     /**
      * @return string|RSAKeyPair
      */
-    public static function getKeyPairClass(): ?string
+    public static function getKeyPairClass(): string
     {
         return RSAKeyPair::class;
     }
@@ -45,7 +41,7 @@ class RSA implements CryptoSystem
     /**
      * @return string|\App\Voting\CryptoSystems\RSA\RSAPlaintext
      */
-    public static function getPlainTextClass(): ?string
+    public static function getPlainTextClass(): string
     {
         return RSAPlaintext::class;
     }
@@ -53,31 +49,15 @@ class RSA implements CryptoSystem
     /**
      * @return string|\App\Voting\CryptoSystems\RSA\RSACiphertext
      */
-    public static function getCipherTextClass(): ?string
+    public static function getCipherTextClass(): string
     {
         return RSACiphertext::class;
     }
 
     /**
-     * @return null
-     */
-    public static function getThresholdPolynomialClass(): ?string
-    {
-        return null;
-    }
-
-    /**
-     * @return null
-     */
-    public static function getThresholdBroadcastClass(): ?string
-    {
-        return null;
-    }
-
-    /**
      * @return string|RSAParameterSet
      */
-    public static function getParameterSetClass(): ?string
+    public static function getParameterSetClass(): string
     {
         return RSAParameterSet::class;
     }

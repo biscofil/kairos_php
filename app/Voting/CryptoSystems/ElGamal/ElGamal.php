@@ -7,19 +7,19 @@ namespace App\Voting\CryptoSystems\ElGamal;
 use App\Models\Election;
 use App\Models\Trustee;
 use App\Voting\CryptoSystems\CryptoSystem;
-use App\Voting\CryptoSystems\SupportsReEncryption;
+use App\Voting\CryptoSystems\SupportsTLThresholdEncryption;
 
 /**
  * Class ElGamal
  * @package App\Voting\CryptoSystems\ElGamal
  */
-class ElGamal implements CryptoSystem, SupportsReEncryption
+class ElGamal implements CryptoSystem, SupportsTLThresholdEncryption
 {
 
     /**
      * @return string|EGPublicKey
      */
-    public static function getPublicKeyClass(): ?string
+    public static function getPublicKeyClass(): string
     {
         return EGPublicKey::class;
     }
@@ -27,7 +27,7 @@ class ElGamal implements CryptoSystem, SupportsReEncryption
     /**
      * @return string|EGSecretKey
      */
-    public static function getSecretKeyClass(): ?string
+    public static function getSecretKeyClass(): string
     {
         return EGSecretKey::class;
     }
@@ -35,7 +35,7 @@ class ElGamal implements CryptoSystem, SupportsReEncryption
     /**
      * @return string|EGKeyPair
      */
-    public static function getKeyPairClass(): ?string
+    public static function getKeyPairClass(): string
     {
         return EGKeyPair::class;
     }
@@ -43,7 +43,7 @@ class ElGamal implements CryptoSystem, SupportsReEncryption
     /**
      * @return string|EGPlaintext
      */
-    public static function getPlainTextClass(): ?string
+    public static function getPlainTextClass(): string
     {
         return EGPlaintext::class;
     }
@@ -51,7 +51,7 @@ class ElGamal implements CryptoSystem, SupportsReEncryption
     /**
      * @return string|EGCiphertext
      */
-    public static function getCipherTextClass(): ?string
+    public static function getCipherTextClass(): string
     {
         return EGCiphertext::class;
     }
@@ -59,7 +59,7 @@ class ElGamal implements CryptoSystem, SupportsReEncryption
     /**
      * @return string|EGThresholdPolynomial
      */
-    public static function getThresholdPolynomialClass(): ?string
+    public static function getThresholdPolynomialClass(): string
     {
         return EGThresholdPolynomial::class;
     }
@@ -67,7 +67,7 @@ class ElGamal implements CryptoSystem, SupportsReEncryption
     /**
      * @return string|EGThresholdBroadcast
      */
-    public static function getThresholdBroadcastClass(): ?string
+    public static function getThresholdBroadcastClass(): string
     {
         return EGThresholdBroadcast::class;
     }
@@ -75,7 +75,7 @@ class ElGamal implements CryptoSystem, SupportsReEncryption
     /**
      * @return string|EGParameterSet
      */
-    public static function getParameterSetClass(): ?string
+    public static function getParameterSetClass(): string
     {
         return EGParameterSet::class;
     }

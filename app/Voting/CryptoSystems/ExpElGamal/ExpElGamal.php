@@ -6,18 +6,19 @@ namespace App\Voting\CryptoSystems\ExpElGamal;
 
 use App\Models\Election;
 use App\Voting\CryptoSystems\CryptoSystem;
+use App\Voting\CryptoSystems\SupportsTLThresholdEncryption;
 
 /**
  * Class ExpElGamal
  * @package App\Voting\CryptoSystems\ExpElGamal
  */
-class ExpElGamal implements CryptoSystem
+class ExpElGamal implements CryptoSystem, SupportsTLThresholdEncryption
 {
 
     /**
-     * @return string|ExpEGPublicKey
+     * @return string
      */
-    public static function getPublicKeyClass(): ?string
+    public static function getPublicKeyClass(): string
     {
         return ExpEGPublicKey::class;
     }
@@ -25,7 +26,7 @@ class ExpElGamal implements CryptoSystem
     /**
      * @return string|ExpEGSecretKey
      */
-    public static function getSecretKeyClass(): ?string
+    public static function getSecretKeyClass(): string
     {
         return ExpEGSecretKey::class;
     }
@@ -33,7 +34,7 @@ class ExpElGamal implements CryptoSystem
     /**
      * @return string|ExpEGKeyPair
      */
-    public static function getKeyPairClass(): ?string
+    public static function getKeyPairClass(): string
     {
         return ExpEGKeyPair::class;
     }
@@ -41,7 +42,7 @@ class ExpElGamal implements CryptoSystem
     /**
      * @return string|ExpEGPlaintext
      */
-    public static function getPlainTextClass(): ?string
+    public static function getPlainTextClass(): string
     {
         return ExpEGPlaintext::class;
     }
@@ -49,7 +50,7 @@ class ExpElGamal implements CryptoSystem
     /**
      * @return string|ExpEGCiphertext
      */
-    public static function getCipherTextClass(): ?string
+    public static function getCipherTextClass(): string
     {
         return ExpEGCiphertext::class;
     }
@@ -57,7 +58,7 @@ class ExpElGamal implements CryptoSystem
     /**
      * @return string|ExpEGThresholdPolynomial
      */
-    public static function getThresholdPolynomialClass(): ?string
+    public static function getThresholdPolynomialClass(): string
     {
         return ExpEGThresholdPolynomial::class;
     }
@@ -65,7 +66,7 @@ class ExpElGamal implements CryptoSystem
     /**
      * @return string|ExpEGThresholdBroadcast
      */
-    public static function getThresholdBroadcastClass(): ?string
+    public static function getThresholdBroadcastClass(): string
     {
         return ExpEGThresholdBroadcast::class;
     }
@@ -73,7 +74,7 @@ class ExpElGamal implements CryptoSystem
     /**
      * @return string|ExpEGParameterSet
      */
-    public static function getParameterSetClass(): ?string
+    public static function getParameterSetClass(): string
     {
         return ExpEGParameterSet::class;
     }
