@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Election;
+use App\Models\PeerServer;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -72,15 +73,17 @@ class Controller extends BaseController
             ];
         }
 
+        $meServer = PeerServer::me();
+
         return response()->json([
             'settings' => [
-                'SITE_TITLE' => 'Kairos',
-                'FOOTER_LOGO_URL' => asset('favicon.ico'),
-                'MAIN_LOGO_URL' => asset('favicon.ico'),
-                'SHOW_USER_INFO' => true,
-                'WELCOME_MESSAGE' => 'welcome',
-                'SHOW_LOGIN_OPTIONS' => true, // TODO
-                'HELP_EMAIL_ADDRESS' => 'info@example.com'
+                'SITE_TITLE' => $meServer->site_title,
+                'FOOTER_LOGO_URL' => $meServer->footer_logo_url,
+                'MAIN_LOGO_URL' => $meServer->main_logo_url,
+                'SHOW_USER_INFO' => $meServer->show_user_info,
+                'WELCOME_MESSAGE' => $meServer->welcome_message,
+                'SHOW_LOGIN_OPTIONS' => $meServer->show_login_options,
+                'HELP_EMAIL_ADDRESS' => $meServer->help_email_address,
             ],
             'login_box' => $auth_providers,
             'user' => $user,

@@ -40,6 +40,14 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * @property RSAPublicKey|null jwt_public_key
  * @property string|null token Token used by the current server to authenticate with the server represented by this model
  *
+ * @property string site_title
+ * @property string help_email_address
+ * @property string main_logo_url
+ * @property string footer_logo_url
+ * @property bool show_user_info
+ * @property bool show_login_options
+ * @property string welcome_message
+ *
  * @property \Illuminate\Support\Collection|\App\Models\Election[] elections
  *
  * @method static self|null find(int|array $array)
@@ -71,11 +79,22 @@ class PeerServer extends Authenticatable implements JWTSubject
         //
         'jwt_secret_key',
         'jwt_public_key',
-        'token'
+        'token',
+        // config
+        'site_title',
+        'help_email_address',
+        'main_logo_url',
+        'footer_logo_url',
+        'show_user_info',
+        'show_login_options',
+        'welcome_message',
     ];
 
     public $shareableFields = [
-        'domain'
+        'domain',
+        'site_title',
+        'help_email_address',
+        'main_logo_url',
     ];
 
     protected $spatialFields = [
@@ -89,7 +108,10 @@ class PeerServer extends Authenticatable implements JWTSubject
 
     protected $casts = [
         'jwt_secret_key' => SecretKeyCaster::class,
-        'jwt_public_key' => PublicKeyCaster::class
+        'jwt_public_key' => PublicKeyCaster::class,
+        //
+        'show_user_info' => 'bool',
+        'show_login_options' => 'bool',
     ];
 
     // ############################################# Scopes
@@ -111,7 +133,8 @@ class PeerServer extends Authenticatable implements JWTSubject
      * @return \Illuminate\Database\Eloquent\Builder
      * @noinspection PhpUnused
      */
-    public static function scopeIgnoreMyself(Builder $builder): Builder{
+    public static function scopeIgnoreMyself(Builder $builder): Builder
+    {
         return $builder->where('peer_servers.id', '<>', PeerServer::meID); // ignore myself
     }
 
