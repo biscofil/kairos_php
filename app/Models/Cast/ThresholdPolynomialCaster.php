@@ -19,6 +19,7 @@ class ThresholdPolynomialCaster extends DynamicCryptosystemClassCaster
      */
     public function getTargetClassConstantName(string $cs): string
     {
+        /** @noinspection PhpPossiblePolymorphicInvocationInspection */
         return $cs::getThresholdPolynomialClass();
     }
 

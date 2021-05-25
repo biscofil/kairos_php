@@ -8,10 +8,11 @@ use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Contracts\Database\Eloquent\SerializesCastableAttributes;
 
 /**
- * Class POKCaster TODO dynamic caster
+ * Class DLogProofCaster
+ * TODO use dynamic caster when all cryptosystems have a DLogProof
  * @package App\Models\Cast
  */
-class POKCaster implements CastsAttributes, SerializesCastableAttributes
+class DLogProofCaster implements CastsAttributes, SerializesCastableAttributes
 {
 
     /**

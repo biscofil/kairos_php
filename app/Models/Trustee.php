@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Models\Cast\BigIntCaster;
 use App\Models\Cast\ModelWithFieldsWithParameterSets;
-use App\Models\Cast\POKCaster;
+use App\Models\Cast\DLogProofCaster;
 use App\Models\Cast\SecretKeyCaster;
 use App\Models\Cast\PublicKeyCaster;
 use App\Models\Cast\ThresholdBroadcastCaster;
@@ -84,7 +84,7 @@ class Trustee extends Model
     protected $casts = [
         'public_key' => PublicKeyCaster::class,
         'private_key' => SecretKeyCaster::class,
-        'pok' => POKCaster::class,
+        'pok' => DLogProofCaster::class,
         'qualified' => 'bool',
         'polynomial' => ThresholdPolynomialCaster::class,
         'broadcast' => ThresholdBroadcastCaster::class,
