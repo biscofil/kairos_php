@@ -42,7 +42,7 @@ class RSASecretKey implements SecretKey
      */
     public function toString(): string
     {
-        return $this->value->__toString(); // TODO
+        return $this->value->__toString();
     }
 
     /**
@@ -53,7 +53,8 @@ class RSASecretKey implements SecretKey
      */
     public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): RSASecretKey
     {
-        $sk = PrivateKey::load($data['v']); // TODO
+        $sk = PrivateKey::load($data['v']);
+        /** @noinspection PhpParamsInspection */
         return new static($sk);
     }
 
@@ -92,6 +93,7 @@ class RSASecretKey implements SecretKey
     {
         $sk = file_get_contents($filePath);
         $sk = PrivateKey::loadFormat($type, $sk);
+        /** @noinspection PhpParamsInspection */
         return new static($sk);
     }
 
