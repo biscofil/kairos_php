@@ -20,7 +20,10 @@ class HomomorphicAnonymizationMethod implements AnonymizationMethod
     public static function afterVotingPhaseEnds(Election &$election)
     {
         Log::debug('Homomorphic afterVotingPhaseEnds > do nothing');
-        // do nothing, proceed to tally
+
+        // proceed to tally
+        $election->cryptosystem->getCryptoSystemClass()::tally($election);
+
     }
 
 }

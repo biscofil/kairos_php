@@ -54,4 +54,9 @@ interface CryptoSystem
      */
     public static function afterAnonymizationProcessEnds(Election &$election): void;
 
+    /**
+     * @param \App\Models\Election $election
+     * @return mixed
+     */
+    public static function tally(Election &$election);
 }

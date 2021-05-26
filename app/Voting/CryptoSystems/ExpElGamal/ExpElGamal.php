@@ -4,6 +4,7 @@
 namespace App\Voting\CryptoSystems\ExpElGamal;
 
 
+use App\Models\CastVote;
 use App\Models\Election;
 use App\Voting\CryptoSystems\CryptoSystem;
 use App\Voting\CryptoSystems\SupportsTLThresholdEncryption;
@@ -92,5 +93,22 @@ class ExpElGamal implements CryptoSystem, SupportsTLThresholdEncryption
     public static function onElectionFreeze(Election &$election): void
     {
         // TODO: Implement onElectionFreeze() method.
+    }
+
+    /**
+     * TODO complete
+     * @param \App\Models\Election $election
+     */
+    public static function tally(Election &$election)
+    {
+        $out = $election->votes->reduce(function (?ExpEGCiphertext $carry, CastVote $vote) {
+            /** @var ExpEGCiphertext $voteCiphertext */
+            $voteCiphertext = $vote->vote;
+            if (is_null($carry)) {
+                return $voteCiphertext;
+            }
+            return $voteCiphertext->homomorphicSum($carry);
+        }, null);
+        // TODO store? pubblish?
     }
 }

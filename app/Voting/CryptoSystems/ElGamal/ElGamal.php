@@ -101,6 +101,14 @@ class ElGamal implements CryptoSystem, SupportsTLThresholdEncryption
         self::generateCombinedPrivateKey($election);
     }
 
+    /**
+     * @param \App\Models\Election $election
+     * @return mixed
+     */
+    public static function tally(Election &$election){
+        // TODO
+    }
+
     // #########################################################################
 
     /**
