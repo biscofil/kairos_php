@@ -36,7 +36,7 @@ class Kernel extends ConsoleKernel
     {
 
         $schedule->command('heartbeat')
-            ->everyFiveMinutes()
+            ->everyTwoHours()
             ->appendOutputTo(config('logging.channels.single.path'));
 
         $schedule->command('open_election_phase')
