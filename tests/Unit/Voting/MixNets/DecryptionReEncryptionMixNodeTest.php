@@ -6,7 +6,6 @@ namespace Tests\Unit\Voting\MixNets;
 
 use App\Voting\CryptoSystems\ElGamal\EGDLogProof;
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
-use App\Voting\CryptoSystems\ElGamal\EGParameterSet;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use phpseclib3\Math\BigInteger;
 use Tests\TestCase;
@@ -20,20 +19,16 @@ class DecryptionReEncryptionMixNodeTest extends TestCase
     public function proof()
     {
 
-        $ps = EGParameterSet::getDefault();
-
-        $kp1 = EGKeyPair::generate($ps);
-        $kp2 = EGKeyPair::generate($ps);
+        $kp1 = EGKeyPair::generate();
+        $kp2 = EGKeyPair::generate();
 
         $pk = $kp1->pk->combine($kp2->pk);
-        //$sk = $kp1->sk->combine($kp2->sk);
 
         $plain = new EGPlaintext(BigInteger::random(20));
-        $cipher = $pk->encrypt($plain); // calls mapMessageIntoSubgroup(plaintext)
+        $cipher = $pk->encrypt($plain);
 
         // ################################################################################### mixnet starts here
 
-//        $reEncryptionRandomness = BigInteger::random($size);
         $reEncryptionRandomness = randomBIgt($kp1->pk->parameterSet->q);
 
         // ###################  forward step 1/3 : partial decryption ###################
