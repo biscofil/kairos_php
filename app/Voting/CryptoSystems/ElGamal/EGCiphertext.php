@@ -34,8 +34,6 @@ class EGCiphertext implements CipherText
     }
 
     // ##################################################################################
-    // ##################################################################################
-    // ##################################################################################
 
     /**
      * @param array $data
@@ -98,9 +96,7 @@ class EGCiphertext implements CipherText
         return base64_encode(hash('sha256', $v));
     }
 
-    // ##################################################################################
     // ################################### Re Encrypt ###################################
-    // ##################################################################################
 
     /**
      * @return EGCiphertext
@@ -147,15 +143,13 @@ class EGCiphertext implements CipherText
         return new static($this->pk, $alpha, $beta);
     }
 
-    // ##################################################################################
     // #################################### Decrypt #####################################
-    // ##################################################################################
 
     /**
      * @param BigInteger $randomness
      * @return EGCiphertext
      */
-    public function decryptWithRandomness(BigInteger $randomness): self
+    public function reverseReEncryptionWithRandomness(BigInteger $randomness): self
     {
 
         // a = a * (g ^ r mod p)^-1
@@ -172,25 +166,6 @@ class EGCiphertext implements CipherText
 
     }
 
-    /**
-     * decrypt a ciphertext given a list of decryption factors (from multiple trustees)
-     * For now, no support for threshold
-     * @param BigInteger[] $decryption_factors are these the x values?
-     * @param EGPublicKey $pk // TODO from this
-     * @return BigInteger
-     */
-    public function decryptFromFactors(array $decryption_factors, EGPublicKey $pk): BigInteger
-    {
-        $running_decryption = $this->beta;
-        foreach ($decryption_factors as $dec_factor) {
-            $running_decryption = $running_decryption->multiply($dec_factor->modInverse($pk->parameterSet->p))
-                ->modPow(BI1(), $pk->parameterSet->p);
-        }
-        return $running_decryption;
-    }
-
-    // ##################################################################################
-    // ##################################################################################
     // ##################################################################################
 
     /**
