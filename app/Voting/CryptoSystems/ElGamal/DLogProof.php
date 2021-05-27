@@ -8,7 +8,7 @@ use phpseclib3\Math\BigInteger;
 /**
  * Class DLogProof
  * @package App\Voting\CryptoSystems\ElGamal;
- * Discrete Logarithm, ZKProof
+ * Discrete Logarithm, ZKProof, POK
  * @property BigInteger commitment (A=g^w)
  * @property BigInteger challenge (c)
  * @property BigInteger response (t)
