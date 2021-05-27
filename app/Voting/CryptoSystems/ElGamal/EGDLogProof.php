@@ -34,7 +34,7 @@ class EGDLogProof
     }
 
     /**
-     * generate a DDH tuple proof, where challenge generator is almost certainly EG_fiatshamir_challenge_generator
+     * generate a DDH tuple proof
      * @param \App\Voting\CryptoSystems\ElGamal\EGSecretKey $sk
      * @param \App\Voting\CryptoSystems\ElGamal\EGCiphertext $ciphertext
      * @param callable $challenge_generator
@@ -59,7 +59,7 @@ class EGDLogProof
 
         # create proof instance
         return new EGDLogProof(
-            new EGDLogCommitment($commitment_a, $commitment_b),
+            $commitment,
             $challenge,
             $response
         );
@@ -97,8 +97,8 @@ class EGDLogProof
         # little_h ^ t mod p
         $second_check_left = $ciphertext->alpha->modPow($this->response, $pk->parameterSet->p);
         // B * big_h ^ challenge
-        $m = $pk->parameterSet->mapMessageIntoSubgroup($plain->m);
-        $big_h = $ciphertext->beta->multiply($m->modInverse($pk->parameterSet->p))
+        $subGroupM = $pk->parameterSet->mapMessageIntoSubgroup($plain->m); // TODO check!!!
+        $big_h = $ciphertext->beta->multiply($subGroupM->modInverse($pk->parameterSet->p))
             ->modPow(BI(1), $pk->parameterSet->p);
 
         $second_check_right = $this->commitment->b->multiply($big_h->modPow($this->challenge, $pk->parameterSet->p))
@@ -128,6 +128,18 @@ class EGDLogProof
         $string_to_hash = implode(',', $array_to_hash);
         // compute sha1 of the commitment
         return BI(sha1(utf8_encode($string_to_hash)), 16);
+    }
+
+    /**
+     * @return array
+     */
+    public function toArray(): array
+    {
+        return [
+            'commitment' => $this->commitment->toArray(),
+            'challenge' => $this->challenge->toHex(),
+            'response' => $this->response->toHex(),
+        ];
     }
 
 }

@@ -22,4 +22,15 @@ class EGDLogCommitment
         $this->b = $b;
     }
 
+    /**
+     * @return array
+     */
+    public function toArray(): array
+    {
+        return [
+            'a' => $this->a->toHex(),
+            'b' => $this->b->toHex()
+        ];
+    }
+
 }
