@@ -30,9 +30,8 @@ class EGCiphertextTest extends TestCase
         $randomness = BigInteger::random(50);
 
         $cipher2 = $cipher->reEncryptWithRandomness($randomness)
-            ->decryptWithRandomness($randomness);
+            ->reverseReEncryptionWithRandomness($randomness);
 
-        static::assertTrue($cipher->equals($cipher2));
         static::assertTrue($cipher->equals($cipher2));
 
     }
