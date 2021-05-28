@@ -36,6 +36,8 @@ Route::get('/settings_auth', [Controller::class, 'settings_auth']);
 Route::get('/auth/after/{provider}', [AuthController::class, 'providerLoginOK']);
 Route::post('/auth/after/{provider}', [AuthController::class, 'providerLogin']);
 
+Route::get('/election_editor', [ElectionController::class, 'get_editor_parameters']);
+
 // auth middleware
 Route::middleware('auth:user_api')->group(function () {
 

@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AnonymizationMethodEnum;
+use App\Enums\CryptoSystemEnum;
 use App\Http\Requests\EditCreateElectionRequest;
 use App\Models\Election;
+use App\Models\PeerServer;
 use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\Collection;
@@ -40,6 +43,60 @@ class ElectionController extends Controller
             return getAuthUser()->votedElections()->get();
         }
         return Election::all();
+    }
+
+    /**
+     * @return array[]
+     */
+    public function get_editor_parameters(): array
+    {
+        return [
+            'election_types' => [],
+            'help_email' => PeerServer::me()->help_email_address,
+            'is_private' => !PeerServer::me()->show_elections,
+            'cryptosystems' => [
+                [
+                    'id' => CryptoSystemEnum::RSA,
+                    'name' => 'RSA',
+                    'anonymization_methods' => [
+                        [
+                            'id' => AnonymizationMethodEnum::DecMixNet,
+                            'name' => 'Decryption MixNet'
+                        ],
+                        [
+                            'id' => AnonymizationMethodEnum::EncMixNet,
+                            'name' => 'Encryption MixNet'
+                        ]
+                    ]
+                ], [
+                    'id' => CryptoSystemEnum::ElGamal,
+                    'name' => 'ElGamal',
+                    'anonymization_methods' => [
+                        [
+                            'id' => AnonymizationMethodEnum::DecMixNet,
+                            'name' => 'Decryption MixNet'
+                        ],
+                        [
+                            'id' => AnonymizationMethodEnum::EncMixNet,
+                            'name' => 'Encryption MixNet'
+                        ],
+                        [
+                            'id' => AnonymizationMethodEnum::DecReEncMixNet,
+                            'name' => 'Decryption-Re-Encryption MixNet'
+                        ]
+                    ]
+                ], [
+                    'id' => CryptoSystemEnum::ExponentialElGamal,
+                    'name' => 'Exponential ElGamal',
+                    'anonymization_methods' => [
+                        [
+                            'id' => AnonymizationMethodEnum::Homomorphic,
+                            'name' => 'Homomorphic encryption'
+                        ]
+                    ]
+                ]
+            ]
+        ];
     }
 
     /**

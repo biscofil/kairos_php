@@ -22,10 +22,13 @@
         "bootswatch": "^5.0.0",
         "crypto-browserify": "^3.12.0",
         "iconv-lite": "^0.6.2",
+        "install": "^0.13.0",
         "jquery": "^3.6.0",
         "laravel-mix": "^6.0.17",
         "laravel-mix-sri": "0.0.6",
         "lodash": "^4.17.19",
+        "luxon": "^1.27.0",
+        "moment": "^2.29.1",
         "node-rsa": "^1.1.1",
         "normalize.css": "8.0.1",
         "postcss": "^8.2.10",
@@ -40,6 +43,7 @@
         "vue": "^2.5.11",
         "vue-axios": "^3.2.4",
         "vue-country-flag": "^2.0.4",
+        "vue-datetime": "^1.0.0-beta.14",
         "vue-form-wizard": "^0.8.4",
         "vue-i18n": "^8.24.3",
         "vue-js-modal": "^2.0.0-rc.6",
@@ -52,7 +56,8 @@
         "vue-toastr-2": "0.0.10",
         "vuejs-dialog": "^1.4.2",
         "vuetable-3": "^3.3.3",
-        "vuex": "^3.6.2"
+        "vuex": "^3.6.2",
+        "weekstart": "^1.1.0"
     },
     "devDependencies": {}
 }
