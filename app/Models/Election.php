@@ -514,7 +514,7 @@ class Election extends Model
 
         if ($this->peerServers()->count()) { // P2P three phase commit for freeze
 
-            if ($this->peer_server_id === PeerServer::me()->id) {
+            if ($this->peer_server_id === PeerServer::meID) { // the curent server is the election creator
 
 //                if ($this->election->min_peer_count_t > 0
 //                    && $this->election->trustees()->where('peer_server_id', '=', PeerServer::meID)->count()) {
@@ -589,7 +589,7 @@ class Election extends Model
     public function actualFreeze(): void
     {
         // Elgamal: generate combined public key, RSA: nothing
-        $this->cryptosystem->getCryptoSystemClass()::onElectionFreeze($this);
+        $this->cryptosystem->getClass()::onElectionFreeze($this);
         $this->frozen_at = now();
         $this->save();
         // TODO $this->setupOutputTables();

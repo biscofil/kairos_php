@@ -95,7 +95,7 @@ class User extends Authenticatable implements JWTSubject
                     ->orWhere('provider_id', '<>', $providerID);
             })
             ->first()) {
-            throw new \Exception('Email exists already');
+            throw new Exception('Email exists already');
         }
 
         return self::query()

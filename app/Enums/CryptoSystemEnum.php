@@ -14,7 +14,7 @@ use BenSampo\Enum\Enum;
  * @method static static ElGamal()
  * @method static static ExponentialElGamal()
  */
-final class CryptoSystemEnum extends Enum
+final class CryptoSystemEnum extends Enum implements GetSetIdentifier
 {
     public const RSA = 'rsa';
     public const ElGamal = 'eg';
@@ -30,7 +30,7 @@ final class CryptoSystemEnum extends Enum
      * @param \App\Voting\CryptoSystems\BelongsToCryptoSystem $obj
      * @return mixed
      */
-    public static function getIdentifier(BelongsToCryptoSystem $obj): string
+    public static function getIdentifier($obj): string
     {
         $v = array_flip(self::CRYPTOSYSTEMS); // [ ElGamal::class => 'eg', ... ]
         $key = $obj::getCryptosystem();
@@ -41,21 +41,21 @@ final class CryptoSystemEnum extends Enum
     }
 
     /**
-     * @param string $cryptoSystemIdentifier
+     * @param string $identifier
      * @return string|\App\Voting\CryptoSystems\CryptoSystem
      */
-    public static function getByIdentifier(string $cryptoSystemIdentifier): string
+    public static function getByIdentifier(string $identifier): string
     {
-        if (!array_key_exists($cryptoSystemIdentifier, self::CRYPTOSYSTEMS)) {
-            throw new \RuntimeException('Invalid cryptosystem ' . $cryptoSystemIdentifier);
+        if (!array_key_exists($identifier, self::CRYPTOSYSTEMS)) {
+            throw new \RuntimeException('Invalid cryptosystem ' . $identifier);
         }
-        return self::CRYPTOSYSTEMS[$cryptoSystemIdentifier]; // ElGamal::class, RSA::class, ...
+        return self::CRYPTOSYSTEMS[$identifier]; // ElGamal::class, RSA::class, ...
     }
 
     /**
      * @return string|CryptoSystem
      */
-    public function getCryptoSystemClass(): string
+    public function getClass(): string
     {
         return self::getByIdentifier($this->value);
     }

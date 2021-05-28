@@ -44,7 +44,7 @@ class CastVoteController extends Controller
         ]);
 
         /** @var CipherText $skClass */
-        $skClass = $election->cryptosystem->getCryptoSystemClass()::getCipherTextClass();
+        $skClass = $election->cryptosystem->getClass()::getCipherTextClass();
 
         $voteArray = $skClass::validate($data['vote']);
 
