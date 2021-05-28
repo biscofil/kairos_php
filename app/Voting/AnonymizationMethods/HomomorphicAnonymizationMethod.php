@@ -22,7 +22,7 @@ class HomomorphicAnonymizationMethod implements AnonymizationMethod
         Log::debug('Homomorphic afterVotingPhaseEnds > do nothing');
 
         // proceed to tally
-        $election->cryptosystem->getCryptoSystemClass()::tally($election);
+        $election->cryptosystem->getClass()::tally($election);
 
     }
 

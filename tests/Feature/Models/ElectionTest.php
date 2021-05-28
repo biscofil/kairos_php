@@ -41,7 +41,7 @@ class ElectionTest extends TestCase
 
         $privateKeys = [];
         for ($i = 1; $i < 5; $i++) {
-            $pair = $election->cryptosystem->getCryptoSystemClass()::getKeyPairClass()::generate();
+            $pair = $election->cryptosystem->getClass()::getKeyPairClass()::generate();
             $trusteeUser = $election->createUserTrustee(User::factory()->create());
             $trusteeUser->public_key = $pair->pk;
             //$trusteeUser->private_key = $pair->sk; // uploaded after election
@@ -50,7 +50,7 @@ class ElectionTest extends TestCase
         }
 
         // For RSA, this does nothing
-        $election->cryptosystem->getCryptoSystemClass()::onElectionFreeze($election);
+        $election->cryptosystem->getClass()::onElectionFreeze($election);
 
         $plainVote = ['v' => Str::random(3)];
 
@@ -73,10 +73,10 @@ class ElectionTest extends TestCase
 
         // compute private key and decrypt
         //(ElGamal::getInstance())->generateCombinedPrivateKey($election);  // TODO fix!!!
-        $election->cryptosystem->getCryptoSystemClass()::afterAnonymizationProcessEnds($election);
+        $election->cryptosystem->getClass()::afterAnonymizationProcessEnds($election);
 
         //$out = $election->private_key->decrypt($cipher);
-        $this->assertEquals($plainVote, JsonBallotEncoding::decode($out));
+        static::assertEquals($plainVote, JsonBallotEncoding::decode($out));
 
         // corrupt one private key
         $trustee = Trustee::findOrFail(intval(array_keys($privateKeys)[0])); // take the first trustee
@@ -85,7 +85,7 @@ class ElectionTest extends TestCase
 
         // compute private key and decrypt
         //(ElGamal::getInstance())->generateCombinedPrivateKey($election);  // TODO fix!!!
-        $election->cryptosystem->getCryptoSystemClass()::afterAnonymizationProcessEnds($election);
+        $election->cryptosystem->getClass()::afterAnonymizationProcessEnds($election);
 
         //TODO $out = $election->private_key->decrypt($cipher);
         //TODO $this->assertNotEquals($plainVote, JsonBallotEncoding::decode($out));
@@ -114,7 +114,7 @@ class ElectionTest extends TestCase
         $privateKeys = [];
         for ($i = 1; $i < 5; $i++) {
             $user = User::factory()->create();
-            $pair = $election->cryptosystem->getCryptoSystemClass()::getKeyPairClass()::generate();
+            $pair = $election->cryptosystem->getClass()::getKeyPairClass()::generate();
             $trusteeUser = $election->createUserTrustee($user);
             $trusteeUser->public_key = $pair->pk;
             //$trusteeUser->private_key = $pair->sk; // uploaded after election
@@ -126,9 +126,9 @@ class ElectionTest extends TestCase
         $election->save();
 
         // generateCombinedPublicKey;
-        $this->assertNull($election->public_key);
-        $election->cryptosystem->getCryptoSystemClass()::onElectionFreeze($election);
-        $this->assertNotNull($election->public_key);
+        static::assertNull($election->public_key);
+        $election->cryptosystem->getClass()::onElectionFreeze($election);
+        static::assertNotNull($election->public_key);
 
         $plainVote = ['v' => Str::random(3)];
         $plaintext = (JsonBallotEncoding::encode($plainVote, EGPlaintext::class))[0];
@@ -144,10 +144,10 @@ class ElectionTest extends TestCase
 
         // compute private key and decrypt
         //(ElGamal::getInstance())->generateCombinedPrivateKey($election);  // TODO fix!!!
-        $election->cryptosystem->getCryptoSystemClass()::afterAnonymizationProcessEnds($election);
+        $election->cryptosystem->getClass()::afterAnonymizationProcessEnds($election);
 
         $out = $election->private_key->decrypt($cipher);
-        $this->assertEquals($plainVote, JsonBallotEncoding::decode($out));
+        static::assertEquals($plainVote, JsonBallotEncoding::decode($out));
 
         // corrupt one private key
         $trustee = Trustee::findOrFail(intval(array_keys($privateKeys)[0])); // take the first trustee
@@ -156,10 +156,10 @@ class ElectionTest extends TestCase
 
         // compute private key and decrypt
         // generateCombinedPrivateKey($election);
-        $election->cryptosystem->getCryptoSystemClass()::afterAnonymizationProcessEnds($election);
+        $election->cryptosystem->getClass()::afterAnonymizationProcessEnds($election);
 
         $out = $election->private_key->decrypt($cipher);
-        $this->assertNotEquals($plainVote, JsonBallotEncoding::decode($out));
+        static::assertNotEquals($plainVote, JsonBallotEncoding::decode($out));
 
     }
 
@@ -179,7 +179,7 @@ class ElectionTest extends TestCase
             ->json('POST', 'api/elections', $data->toArray());
         $this->assertResponseStatusCode(201, $response);
 
-        $keypair = EGKeyPair::generate();
+        $keypair = EGKeyPair::generate(); // TODO check!!
 
         $election = Election::findOrFail($response->json('id'));
         $election->frozen_at = Carbon::now();
@@ -201,7 +201,7 @@ class ElectionTest extends TestCase
                 ]
             ];
 
-            /** @var RSAPlaintext $plaintext */
+            /** @var RSAPlaintext $plaintext */  // TODO check!!
             $plaintext = (JsonBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
             $cipher = $keypair->pk->encrypt($plaintext); // encrypt it
             $data = ['vote' => $cipher->toArray(true)];
@@ -216,8 +216,7 @@ class ElectionTest extends TestCase
         }
 
         $election->closeVotingPhase();
-        $this->assertNotNull($election->voting_ended_at);
-
+        static::assertNotNull($election->voting_ended_at);
 
     }
 

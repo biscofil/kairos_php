@@ -4,30 +4,36 @@
 namespace App\Voting\AnonymizationMethods\MixNets;
 
 
+use App\Enums\AnonymizationMethodEnum;
+use App\Models\Election;
+use App\Voting\AnonymizationMethods\BelongsToAnonymizationSystem;
 use App\Voting\CryptoSystems\CipherText;
-use App\Voting\CryptoSystems\PublicKey;
-use App\Voting\CryptoSystems\SecretKey;
 
 /**
  * Class Mix
  * @package App\Voting\MixNets
+ * @property Election $election
  * @property Ciphertext[] ciphertexts
- * @property MixNodeParameterSet $parameterSet
+ * @property MixNodeParameterSet|null $parameterSet
  */
-class Mix
+abstract class Mix implements BelongsToAnonymizationSystem
 {
 
+    public Election $election;
     public array $ciphertexts;
-    public MixNodeParameterSet $parameterSet;
+    /** @var \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet|null */
+    public $parameterSet;
 
     /**
-     * @param PublicKey $pk
+     * @param Election $election
      * @param Ciphertext[] $ciphertexts
      * @param MixNodeParameterSet|null $parameterSet
      * @throws \Exception
+     * @noinspection PhpMissingParamTypeInspection
      */
-    public function __construct(PublicKey $pk, array $ciphertexts, MixNodeParameterSet $parameterSet = null)
+    public function __construct(Election $election, array $ciphertexts, $parameterSet = null)
     {
+        $this->election = $election;
         $this->ciphertexts = $ciphertexts;
         $this->parameterSet = $parameterSet;
     }
@@ -44,76 +50,73 @@ class Mix
     }
 
     /**
+     * TODO proof should not use the private key!!!!!
+     *   use dlog proof
      * @param Mix $b
-     * @param SecretKey $sk
      * @return bool
      * @throws \Exception
+     * @deprecated
      */
-    public function equals(Mix $b, SecretKey $sk): bool
+    public function equals(Mix $b): bool
     {
         for ($i = 0; $i < count($this->ciphertexts); $i++) {
 
-            if (true) {
-
-                // TODO proof should not use the private key!!!!!
-                // private key check
-                if (!$sk->decrypt($this->ciphertexts[$i])->m->equals($sk->decrypt($b->ciphertexts[$i])->m)) {
-                    return false;
-                }
-
-            } else {
-
-                // No private key check
-                if (!$this->ciphertexts[$i]->equals($b->ciphertexts[$i])) {
-//                dump($this->ciphertexts[$i]->alpha->toHex());
-//                dump($b->ciphertexts[$i]->alpha->toHex());
-//                dump($this->ciphertexts[$i]->beta->toHex());
-//                dump($b->ciphertexts[$i]->beta->toHex());
-                    return false;
-                }
-
+            if (!$this->ciphertexts[$i]->equals($b->ciphertexts[$i])) {
+                dump($this->ciphertexts[$i]->toArray());
+                dump($b->ciphertexts[$i]->toArray());
+                return false;
             }
-//
+
+            // private key check
+//            if (!$sk->decrypt($this->ciphertexts[$i])->m->equals($sk->decrypt($b->ciphertexts[$i])->m)) {
+//                return false;
+//            }
+
+            // todo dlog
 
         }
         return true;
     }
 
     // ########################################################################
-    // ########################################################################
-    // ########################################################################
 
     /**
-     * @param PublicKey $pk
      * @param array $data
      * @return Mix
      * @throws \Exception
      */
-    public static function fromArray(PublicKey $pk, array $data): Mix
+    public static function fromArray(array $data): Mix
     {
+        $class = AnonymizationMethodEnum::getByIdentifier($data['_anonymization_method_']);
 
-        $ciphertexts = array_map(function (array $cipher) use ($pk) {
-            return Ciphertext::fromArray($cipher, false, $pk);
+        $election = Election::findFromUuid($data['election_uuid']);
+
+        $ctClass = $election->cryptosystem->getClass()::getCipherTextClass();
+        $ciphertexts = array_map(function (array $cipher) use ($ctClass, $election) {
+            return $ctClass::fromArray($cipher, $election->public_key);
         }, $data['ciphertexts']);
 
+        $parameterSetClass = null; // TODO cast
         $parameterSet = is_null($data['parameter_set'])
             ? null
-            : MixNodeParameterSet::fromArray($pk, $data['parameter_set']);
+            : $parameterSetClass::fromArray($election->public_key, $data['parameter_set']);
 
-        return new static($pk, $ciphertexts, $parameterSet);
+        return new static($election, $ciphertexts, $parameterSet);
     }
 
     /**
-     * @param bool $storePrivateValues
+     * @param bool $storeParameterSet only set to TRUE for shadow mixes
      * @return array
      */
-    public function toArray(bool $storePrivateValues = false): array
+    public function toArray(bool $storeParameterSet = false): array
     {
         return [
-            'ciphertexts' => array_map(function (Ciphertext $cipherText) {
+            '_anonymization_method_' => AnonymizationMethodEnum::getIdentifier($this),
+            'election_uuid' => $this->election->uuid,
+            'ciphertexts' => array_map(function (CipherText $cipherText) {
                 return $cipherText->toArray();
             }, $this->ciphertexts),
-            'parameter_set' => $storePrivateValues ? $this->parameterSet->toArray() : null,
+            'parameter_set' => ($storeParameterSet && $this->parameterSet)? $this->parameterSet->toArray() : null
         ];
     }
 

@@ -32,7 +32,7 @@ class CastVoteControllerTest extends TestCase
         $election->createPeerServerTrustee(PeerServer::me());
 
         // generate key
-        $election->cryptosystem->getCryptoSystemClass()::onElectionFreeze($election); // generateCombinedPublicKey
+        $election->cryptosystem->getClass()::onElectionFreeze($election); // generateCombinedPublicKey
         $keyPair = RSAKeyPair::generate();
 
         $election->public_key = $keyPair->pk;

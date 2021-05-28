@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Tests\Unit\Voting\MixNets;
+namespace Tests\Unit\Voting\AnonymizationMethods\MixNets\Decryption;
 
 
 use App\Voting\CryptoSystems\ElGamal\EGDLogProof;

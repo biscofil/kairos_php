@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Tests\Unit\Voting\CryptoSystems\ElGamal;
+namespace Tests\Unit\Voting\CryptoSystems\ExpElGamal;
 
 
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
@@ -46,7 +46,7 @@ class ExpEGEncryptionTest extends TestCase
         $k = $keyPair->sk->decrypt($cipherC);
 //        dump($k->m->toString());
 
-        $this->assertFalse($k->m->equals(BI($a + $b)));
+        static::assertFalse($k->m->equals(BI($a + $b)));
 
     }
 
@@ -90,7 +90,7 @@ class ExpEGEncryptionTest extends TestCase
 //        dump($k->m->toString());
 //        dump($g_pow_m->toString()); // exp
 
-        $this->assertTrue($k->m->equals($g_pow_m));
+        static::assertTrue($k->m->equals($g_pow_m));
 
 //        $this->assertTrue($k->m->equals($_plaintext->m));
 //        $this->assertTrue($k->m->equals(BI($a + $b))); // requires DLOG
