@@ -14,6 +14,7 @@ rsync -azP \
     --exclude 'mysql-data' \
     --exclude '_docker/*' \
     --exclude 'apache2.conf' \
+    --exclude '000-default.conf' \
     --exclude 'resources/assets/*' \
     --exclude 'resources/js/*' \
     --exclude 'resources/sass/*' \
@@ -38,6 +39,7 @@ rsync -azP \
     --exclude 'mysql-data' \
     --exclude '_docker/*' \
     --exclude 'apache2.conf' \
+    --exclude '000-default.conf' \
     --exclude 'resources/assets/*' \
     --exclude 'resources/js/*' \
     --exclude 'resources/sass/*' \
@@ -61,6 +63,7 @@ rsync -azP \
     --exclude 'mysql-data' \
     --exclude '_docker/*' \
     --exclude 'apache2.conf' \
+    --exclude '000-default.conf' \
     --exclude 'resources/assets/*' \
     --exclude 'resources/js/*' \
     --exclude 'resources/sass/*' \
