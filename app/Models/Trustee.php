@@ -27,10 +27,13 @@ use phpseclib3\Math\BigInteger;
  * @package App\Models
  * @property int $id
  * @property string uuid
+ *
+ * @property bool accepts_ballots
  * @property null|PublicKey public_key
  * @property null|SecretKey private_key
  * @property null|DLogProof pok // TODO
  * @property null|string public_key_hash
+ *
  * @property null|bool qualified
  *
  * @property ThresholdPolynomial|null polynomial
@@ -51,6 +54,7 @@ use phpseclib3\Math\BigInteger;
  *
  * @method static self make()
  * @method self|Builder peerServers() Filters peer server trustees
+ * @method self|Builder peerServersAcceptingBallots() Filters peer server trustees that accepts ballots
  * @method self|Builder users() Filter user trustees
  * @method static self findOrFail($id)
  * @method static self|null find(int|array $array)
@@ -83,10 +87,12 @@ class Trustee extends Model
     ];
 
     public $shareableFields = [
-        'uuid'
+        'uuid',
+        'accepts_ballots',
     ];
 
     protected $casts = [
+        'accepts_ballots' => 'bool',
         'public_key' => PublicKeyCaster::class,
         'private_key' => SecretKeyCaster::class,
         'pok' => DLogProofCaster::class,
@@ -143,11 +149,22 @@ class Trustee extends Model
     }
 
     /**
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopePeerServersAcceptingBallots(Builder $builder): Builder
+    {
+        return $builder->whereNotNull('peer_server_id')
+            ->where('accepts_ballots', '=', true);
+    }
+
+    /**
      * Filter user trustees
      * @param \Illuminate\Database\Eloquent\Builder $builder
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeUsers(Builder $builder): Builder{
+    public function scopeUsers(Builder $builder): Builder
+    {
         return $builder->whereNull('peer_server_id');
     }
 
@@ -205,7 +222,7 @@ class Trustee extends Model
 
     /**
      * Returns an integer > 0 indicating the index of the peer server
-     * 0 => first
+     * 1 => first
      * @param \Illuminate\Support\Collection|null $peerServers
      * @return int
      * @throws \Exception
@@ -226,7 +243,8 @@ class Trustee extends Model
      * Generates keypair of the cryptosystem used in the elections
      * @return void
      */
-    public function generateKeyPair() : void{
+    public function generateKeyPair(): void
+    {
         $keyPair = $this->election->cryptosystem->getClass()::getKeyPairClass()::generate();
         $this->public_key = $keyPair->pk;
         $this->computePublicKeyHash();

@@ -285,10 +285,10 @@ class Election extends Model
             ];
         }
 
-        if ($this->peerServers()->count() == 0) {
+        if ($this->trustees()->peerServersAcceptingBallots()->count() == 0) {
             $issues[] = [
                 'type' => 'trustees',
-                'action' => 'Add at least one [peer server] trustee'
+                'action' => 'Add at least one peer server trustee that accepts ballots'
             ];
         }
 
@@ -453,7 +453,9 @@ class Election extends Model
      */
     public function createPeerServerTrustee(PeerServer $server): Trustee
     {
-        Log::debug("Creating peer server trustee for election " . $this->id);
+
+        Log::debug('Creating peer server trustee for election ' . $this->id);
+
         $trustee = Trustee::make();
         $trustee->uuid = (string)Str::uuid();
         $trustee->peerServer()->associate($server);
@@ -463,6 +465,7 @@ class Election extends Model
         if ($server->id === PeerServer::meID) { //this server
 
             // if threshold and coordinator is also peer, generate key pair
+            $trustee->accepts_ballots = true; // TODO remove!!!
             $trustee->generateKeyPair();
             $trustee->save();
 

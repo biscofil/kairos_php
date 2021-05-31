@@ -17,8 +17,11 @@ export default class Trustee {
      * @param pok : EGProof
      * @param decryption_factors : Array
      * @param decryption_proofs : Array
+     * @param accepts_ballots : Boolean
      */
-    constructor(user, peer_server, uuid, public_key, public_key_hash, pok, decryption_factors, decryption_proofs) {
+    constructor(user, peer_server, uuid, public_key, public_key_hash,
+                pok, decryption_factors, decryption_proofs,
+                accepts_ballots) {
         this.user = user;
         this.peer_server = peer_server;
         //
@@ -28,6 +31,7 @@ export default class Trustee {
         this.pok = pok;
         this.decryption_factors = decryption_factors;
         this.decryption_proofs = decryption_proofs;
+        this.accepts_ballots = accepts_ballots;
     }
 
     /**
@@ -86,7 +90,8 @@ export default class Trustee {
             d.public_key_hash,
             pok,
             decryption_factors,
-            decryption_proofs
+            decryption_proofs,
+            d.accepts_ballots && peer_server
         );
     };
 

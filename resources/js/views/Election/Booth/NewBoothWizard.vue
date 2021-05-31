@@ -93,7 +93,9 @@ export default {
             //let k = election.private_key.decrypt(c);
             //console.log(k);
             let self = this;
-            this.election.trustees.forEach(trustee => {
+            this.election.trustees.filter(trustee => {
+                return trustee.peer_server && trustee.accepts_ballots;
+            }).forEach(trustee => {
                 axios.post("https://" + trustee.peer_server.domain + '/api/elections/' + this.election.slug + '/cast', {
                     vote: c.toJSONObject()
                 })
