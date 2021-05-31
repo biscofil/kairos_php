@@ -189,6 +189,7 @@ class ElectionTest extends TestCase
         $election->public_key = $keypair->pk;
         $election->save();
 
+        $trustee = $election->createPeerServerTrustee(PeerServer::me());
 
         for ($i = 0; $i < rand(3, 5); $i++) {
 
