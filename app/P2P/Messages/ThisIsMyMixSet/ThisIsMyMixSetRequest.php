@@ -4,13 +4,15 @@
 namespace App\P2P\Messages\ThisIsMyMixSet;
 
 
+use App\Jobs\RunP2PTask;
 use App\Models\Election;
 use App\Models\Mix;
 use App\Models\PeerServer;
 use App\P2P\Messages\P2PMessageRequest;
+use App\P2P\Tasks\VerifyReceivedMix;
 use Exception;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -60,11 +62,18 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
      */
     public function serialize(PeerServer $to): array
     {
-        $file = Storage::get($this->mixModel->getFilename() . '.json'); // TODO remove
+        /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode $amClass */
+        $amClass = $this->mixModel->trustee->election->anonymization_method->getClass();
+
+        /** @var \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes $primaryShadowMixesClass */
+        $primaryShadowMixesClass = $amClass::getMixWithShadowMixesClass();
+
+        $primaryShadowMixes = $primaryShadowMixesClass::load($this->mixModel->getFilename());
+
         return [
             'election_uuid' => $this->mixModel->trustee->election->uuid,
             'mix_set' => $this->mixModel,
-            'file' => $file // TODO remove
+            'file' => $primaryShadowMixes->toArray() // TODO remove
         ];
     }
 
@@ -87,8 +96,16 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
         $mixModel = new Mix();
         $mixModel->trustee_id = $election->getTrusteeFromPeerServer($sender, true)->id;
         $mixModel->fillFromSharedArray($data['mix_set']);
+        $mixModel->save();
 
-        // TODO dispatch verification process and mix if this is the next node
+        /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode $amClass */
+        $amClass = $election->anonymization_method->getClass();
+        /** @var \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes $primaryShadowMixesClass */
+        $primaryShadowMixesClass = $amClass::getMixWithShadowMixesClass();
+
+        // parse and store
+        $primaryShadowMixes = $primaryShadowMixesClass::fromArray($data['file']);
+        $primaryShadowMixes->store($mixModel->getFilename());
 
         return new static(
             $sender,
@@ -109,9 +126,11 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
     {
         Log::debug('ThisIsMyMixSet message received');
 
-        $this->mixModel->save();
+        // dispatch verification process and mix if this is the next node
 
-        // DISPATCH DOWNLOAD
+        /** @noinspection PhpExpressionResultUnusedInspection */
+        $jobs = [new RunP2PTask(new VerifyReceivedMix($this->mixModel))];
+        Bus::chain($jobs)->dispatch();
 
         return new ThisIsMyMixSetResponse(PeerServer::me(), $this->requestSender);
     }
