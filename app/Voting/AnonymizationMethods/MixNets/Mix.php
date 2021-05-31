@@ -114,7 +114,7 @@ abstract class Mix implements BelongsToAnonymizationSystem
             '_anonymization_method_' => AnonymizationMethodEnum::getIdentifier($this),
             'election_uuid' => $this->election->uuid,
             'ciphertexts' => array_map(function (CipherText $cipherText) {
-                return $cipherText->toArray();
+                return $cipherText->toArray(true); //d TODO optimize
             }, $this->ciphertexts),
             'parameter_set' => ($storeParameterSet && $this->parameterSet)? $this->parameterSet->toArray() : null
         ];

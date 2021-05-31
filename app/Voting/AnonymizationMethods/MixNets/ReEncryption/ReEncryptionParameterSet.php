@@ -4,6 +4,7 @@
 namespace App\Voting\AnonymizationMethods\MixNets\ReEncryption;
 
 
+use App\Enums\CryptoSystemEnum;
 use App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet;
 use App\Voting\CryptoSystems\PublicKey;
 use phpseclib3\Math\BigInteger;
@@ -70,6 +71,8 @@ class ReEncryptionParameterSet extends MixNodeParameterSet
     public function toArray(): array
     {
         return [
+            '_cs_' => CryptoSystemEnum::getIdentifier($this->pk),
+            'pk' => $this->pk->toArray(),
             'encryption' => array_map(function (BigInteger $randomness) {
                 //return $randomness;
                 return $randomness->toHex();
@@ -79,13 +82,17 @@ class ReEncryptionParameterSet extends MixNodeParameterSet
     }
 
     /**
-     * @param PublicKey $pk // TODO remove
      * @param array $data
      * @return self
      * @throws \Exception
      */
-    public static function fromArray(PublicKey $pk, array $data): self
+    public static function fromArray(array $data): self
     {
+
+        $csClass = CryptoSystemEnum::getByIdentifier($data['_cs_']);
+        $pkClass = $csClass::getPublicKeyClass();
+
+        $pk = $pkClass::fromArray($data['pk']);
 
         $encryption = array_map(function (string $randomnessStr) {
             return BI($randomnessStr, 16);

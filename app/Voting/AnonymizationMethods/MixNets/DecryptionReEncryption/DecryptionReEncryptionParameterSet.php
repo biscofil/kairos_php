@@ -3,7 +3,7 @@
 
 namespace App\Voting\AnonymizationMethods\MixNets\DecryptionReEncryption;
 
-use App\Voting\AnonymizationMethods\MixNets\DecryptionReEncryption\DecryptionReEncryptionMixNode;
+use App\Enums\CryptoSystemEnum;
 use App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet;
 use App\Voting\AnonymizationMethods\MixNets\ReEncryption\BelongsToReEncryptionMixNode;
 use App\Voting\CryptoSystems\PublicKey;
@@ -64,6 +64,8 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
     public function toArray(): array
     {
         return [
+            '_cs_' => CryptoSystemEnum::getIdentifier($this->pk),
+            'pk' => $this->pk->toArray(),
             'encryption' => array_map(function (BigInteger $randomness) {
                 //return $randomness;
                 return $randomness->toHex();
@@ -73,13 +75,17 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
     }
 
     /**
-     * @param PublicKey $pk // TODO remove
      * @param array $data
      * @return self
      * @throws \Exception
      */
-    public static function fromArray(PublicKey $pk, array $data): self
+    public static function fromArray(array $data): self
     {
+
+        $csClass = CryptoSystemEnum::getByIdentifier($data['_cs_']);
+        $pkClass = $csClass::getPublicKeyClass();
+
+        $pk = $pkClass::fromArray($data['pk']);
 
         $encryption = array_map(function (string $randomnessStr) {
             return BI($randomnessStr, 16);
@@ -109,7 +115,7 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
         for ($i = 0; $i < count($this->reEncryptionFactors); $i++) {
             $newReEncryptionFactor[] = $primaryMixPS->reEncryptionFactors[$i]
                 ->subtract($this->reEncryptionFactors[$i])
-                ->modPow(BI1(), $this->pk->parameterSet->p); // TODO check
+                ->modPow(BI1(), $this->pk->parameterSet->p); // TODO generalize
         }
 
         // undo shadow mix shuffling (this)

@@ -49,11 +49,10 @@ abstract class MixNodeParameterSet implements BelongsToAnonymizationSystem
     abstract public function toArray(): array;
 
     /**
-     * @param \App\Voting\CryptoSystems\PublicKey $pk
      * @param array $data
      * @return static
      */
-    abstract public static function fromArray(PublicKey $pk, array $data): self;
+    abstract public static function fromArray(array $data): self;
 
     // ##########################################################################
 

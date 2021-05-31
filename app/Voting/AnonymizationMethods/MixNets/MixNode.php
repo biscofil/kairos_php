@@ -28,10 +28,11 @@ abstract class MixNode implements AnonymizationMethod
      * @param Election $election
      * @param array $originalCiphertexts
      * @param int $shadowMixCount
+     * @param \App\Models\Mix|null $previousMix
      * @return \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes
      * @throws \Exception
      */
-    public function generate(Election $election, array $originalCiphertexts, int $shadowMixCount = 100): MixWithShadowMixes
+    public function generate(Election $election, array $originalCiphertexts, int $shadowMixCount = 100, ?\App\Models\Mix $previousMix = null): MixWithShadowMixes
     {
         $this->election = $election;
 
@@ -50,8 +51,9 @@ abstract class MixNode implements AnonymizationMethod
         }
 
         $mixModel = new \App\Models\Mix();
-        $mixModel->round = 1; // TODO
-        $mixModel->trustee_id = $election->getTrusteeFromPeerServer(PeerServer::me())->id;
+        $mixModel->round = is_null($previousMix) ? 1 : $previousMix->round + 1;
+        $mixModel->trustee_id = $election->getTrusteeFromPeerServer(PeerServer::me(), true)->id;
+        $mixModel->previous_mix_id = $previousMix ? $previousMix->id : null;
         $mixModel->save();
 
         $MixWithShadowMixesClass = static::getMixWithShadowMixesClass();
@@ -60,14 +62,29 @@ abstract class MixNode implements AnonymizationMethod
             $primaryMix,
             $shadowMixes,
             $this->election
+//            $mixModel
         );
 
     }
+
+    // ########################################################################
 
     /**
      * @return string|\App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes
      */
     abstract public static function getMixWithShadowMixesClass(): string;
+
+    /**
+     * @return string|\App\Voting\AnonymizationMethods\MixNets\Mix
+     */
+    abstract public static function getMixClass() : string;
+
+    /**
+     * @return string|\App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet
+     */
+    abstract public static function getParameterSetClass() : string;
+
+    // ########################################################################
 
     /**
      * @param Election $election

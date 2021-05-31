@@ -4,7 +4,9 @@
 namespace App\Voting\AnonymizationMethods\MixNets;
 
 use App\Models\Election;
+use App\Voting\AnonymizationMethods\BelongsToAnonymizationSystem;
 use App\Voting\CryptoSystems\CipherText;
+use App\Voting\CryptoSystems\ElGamal\EGCiphertext;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +25,7 @@ use Illuminate\Support\Facades\Storage;
  * @property array $proofs
  * @property MixNodeParameterSet[] $parameterSets
  */
-abstract class MixWithShadowMixes
+abstract class MixWithShadowMixes implements BelongsToAnonymizationSystem
 {
 
     public Mix $primaryMix;
@@ -53,6 +55,16 @@ abstract class MixWithShadowMixes
     // ########################################################################
 
     /**
+     * @return string
+     */
+    public function getHash(): string
+    {
+        return sha1(json_encode($this->toArray()));
+    }
+
+    // ########################################################################
+
+    /**
      * Generate challenge bits
      * @return string
      */
@@ -74,6 +86,7 @@ abstract class MixWithShadowMixes
     }
 
     /**
+     * @throws \Exception
      */
     public function generateProofs(): void
     {
@@ -90,9 +103,11 @@ abstract class MixWithShadowMixes
             if ($bit === '0') { // left
                 $parameterSets[] = $this->getLeftEquivalenceParameterSet($mix);
                 $proofs[] = $this->getLeftProof($mix);
-            } else { // right
+            } elseif ($bit === '1') { // right
                 $parameterSets[] = $this->getRightEquivalenceParameterSet($mix);
                 $proofs[] = $this->getRightProof($mix);
+            } else {
+                throw new \Exception("Bit must be either 1 or 0, '$bit' given");
             }
 
             $this->shadowMixes[$i]->parameterSet = null; // forget parameter set of shadow mix
@@ -243,10 +258,10 @@ abstract class MixWithShadowMixes
 
     /**
      * @param string $fileName
-     * @return MixNode
+     * @return \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes
      * @throws \Exception
      */
-    public static function load(string $fileName): MixNode
+    public static function load(string $fileName): self
     {
         $jsonFilePath = $fileName . '.json';
         $data = json_decode(Storage::get($jsonFilePath), true);
@@ -257,23 +272,39 @@ abstract class MixWithShadowMixes
 
     /**
      * @param array $data
-     * @return MixNode
+     * @return \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes
      * @throws \Exception
      */
     public static function fromArray(array $data): self
     {
-        $out = new static();
+        $election = Election::findFromUuid($data['election_uuid']);
+        $challengeBits = $data['challenge_bits'];
 
-        $out->election = Election::findFromUuid($data['election_uuid']);
+        $originalCiphertexts = array_map(function (array $originalCiphertext) {
+            return EGCiphertext::fromArray($originalCiphertext); // TODO generalize
+        }, $data['original_ciphertexts']);
 
-        $out->challengeBits = $data['challenge_bits'];
+        /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode|string $mixNetAnonimizationMethodClass */
+        $mixNetAnonimizationMethodClass = static::getAnonimizationMethod();
+        $mixClass = $mixNetAnonimizationMethodClass::getMixClass();
+        $parameterSetClass = $mixNetAnonimizationMethodClass::getParameterSetClass();
 
-        $out->primaryMix = Mix::fromArray($data['primary_mix']);
+        $primaryMix = $mixClass::fromArray($data['primary_mix']);
 
-        $out->shadowMixes = array_map(function (array $shadowMixArray) use ($out) {
-            return Mix::fromArray($shadowMixArray);
+        $shadowMixes = array_map(function (array $shadowMixArray) use ($mixClass) {
+            return $mixClass::fromArray($shadowMixArray);
         }, $data['shadow_mixes']);
 
+        $parameterSets = array_map(function (array $originalCiphertext) use ($parameterSetClass) {
+            return $parameterSetClass::fromArray($originalCiphertext);
+        }, $data['parameter_sets']);
+
+        $proofs = $data['proofs']; // TODO check, null for now, no custom type
+
+        $out = new static($originalCiphertexts, $primaryMix, $shadowMixes, $election);
+        $out->challengeBits = $challengeBits;
+        $out->parameterSets = $parameterSets;
+        $out->proofs = $proofs;
         return $out;
     }
 

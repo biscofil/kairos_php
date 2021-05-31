@@ -62,4 +62,19 @@ class DecryptionMixNode extends MixNode
         return DecryptionMixWithShadowMixes::class;
     }
 
+    /**
+     * @return string|DecryptionMix
+     */
+    public static function getMixClass(): string
+    {
+        return DecryptionMix::class;
+    }
+
+    /**
+     * @return string|DecryptionParameterSet
+     */
+    public static function getParameterSetClass() : string{
+        return  DecryptionParameterSet::class;
+    }
+
 }

@@ -57,4 +57,18 @@ class ReEncryptingMixNode extends MixNode
         return ReEncryptionMixWithShadowMixes::class;
     }
 
+    /**
+     * @return string|ReEncryptionMix
+     */
+    public static function getMixClass(): string
+    {
+        return ReEncryptionMix::class;
+    }
+
+    /**
+     * @return string|ReEncryptionParameterSet
+     */
+    public static function getParameterSetClass(): string{
+        return ReEncryptionParameterSet::class;
+    }
 }

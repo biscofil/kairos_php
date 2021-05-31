@@ -4,7 +4,7 @@
 namespace App\Voting\AnonymizationMethods\MixNets\Decryption;
 
 
-use App\Voting\AnonymizationMethods\BelongsToAnonymizationSystem;
+use App\Enums\CryptoSystemEnum;
 use App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet;
 use App\Voting\CryptoSystems\PublicKey;
 
@@ -39,18 +39,25 @@ class DecryptionParameterSet extends MixNodeParameterSet
     public function toArray(): array
     {
         return [
+            '_cs_' => CryptoSystemEnum::getIdentifier($this->pk),
+            'pk' => $this->pk->toArray(),
             'permutation' => $this->permutation,
         ];
     }
 
     /**
-     * @param \App\Voting\CryptoSystems\PublicKey $pk
      * @param array $data
      * @return static
      * @throws \Exception
      */
-    public static function fromArray(PublicKey $pk, array $data): self
+    public static function fromArray(array $data): self
     {
+
+        $csClass = CryptoSystemEnum::getByIdentifier($data['_cs_']);
+        $pkClass = $csClass::getPublicKeyClass();
+
+        $pk = $pkClass::fromArray($data['pk']);
+
         $permutation = $data['permutation'];
         return new static(
             $pk,

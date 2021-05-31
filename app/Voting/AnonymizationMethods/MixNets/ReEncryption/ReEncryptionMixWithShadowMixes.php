@@ -15,6 +15,8 @@ use App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes;
 class ReEncryptionMixWithShadowMixes extends MixWithShadowMixes
 {
 
+    use BelongsToReEncryptionMixNode;
+
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
      * @return \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet

@@ -6,7 +6,6 @@ namespace App\Voting\AnonymizationMethods\MixNets\DecryptionReEncryption;
 
 use App\Models\Election;
 use App\Models\PeerServer;
-use App\Voting\AnonymizationMethods\MixNets\Decryption\DecryptionMixWithShadowMixes;
 use App\Voting\AnonymizationMethods\MixNets\Mix;
 use App\Voting\AnonymizationMethods\MixNets\MixNode;
 use App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet;
@@ -69,6 +68,22 @@ class DecryptionReEncryptionMixNode extends MixNode
     public static function getMixWithShadowMixesClass(): string
     {
         return DecryptionReEncryptionMixWithShadowMixes::class;
+    }
+
+    /**
+     * @return string|DecryptionReEncryptionMix
+     */
+    public static function getMixClass(): string
+    {
+        return DecryptionReEncryptionMix::class;
+    }
+
+    /**
+     * @return string|DecryptionReEncryptionParameterSet
+     */
+    public static function getParameterSetClass(): string
+    {
+        return DecryptionReEncryptionParameterSet::class;
     }
 
 }

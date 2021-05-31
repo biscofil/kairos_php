@@ -13,7 +13,7 @@ interface CryptoSystem
 {
 
     /**
-     * @return string
+     * @return string|\App\Voting\CryptoSystems\PublicKey
      */
     public static function getPublicKeyClass(): string;
 

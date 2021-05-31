@@ -19,6 +19,8 @@ use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 class DecryptionReEncryptionMixWithShadowMixes extends MixWithShadowMixes
 {
 
+    use BelongsToDecryptionReEncryptionMixNode;
+
     /**
      * TODO generalize
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix

@@ -15,6 +15,8 @@ use App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes;
 class DecryptionMixWithShadowMixes extends MixWithShadowMixes
 {
 
+    use BelongsToDecryptionMixNode;
+
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
      * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
