@@ -7,6 +7,10 @@ namespace App\P2P\Messages\ThisIsMyMixSet;
 use App\Models\PeerServer;
 use App\P2P\Messages\P2PMessageResponse;
 
+/**
+ * Class ThisIsMyMixSetResponse
+ * @package App\P2P\Messages\ThisIsMyMixSet
+ */
 class ThisIsMyMixSetResponse extends P2PMessageResponse
 {
 

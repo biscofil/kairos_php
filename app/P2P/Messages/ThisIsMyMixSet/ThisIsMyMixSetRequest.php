@@ -11,7 +11,6 @@ use App\Models\PeerServer;
 use App\P2P\Messages\P2PMessageRequest;
 use App\P2P\Tasks\VerifyReceivedMix;
 use Exception;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -59,6 +58,7 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
     /**
      * @param \App\Models\PeerServer $to
      * @return array
+     * @throws \Exception
      */
     public function serialize(PeerServer $to): array
     {
@@ -72,7 +72,7 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
 
         return [
             'election_uuid' => $this->mixModel->trustee->election->uuid,
-            'mix_set' => $this->mixModel,
+            'mix_set' => $this->mixModel->toArray(),
             'file' => $primaryShadowMixes->toArray() // TODO remove
         ];
     }
@@ -127,10 +127,9 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
         Log::debug('ThisIsMyMixSet message received');
 
         // dispatch verification process and mix if this is the next node
-
-        /** @noinspection PhpExpressionResultUnusedInspection */
-        $jobs = [new RunP2PTask(new VerifyReceivedMix($this->mixModel))];
-        Bus::chain($jobs)->dispatch();
+        RunP2PTask::dispatch(
+            new VerifyReceivedMix($this->mixModel)
+        );
 
         return new ThisIsMyMixSetResponse(PeerServer::me(), $this->requestSender);
     }
