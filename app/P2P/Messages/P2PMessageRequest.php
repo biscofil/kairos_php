@@ -9,7 +9,7 @@ use App\P2P\Messages\Freeze\Freeze1IAmFreezingElection\Freeze1IAmFreezingElectio
 use App\P2P\Messages\Freeze\Freeze2IAmReadyForFreeze\Freeze2IAmReadyForFreezeRequest;
 use App\P2P\Messages\Freeze\Freeze3CommitFail\Freeze3CommitFailRequest;
 use App\P2P\Messages\Freeze\ThisIsMyThresholdBroadcast\ThisIsMyThresholdBroadcastRequest;
-use App\P2P\Messages\GiveMeYourMixSet\GiveMeYourMixSetRequest;
+use App\P2P\Messages\ThisIsMyMixSet\ThisIsMyMixSetRequest;
 use App\P2P\Messages\Heartbeat\HeartBeatRequest;
 use App\P2P\Messages\IReceivedTheseVotes\IReceivedTheseVotesRequest;
 use App\P2P\Messages\WillYouBeAElectionTrusteeForMyElection\WillYouBeAElectionTrusteeForMyElectionRequest;
@@ -48,7 +48,7 @@ abstract class P2PMessageRequest extends P2PMessage
         Freeze3CommitFailRequest::class,
         //
         IReceivedTheseVotesRequest::class,
-        GiveMeYourMixSetRequest::class,
+        ThisIsMyMixSetRequest::class,
     ];
 
     /**

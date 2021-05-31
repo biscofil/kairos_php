@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Models;
 
+use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
 use App\Models\PeerServer;
@@ -175,6 +176,7 @@ class ElectionTest extends TestCase
         /** @var Election $data */
         $data = Election::factory()->make();
         $data->cryptosystem = CryptoSystemEnum::ElGamal();
+        $data->anonymization_method = AnonymizationMethodEnum::EncMixNet();
 //        dd($data->toArray());
         $response = $this->actingAs($user)
             ->json('POST', 'api/elections', $data->toArray());

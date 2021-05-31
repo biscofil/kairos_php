@@ -83,9 +83,8 @@ class ReEncryptionMixNodeTest extends TestCase
             $ciphertexts[] = $keyPair->pk->encrypt($plain);
         }
 
-        $mixNode = new ReEncryptingMixNode();
         $shadowMixCount = rand(4, 5);
-        $primaryShadowMixes = $mixNode->generate($election, $ciphertexts, $shadowMixCount);
+        $primaryShadowMixes = ReEncryptingMixNode::generate($election, $ciphertexts, $shadowMixCount);
 
         // generate bits
         $challengeBits = $primaryShadowMixes->getFiatShamirChallengeBits();
@@ -134,9 +133,8 @@ class ReEncryptionMixNodeTest extends TestCase
             $ciphertexts[] = $keyPair->pk->encrypt(new $ptClass(BigInteger::random(20)));
         }
 
-        $mixNode = new ReEncryptingMixNode();
         $shadowMixCount = rand(2, 3);
-        $primaryShadowMixes = $mixNode->generate($election, $ciphertexts, $shadowMixCount);
+        $primaryShadowMixes = ReEncryptingMixNode::generate($election, $ciphertexts, $shadowMixCount);
         $primaryShadowMixes->challengeBits = $primaryShadowMixes->getFiatShamirChallengeBits();
         $primaryShadowMixes->generateProofs();
 

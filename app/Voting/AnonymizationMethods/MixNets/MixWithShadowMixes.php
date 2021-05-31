@@ -6,7 +6,6 @@ namespace App\Voting\AnonymizationMethods\MixNets;
 use App\Models\Election;
 use App\Voting\AnonymizationMethods\BelongsToAnonymizationSystem;
 use App\Voting\CryptoSystems\CipherText;
-use App\Voting\CryptoSystems\ElGamal\EGCiphertext;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -20,10 +19,9 @@ use Illuminate\Support\Facades\Storage;
  * @property \App\Voting\AnonymizationMethods\MixNets\Mix[] $shadowMixes
  * @property Ciphertext[] originalCiphertexts
  * @property string $challengeBits
- * @property \App\Models\Election election
- *
  * @property array $proofs
  * @property MixNodeParameterSet[] $parameterSets
+ * @property \App\Models\Election election
  */
 abstract class MixWithShadowMixes implements BelongsToAnonymizationSystem
 {
