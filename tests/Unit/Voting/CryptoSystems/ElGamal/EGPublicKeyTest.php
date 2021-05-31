@@ -2,8 +2,6 @@
 
 namespace Tests\Unit\Voting\CryptoSystems\ElGamal;
 
-use App\Voting\CryptoSystems\ElGamal\DLogProof;
-use App\Voting\CryptoSystems\ElGamal\EGSecretKey;
 use App\Voting\CryptoSystems\ElGamal\EGPublicKey;
 use Exception;
 use Tests\TestCase;
@@ -21,8 +19,16 @@ class EGPublicKeyTest extends TestCase
      */
     public function combine()
     {
-        $a = EGPublicKey::fromArray(['g' => 1, 'p' => 8, 'q' => 1, 'y' => 3], false, 10);
-        $b = EGPublicKey::fromArray(['g' => 1, 'p' => 8, 'q' => 1, 'y' => 3], false, 10);
+        $a = EGPublicKey::fromArray([
+            'ps' => ['g' => 1, 'p' => 8, 'q' => 1],
+            'y' => 3
+        ], false, 10);
+
+        $b = EGPublicKey::fromArray([
+            'ps' => ['g' => 1, 'p' => 8, 'q' => 1],
+            'y' => 3
+        ], false, 10);
+
         $c = $a->combine($b);
         static::assertTrue($c->parameterSet->equals($a->parameterSet));
         static::assertTrue($c->parameterSet->equals($a->parameterSet));

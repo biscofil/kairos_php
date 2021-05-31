@@ -4,7 +4,6 @@
 namespace App\Voting\CryptoSystems\ElGamal;
 
 
-use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\PublicKey;
 use phpseclib3\Math\BigInteger;
 
@@ -65,7 +64,7 @@ class EGPublicKey implements PublicKey
         }
 
         return new static(
-            static::getCryptosystem()::getParameterSetClass()::fromArray($data, $base),
+            static::getCryptosystem()::getParameterSetClass()::fromArray($data['ps'], $base),
             BI($data['y'], $base)
         );
     }
@@ -76,11 +75,12 @@ class EGPublicKey implements PublicKey
      */
     public function toArray(bool $ignoreParameterSet = false): array
     {
-        $out = [];
+        $out = [
+            'y' => $this->y->toHex()
+        ];
         if (!$ignoreParameterSet) {
-            $out = $this->parameterSet->toArray();
+            $out['ps'] = $this->parameterSet->toArray();
         }
-        $out['y'] = $this->y->toHex();
         return $out;
     }
 
