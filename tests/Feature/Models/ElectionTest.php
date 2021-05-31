@@ -4,6 +4,7 @@ namespace Tests\Feature\Models;
 
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
+use App\Models\PeerServer;
 use App\Models\Trustee;
 use App\Models\User;
 use App\Voting\BallotEncodings\JsonBallotEncoding;

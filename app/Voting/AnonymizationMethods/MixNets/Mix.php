@@ -87,8 +87,6 @@ abstract class Mix implements BelongsToAnonymizationSystem
      */
     public static function fromArray(array $data): Mix
     {
-        $class = AnonymizationMethodEnum::getByIdentifier($data['_anonymization_method_']);
-
         $election = Election::findFromUuid($data['election_uuid']);
 
         $ctClass = $election->cryptosystem->getClass()::getCipherTextClass();
@@ -96,10 +94,15 @@ abstract class Mix implements BelongsToAnonymizationSystem
             return $ctClass::fromArray($cipher, $election->public_key);
         }, $data['ciphertexts']);
 
-        $parameterSetClass = null; // TODO cast
+        /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode $mixNodeClass */
+        $mixNodeClass = static::getAnonimizationMethod();
+
+        /** @var \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $psClass */
+        $psClass = $mixNodeClass::getParameterSetClass();
+
         $parameterSet = is_null($data['parameter_set'])
             ? null
-            : $parameterSetClass::fromArray($election->public_key, $data['parameter_set']);
+            : $psClass::fromArray($data['parameter_set']);
 
         return new static($election, $ciphertexts, $parameterSet);
     }
@@ -111,12 +114,11 @@ abstract class Mix implements BelongsToAnonymizationSystem
     public function toArray(bool $storeParameterSet = false): array
     {
         return [
-            '_anonymization_method_' => AnonymizationMethodEnum::getIdentifier($this),
             'election_uuid' => $this->election->uuid,
             'ciphertexts' => array_map(function (CipherText $cipherText) {
-                return $cipherText->toArray(true); //d TODO optimize
+                return $cipherText->toArray(false);
             }, $this->ciphertexts),
-            'parameter_set' => ($storeParameterSet && $this->parameterSet)? $this->parameterSet->toArray() : null
+            'parameter_set' => ($storeParameterSet && $this->parameterSet) ? $this->parameterSet->toArray() : null
         ];
     }
 

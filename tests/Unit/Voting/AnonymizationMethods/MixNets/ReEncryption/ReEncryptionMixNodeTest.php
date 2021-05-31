@@ -112,12 +112,11 @@ class ReEncryptionMixNodeTest extends TestCase
      * @test
      * @throws Exception
      */
-    public function store_load()
+    public function store_load_elgamal()
     {
 
-        /** @var Election $election */
         $election = Election::factory()->create();
-        $election->cryptosystem = CryptoSystemEnum::ElGamal(); // TODO remove
+        $election->cryptosystem = CryptoSystemEnum::ElGamal();
         $election->save();
 
         $election->createPeerServerTrustee(PeerServer::me());

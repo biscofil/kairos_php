@@ -18,7 +18,7 @@ class ReEncryptionMixWithShadowMixes extends MixWithShadowMixes
     use BelongsToReEncryptionMixNode;
 
     /**
-     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
+     * @param \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMix $shadow
      * @return \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet
      */
     public function getLeftEquivalenceParameterSet(Mix $shadow): MixNodeParameterSet
@@ -27,7 +27,7 @@ class ReEncryptionMixWithShadowMixes extends MixWithShadowMixes
     }
 
     /**
-     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
+     * @param \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMix $shadow
      * @return \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionParameterSet
      */
     public function getRightEquivalenceParameterSet(Mix $shadow): ReEncryptionParameterSet
@@ -36,7 +36,7 @@ class ReEncryptionMixWithShadowMixes extends MixWithShadowMixes
     }
 
     /**
-     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
+     * @param \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMix $shadow
      * @return null
      */
     public function getLeftProof(Mix $shadow)
@@ -45,7 +45,7 @@ class ReEncryptionMixWithShadowMixes extends MixWithShadowMixes
     }
 
     /**
-     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
+     * @param \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMix $shadow
      * @return null
      */
     public function getRightProof(Mix $shadow)
@@ -54,7 +54,7 @@ class ReEncryptionMixWithShadowMixes extends MixWithShadowMixes
     }
 
     /**
-     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
+     * @param \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMix $shadowMix
      * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
      * @param $proof
      * @return bool
@@ -67,7 +67,7 @@ class ReEncryptionMixWithShadowMixes extends MixWithShadowMixes
     }
 
     /**
-     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
+     * @param \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMix $shadowMix
      * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
      * @param $proof
      * @return bool

@@ -278,10 +278,16 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationSystem
     public static function fromArray(array $data): self
     {
         $election = Election::findFromUuid($data['election_uuid']);
+
+        $csClass = $election->cryptosystem->getClass();
+
+        // challenge bits
         $challengeBits = $data['challenge_bits'];
 
-        $originalCiphertexts = array_map(function (array $originalCiphertext) {
-            return EGCiphertext::fromArray($originalCiphertext); // TODO generalize
+        // original ciphertexts
+        $ctClass = $csClass::getCipherTextClass();
+        $originalCiphertexts = array_map(function (array $originalCiphertext) use ($election, $ctClass) {
+            return $ctClass::fromArray($originalCiphertext, $election->public_key);
         }, $data['original_ciphertexts']);
 
         /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode|string $mixNetAnonimizationMethodClass */
@@ -319,7 +325,7 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationSystem
             'challenge_bits' => $this->challengeBits,
             //
             'original_ciphertexts' => array_map(function (CipherText $cipherText) {
-                return $cipherText->toArray(true);
+                return $cipherText->toArray(false);
             }, $this->originalCiphertexts),
             'primary_mix' => $this->primaryMix->toArray($storePrivateValues),
             'shadow_mixes' => array_map(function (Mix $shadowMix) use ($storePrivateValues) {

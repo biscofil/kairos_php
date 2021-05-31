@@ -59,6 +59,8 @@ class EGKeyPairTest extends TestCase
         static::assertTrue($kp1->sk->x->equals($loadedKP->sk->x));
         static::assertTrue($kp1->pk->y->equals($loadedKP->pk->y));
 
+        Storage::delete($path);
+
     }
 
 }
