@@ -8,7 +8,6 @@ use App\Models\Election;
 use App\Models\PeerServer;
 use App\Voting\AnonymizationMethods\MixNets\Mix;
 use App\Voting\AnonymizationMethods\MixNets\MixNode;
-use App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet;
 
 /**
  * Class DecryptionMixNode
@@ -28,8 +27,11 @@ class DecryptionMixNode extends MixNode
     {
 
         if (is_null($parameterSet)) {
+
+            $psClass = self::getParameterSetClass();
+
             // if not provided, generate as many randomness factors as there are ciphertexts
-            $parameterSet = MixNodeParameterSet::create($election->public_key, count($ciphertexts));
+            $parameterSet = $psClass::create($election->public_key, count($ciphertexts));
         }
 
         /** @var \App\Models\Trustee $mePeer */
@@ -73,8 +75,9 @@ class DecryptionMixNode extends MixNode
     /**
      * @return string|DecryptionParameterSet
      */
-    public static function getParameterSetClass() : string{
-        return  DecryptionParameterSet::class;
+    public static function getParameterSetClass(): string
+    {
+        return DecryptionParameterSet::class;
     }
 
 }

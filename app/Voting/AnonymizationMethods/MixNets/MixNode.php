@@ -104,7 +104,7 @@ abstract class MixNode implements AnonymizationMethod
     {
         Log::debug('MixNode afterVotingPhaseEnds > dispatching GenerateMix');
         // dispatch mix job
-        GenerateMix::dispatch($election);
+        GenerateMix::dispatchSync($election);
     }
 
 }
