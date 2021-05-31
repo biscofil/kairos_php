@@ -67,6 +67,7 @@ return [
     |
     */
 
+    // <this will be overwritten by service provicer>
     'timezone' => 'UTC',
 
     /*
@@ -80,6 +81,7 @@ return [
     |
     */
 
+    // <this will be overwritten by service provicer>
     'locale' => 'en',
 
     /*

@@ -47,6 +47,8 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * @property bool show_user_info
  * @property bool show_login_options
  * @property string welcome_message
+ * @property string timezone
+ * @property string locale
  *
  * @property \Illuminate\Support\Collection|\App\Models\Election[] elections
  *
@@ -95,6 +97,8 @@ class PeerServer extends Authenticatable implements JWTSubject
         'site_title',
         'help_email_address',
         'main_logo_url',
+        'timezone',
+        'locale',
     ];
 
     protected $spatialFields = [

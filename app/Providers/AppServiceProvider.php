@@ -35,10 +35,15 @@ class AppServiceProvider extends ServiceProvider
 
         // take the RSA keypair of the current server for JWT auth
         $me = PeerServer::me(false);
-        if ($me && $me->jwt_public_key && $me->jwt_secret_key) {
-            config(['jwt.keys.private' => $me->jwt_secret_key->toString()]);
-            config(['jwt.keys.public' => $me->jwt_public_key->toString()]);
+        if ($me) {
+            config(['app.locale' => $me->locale]);
+            config(['app.timezone' => $me->timezone]);
+            if ($me->jwt_public_key && $me->jwt_secret_key) {
+                config(['jwt.keys.private' => $me->jwt_secret_key->toString()]);
+                config(['jwt.keys.public' => $me->jwt_public_key->toString()]);
+            }
         }
+
 
     }
 }
