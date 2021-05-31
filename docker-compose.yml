@@ -18,7 +18,6 @@ services:
       - "9000:9000" #php, for debug
       - "9001:9001" #php, for debug
       - "9003:9003" #php, for debug
-      - "6001:6001" #websocket
     volumes:
       - './letsencrypt:/home/letsencrypt'
       - './000-default.conf:/etc/apache2/sites-available/000-default.conf'
@@ -26,6 +25,16 @@ services:
       - '.:/var/www/html'
 #      - /var/www/html/bootstrap/cache
     user: "${U_ID}:${G_ID}"
+
+#  php-ws-client:
+#    #    build:
+#    #      context: .
+#    #      dockerfile: Dockerfile
+#    image: registry.gitlab.com/biscofil/thelios:user
+#    restart: always
+#    command: php artisan run_web_socket_client_loop
+#    volumes:
+#      - '.:/var/www/html'
 
   php-queue:
 #    build:
