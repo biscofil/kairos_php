@@ -13,11 +13,13 @@ use App\Voting\CryptoSystems\ElGamal\DLogProof;
 use App\Voting\CryptoSystems\PublicKey;
 use App\Voting\CryptoSystems\SecretKey;
 use App\Voting\CryptoSystems\ThresholdBroadcast;
+use App\Voting\CryptoSystems\ThresholdPolynomial;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
 use phpseclib3\Math\BigInteger;
 
 /**
@@ -43,6 +45,9 @@ use phpseclib3\Math\BigInteger;
  *
  * @property null|int peer_server_id
  * @property null|PeerServer peerServer
+ *
+ * @property int election_id
+ * @property \App\Models\Election election
  *
  * @method static self make()
  * @method self|Builder peerServers() Filters peer server trustees
@@ -196,6 +201,36 @@ class Trustee extends Model
     public function computePublicKeyHash(): void
     {
         $this->public_key_hash = $this->public_key->getFingerprint();
+    }
+
+    /**
+     * Returns an integer > 0 indicating the index of the peer server
+     * 0 => first
+     * @param \Illuminate\Support\Collection|null $peerServers
+     * @return int
+     * @throws \Exception
+     */
+    public function getPeerServerIndex(?Collection $peerServers = null): int
+    {
+        if (is_null($this->peer_server_id)) {
+            throw new \Exception('getIndex can be called only on peer server trustees');
+        }
+        if (is_null($peerServers)) {
+            $peerServers = $this->election->peerServers()->get(['domain']);
+        }
+        $sortedDomains = $peerServers->pluck('domain')->flip()->toArray();
+        return $sortedDomains[$this->peerServer->domain] + 1;
+    }
+
+    /**
+     * Generates keypair of the cryptosystem used in the elections
+     * @return void
+     */
+    public function generateKeyPair() : void{
+        $keyPair = $this->election->cryptosystem->getClass()::getKeyPairClass()::generate();
+        $this->public_key = $keyPair->pk;
+        $this->computePublicKeyHash();
+        $this->private_key = $keyPair->sk;
     }
 
 }

@@ -74,12 +74,12 @@ class ThisIsMyThresholdBroadcastResponse extends P2PMessageResponse
 
 
         /** @var PublicKey $publicKeyClass */
-        $publicKeyClass = $requestMessage->election->cryptosystem->getCryptoSystemClass()::getPublicKeyClass();
+        $publicKeyClass = $requestMessage->election->cryptosystem->getClass()::getPublicKeyClass();
         $publicKey = $publicKeyClass::fromArray($data['my_public_key']); // RSA, ELGAMAL
 
         // broadcast
         /** @var ThresholdBroadcast $thresholdBroadcastClass */
-        $thresholdBroadcastClass = $requestMessage->election->cryptosystem->getCryptoSystemClass()::getThresholdBroadcastClass();
+        $thresholdBroadcastClass = $requestMessage->election->cryptosystem->getClass()::getThresholdBroadcastClass();
         $broadcast = $thresholdBroadcastClass::fromArray($data['my_broadcast']); // RSA, ELGAMAL
 
         // share

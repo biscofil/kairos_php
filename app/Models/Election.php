@@ -459,6 +459,26 @@ class Election extends Model
         $trustee->peerServer()->associate($server);
         $trustee->election()->associate($this);
         $trustee->save();
+
+        if ($server->id === PeerServer::meID) { //this server
+
+            // if threshold and coordinator is also peer, generate key pair
+            $trustee->generateKeyPair();
+            $trustee->save();
+
+            /**
+             * @see \App\Models\Election::freeze()
+             */
+
+        } else {
+
+            //other server
+            SendP2PMessage::dispatchSync(
+                new WillYouBeAElectionTrusteeForMyElectionRequest(PeerServer::me(), [$server], $this)
+            );
+
+        }
+
         return $trustee;
     }
 

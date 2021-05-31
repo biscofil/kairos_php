@@ -99,11 +99,11 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
         $election = Election::findFromUuid($data['election_uuid']);
 
         /** @var PublicKey $publicKeyClass */
-        $publicKeyClass = $election->cryptosystem->getCryptoSystemClass()::getPublicKeyClass();
+        $publicKeyClass = $election->cryptosystem->getClass()::getPublicKeyClass();
         $publicKey = $publicKeyClass::fromArray($data['public_key']); // RSA, ELGAMAL
 
         /** @var ThresholdBroadcast $thresholdBroadcastClass */
-        $thresholdBroadcastClass = $election->cryptosystem->getCryptoSystemClass()::getThresholdBroadcastClass();
+        $thresholdBroadcastClass = $election->cryptosystem->getClass()::getThresholdBroadcastClass();
         $broadcast = $thresholdBroadcastClass::fromArray($data['broadcast']); // RSA, ELGAMAL
 
         $receivedShare = new BigInteger($data['share'], 16);
