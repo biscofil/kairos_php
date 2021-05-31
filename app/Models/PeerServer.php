@@ -90,6 +90,8 @@ class PeerServer extends Authenticatable implements JWTSubject
         'show_user_info',
         'show_login_options',
         'welcome_message',
+        'timezone',
+        'locale',
     ];
 
     public $shareableFields = [
