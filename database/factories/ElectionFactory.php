@@ -9,8 +9,14 @@ use App\Models\PeerServer;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
+/**
+ * Class ElectionFactory
+ * @package Database\Factories
+ * @method Election create($attributes = [], ?Model $parent = null)
+ */
 class ElectionFactory extends Factory
 {
     /**
