@@ -25,7 +25,7 @@ class ReEncryptionMixNodeTest extends TestCase
 {
 
     /**
-     * @ TODO test
+     * @ test
      * @throws Exception
      */
     public function works()
@@ -60,7 +60,6 @@ class ReEncryptionMixNodeTest extends TestCase
     public function proof()
     {
 
-        /** @var Election $election */
         $election = Election::factory()->create();
         $election->cryptosystem = CryptoSystemEnum::ElGamal(); // TODO remove
         $election->save();

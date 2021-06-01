@@ -5,6 +5,7 @@ namespace Tests\Unit\Voting\CryptoSystems\ElGamal;
 
 
 use App\Voting\CryptoSystems\ElGamal\EGParameterSet;
+use App\Voting\CryptoSystems\ElGamal\EGSecretKey;
 use App\Voting\CryptoSystems\ElGamal\EGThresholdPolynomial;
 use Tests\TestCase;
 
@@ -165,17 +166,21 @@ class EG_TL_ThresholdTest extends TestCase
             shuffle($peerIDs);
             $I = array_slice($peerIDs, 0, $_t); // subset
 
-            $k = BI(0);
+            // retrieve shares
+            $receivedShares = [];
             foreach ($I as $j) {
-                $lambda = getLagrangianCoefficientMod($I, $j, $parameterSet->q);
-                $k = $k->add(
-                    $p->getShareToSend($j)->multiply($lambda)
-                )->modPow(BI1(), $parameterSet->q);
+                $receivedShares[$j] = $p->getShareToSend($j);
             }
+
+            $k = EGSecretKey::fromThresholdShares(
+                $p->pk,
+                $receivedShares,
+                $parameterSet
+            );
 
             // if the number of peers $_t is enough (gte t) the value should match
             static::assertEquals(
-                $k->equals($p->sk->x),
+                $k->equals($p->sk),
                 $_t >= $t
             );
 
