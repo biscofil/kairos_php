@@ -58,6 +58,11 @@ class ThisIsMyMixSetRequestTest extends TestCase
 
         $serialized = $srcMsg->serialize($to);
 
+        // change to prevent database unique constraint
+        $oldHash = $mixModel->hash;
+        $mixModel->hash = Str::random(10);
+        $mixModel->save();
+
         $back = ThisIsMyMixSetRequest::unserialize($me, $serialized);
 
         $response = $back->onRequestReceived();
@@ -65,7 +70,7 @@ class ThisIsMyMixSetRequestTest extends TestCase
         $resp = ThisIsMyMixSetResponse::unserialize($me, $response->serialize(), $srcMsg);
         $resp->onResponseReceived($me, null);
 
-        self::assertEquals($srcMsg->mixModel->hash, $back->mixModel->hash);
+        self::assertEquals($oldHash, $back->mixModel->hash);
 
     }
 
