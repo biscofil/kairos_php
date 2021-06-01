@@ -4,12 +4,11 @@
 namespace App\P2P\Messages\ThisIsMyMixSet;
 
 
-use App\Jobs\RunP2PTask;
+use App\Jobs\VerifyReceivedMix;
 use App\Models\Election;
 use App\Models\Mix;
 use App\Models\PeerServer;
 use App\P2P\Messages\P2PMessageRequest;
-use App\P2P\Tasks\VerifyReceivedMix;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -62,14 +61,7 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
      */
     public function serialize(PeerServer $to): array
     {
-        /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode $amClass */
-        $amClass = $this->mixModel->trustee->election->anonymization_method->getClass();
-
-        /** @var \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes $primaryShadowMixesClass */
-        $primaryShadowMixesClass = $amClass::getMixWithShadowMixesClass();
-
-        $primaryShadowMixes = $primaryShadowMixesClass::load($this->mixModel->getFilename());
-
+        $primaryShadowMixes = $this->mixModel->getMixWithShadowMixes();
         return [
             'election_uuid' => $this->mixModel->trustee->election->uuid,
             'mix_set' => $this->mixModel->toArray(),
@@ -127,9 +119,7 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
         Log::debug('ThisIsMyMixSet message received');
 
         // dispatch verification process and mix if this is the next node
-        RunP2PTask::dispatch(
-            new VerifyReceivedMix($this->mixModel)
-        );
+        VerifyReceivedMix::dispatch($this->mixModel);
 
         return new ThisIsMyMixSetResponse(PeerServer::me(), $this->requestSender);
     }

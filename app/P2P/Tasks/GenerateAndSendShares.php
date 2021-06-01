@@ -38,25 +38,27 @@ class GenerateAndSendShares extends Task
 
         Log::debug('RUNNING GenerateAndSendShares');
 
-        /** @var \Illuminate\Support\Collection|\App\Models\Trustee[] $trustees */
-        $trustees = $this->election->trustees->keyBy('peer_server_id');
+        $peerServerTrustees = $this->election->trustees->keyBy('peer_server_id');
 
-        /** @var \App\Models\Trustee $meTrustee */
-        $meTrustee = $trustees->get(PeerServer::meID); // TODO what if same server is not a trustee?
+        /** @var \App\Models\Trustee|null $meTrustee */
+        $meTrustee = $peerServerTrustees->get(PeerServer::meID);
+        // This in invoked once the first message of the three phase freeze commit is received
+        // thus the server running this code is a trustee
+        if (is_null($meTrustee)) {
+            throw new \Exception('This server is not a trustee of election ' . $this->election->uuid);
+        }
 
         /**
          * the keypair and the polynomial are generated
          * in @see \App\P2P\Messages\Freeze\Freeze1IAmFreezingElection\Freeze1IAmFreezingElectionRequest::onRequestReceived()
          */
 
-        $meTrustee->save();
-
         $peerServers = $this->election->peerServers()->get();
         $sortedDomains = $peerServers->pluck('domain')->flip()->toArray();
 
         Log::debug('GenerateAndSendShares > ' . count($peerServers) . ' peer servers');
 
-        $peerServers->each(function (PeerServer $server) use ($meTrustee, $trustees, $sortedDomains) {
+        $peerServers->each(function (PeerServer $server) use ($meTrustee, $peerServerTrustees, $sortedDomains) {
 
             if ($server->id === PeerServer::meID // ignore self
                 || $server->id === $this->election->peer_server_id // ignore creator
@@ -67,7 +69,7 @@ class GenerateAndSendShares extends Task
             $j = $sortedDomains[$server->domain] + 1; // TODO use Trustee::getIndex
 
             /** @var \App\Models\Trustee $trustee */
-            $trustee = $trustees->get($server->id);
+            $trustee = $peerServerTrustees->get($server->id);
 
             $share = $meTrustee->polynomial->getShare($j);
             // store share we are about to send in DB

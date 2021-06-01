@@ -69,6 +69,7 @@ class Trustee extends Model
         'uuid',
         //
         'user_id', 'peer_server_id',
+        'accepts_ballots',
         //
         'election_id',
         'public_key',
@@ -221,8 +222,16 @@ class Trustee extends Model
     }
 
     /**
-     * Returns an integer > 0 indicating the index of the peer server
-     * 1 => first
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    private function _getElectionPeerServers(): Collection
+    {
+        return $this->election->peerServers()->get(['domain']);
+    }
+
+    /**
+     * Returns an integer >= 0 indicating the index of the peer server
+     * 0 => first
      * @param \Illuminate\Support\Collection|null $peerServers
      * @return int
      * @throws \Exception
@@ -233,11 +242,28 @@ class Trustee extends Model
             throw new \Exception('getIndex can be called only on peer server trustees');
         }
         if (is_null($peerServers)) {
-            $peerServers = $this->election->peerServers()->get(['domain']);
+            $peerServers = $this->_getElectionPeerServers();
         }
         $sortedDomains = $peerServers->pluck('domain')->flip()->toArray();
-        return $sortedDomains[$this->peerServer->domain] + 1;
+        return $sortedDomains[$this->peerServer->domain];
     }
+
+    /**
+     * @param \App\Models\Trustee $trustee
+     * @param \Illuminate\Support\Collection|null $peerServers
+     * @return bool
+     * @throws \Exception
+     */
+    public function comesAfterTrustee(Trustee $trustee, ?Collection $peerServers = null): bool
+    {
+        if (is_null($peerServers)) {
+            $peerServers = $this->_getElectionPeerServers();
+        }
+        // check if ( ID1 + 1 ) mod n = ID2
+        return (($trustee->getPeerServerIndex($peerServers) + 1) % $peerServers->count())
+            === $this->getPeerServerIndex($peerServers);
+    }
+
 
     /**
      * Generates keypair of the cryptosystem used in the elections

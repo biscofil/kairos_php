@@ -150,7 +150,7 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
         $trusteeI->broadcast = $this->broadcast;
         $trusteeI->share_received = $this->share;
         $trusteeI->public_key = $this->publicKey;
-        $trusteeI->share_sent = $meTrustee->polynomial->getShare($j);
+        $trusteeI->share_sent = $meTrustee->polynomial->getShare($j + 1); // TODO check +1
         $trusteeI->save();
 
         if (ThisIsMyThresholdBroadcast::areAllSharesReceived($this->election)) {

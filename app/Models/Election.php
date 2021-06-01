@@ -2,10 +2,15 @@
 
 namespace App\Models;
 
+use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
+use App\Jobs\OnElectionFreezeTimeout;
+use App\Jobs\SendP2PMessage;
 use App\Models\Cast\ModelWithFieldsWithParameterSets;
-use App\Models\Cast\SecretKeyCaster;
 use App\Models\Cast\PublicKeyCaster;
+use App\Models\Cast\SecretKeyCaster;
+use App\P2P\Messages\Freeze\Freeze1IAmFreezingElection\Freeze1IAmFreezingElectionRequest;
+use App\P2P\Messages\WillYouBeAElectionTrusteeForMyElection\WillYouBeAElectionTrusteeForMyElectionRequest;
 use App\Voting\CryptoSystems\PublicKey;
 use App\Voting\CryptoSystems\SecretKey;
 use Carbon\Carbon;
@@ -18,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -42,7 +48,7 @@ use Illuminate\Support\Str;
  * @property PeerServer peerServerAuthor Server that created the election
  *
  * @property int|null admin_id
- * @property User admin
+ * @property User|null admin
  *
  * @property int|null min_peer_count_t
  * @property CryptoSystemEnum cryptosystem
@@ -450,6 +456,7 @@ class Election extends Model
     /**
      * @param PeerServer $server
      * @return Trustee
+     * @throws \Exception
      */
     public function createPeerServerTrustee(PeerServer $server): Trustee
     {
@@ -556,46 +563,65 @@ class Election extends Model
 //                    // TODO move outside of P2P message class
 //                }
 
+                $this->setAsFreezing();
+
+                /**
+                 * TODO merge code with
+                 * @see Freeze1IAmFreezingElectionRequest::onRequestReceived()
+                 * as they perforem the same operation
+                 */
 
                 /** @var \App\Models\Trustee $meTrustee */
                 $meTrustee = $this->getTrusteeFromPeerServer(PeerServer::me());
 
-                $broadcast = null;
-                if ($meTrustee && $this->min_peer_count_t > 0) {
-                    // if threshold and coordinator is also peer, send broadcast and share
-                    // if coordinator is also peer -> send broadcast and share
-                    $broadcast = $meTrustee->polynomial->getBroadcast();
+                if ($meTrustee) {
+
+                    /**
+                     * keypair of current server is generated in
+                     * @see \App\Models\Election::createPeerServerTrustee()
+                     */
+
+                    if ($this->hasTLThresholdScheme()) {
+                        // if threshold and coordinator prepare broadcast and share
+                        $meTrustee->polynomial = $meTrustee->private_key->getThresholdPolynomial($this->min_peer_count_t);
+                        $meTrustee->broadcast = $meTrustee->polynomial->getBroadcast();
+                    }
+                    $meTrustee->save();
                 }
 
                 // foreach peers generate share, store it and read it in message
-                $messagesToSend = $this->peerServers->map(function (PeerServer $trusteePeerServer) use ($broadcast, $meTrustee) {
+                $messagesToSend = $this->peerServers->map(function (PeerServer $trusteePeerServer) use ($meTrustee) {
 
                     $share = null;
 
-                    $trusteeI = $this->getTrusteeFromPeerServer($trusteePeerServer);
-
-                    if ($meTrustee && $this->min_peer_count_t > 0) {
+                    if ($meTrustee && $this->hasTLThresholdScheme()) {
+                        $trusteeI = $this->getTrusteeFromPeerServer($trusteePeerServer);
                         // if threshold and coordinator is also peer, send broadcast and share
                         // if coordinator is also peer -> send broadcast and share
                         $j = $trusteeI->getPeerServerIndex();
-                        $share = $meTrustee->polynomial->getShare($j);
-                        $trusteeI->share_sent = $share;
+                        $trusteeI->share_sent = $meTrustee->polynomial->getShare($j + 1); // TODO check +1
                         $trusteeI->save();
+                        $share = $trusteeI->share_sent;
                     }
 
                     return new Freeze1IAmFreezingElectionRequest(
-                        PeerServer::me(), $trusteePeerServer,
-                        $this, $this->trustees->all(),
-                        $broadcast, $share
+                        PeerServer::me(),
+                        $trusteePeerServer,
+                        $this,
+                        $this->trustees->all(),
+                        $meTrustee ? $meTrustee->public_key : null,
+                        $meTrustee ? $meTrustee->broadcast : null,
+                        $share
                     );
                 });
 
-                SendP2PMessage::dispatch($messagesToSend->toArray());
+                if ($messagesToSend->count()) {
+                    SendP2PMessage::dispatch($messagesToSend->toArray());
 
-
-                // wait for 10 seconds for a confirmation
-                // delay : let's specify that a job should not be available for processing until 10 minutes after it has been dispatched:
-                OnElectionFreezeTimeout::dispatch($this)->delay(now()->addSeconds(15));
+                    // wait for 10 seconds for a confirmation
+                    // delay : let's specify that a job should not be available for processing until 10 minutes after it has been dispatched:
+                    OnElectionFreezeTimeout::dispatch($this)->delay(now()->addSeconds(15));
+                }
 
             }
 
@@ -705,31 +731,20 @@ class Election extends Model
 
     }
 
-    /**
-     * We can sort trustees with peer servers from their IP/domain
-     * @return Trustee[]|Builder[]|\Illuminate\Database\Eloquent\Collection
-     */
-    public function getPeerIdMapping()
-    {
-        return $this->trustees()->peerServers()
-            ->with('peerServer')
-            ->get()
-            ->sortBy(function (Trustee $trustee) {
-                return $trustee->peerServer->ip;
-            });
-    }
-
     // ############################################
 
     /**
      * @param PeerServer $server
+     * @param bool $fail
      * @return Trustee|null
      */
-    public function getTrusteeFromPeerServer(PeerServer $server): ?Trustee
+    public function getTrusteeFromPeerServer(PeerServer $server, bool $fail = false): ?Trustee
     {
-        return $this->trustees()
-            ->where('peer_server_id', '=', $server->id)
-            ->first();
+        $query = $this->trustees()->where('peer_server_id', '=', $server->id);
+        if ($fail) {
+            return $query->firstOrFail();
+        }
+        return $query->first();
     }
 
     /**
@@ -769,7 +784,7 @@ class Election extends Model
         if (!$this->save()) {
             return false;
         }
-        $this->anonymization_method->getAnonymizationSystemClass()::afterVotingPhaseEnds($this);
+        $this->anonymization_method->getClass()::afterVotingPhaseEnds($this);
         return true;
     }
 

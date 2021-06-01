@@ -6,6 +6,7 @@ namespace App\Voting\AnonymizationMethods\MixNets;
 
 use App\Jobs\GenerateMix;
 use App\Models\Election;
+use App\Models\PeerServer;
 use App\Voting\AnonymizationMethods\AnonymizationMethod;
 use Illuminate\Support\Facades\Log;
 
@@ -100,9 +101,23 @@ abstract class MixNode implements AnonymizationMethod
      */
     public static function afterVotingPhaseEnds(Election &$election)
     {
-        Log::debug('MixNode afterVotingPhaseEnds > dispatching GenerateMix');
-        // dispatch mix job
-        GenerateMix::dispatchSync($election);
+        Log::debug('MixNode afterVotingPhaseEnds');
+
+        $meTrustee = $election->getTrusteeFromPeerServer(PeerServer::me());
+
+        if ($meTrustee) {
+            // current server is a peer
+
+            // if ($meTrustee->getPeerServerIndex() === 1) { // TODO check
+            if ($meTrustee->accepts_ballots) { // TODO check
+                // current server is a peer
+
+                Log::debug('MixNode afterVotingPhaseEnds > dispatching GenerateMix');
+
+                // dispatch mix job
+                GenerateMix::dispatchSync($election);
+            }
+        }
     }
 
 }

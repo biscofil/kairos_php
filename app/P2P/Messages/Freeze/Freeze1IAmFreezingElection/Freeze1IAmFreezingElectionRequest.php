@@ -262,7 +262,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
 
             $senderIdx = $senderTrustee->getPeerServerIndex();
 //            $broadcastToSendBack = $meTrustee->broadcast->toArray();
-            $shareToSendBack = $meTrustee->polynomial->getShare($senderIdx);
+            $shareToSendBack = $meTrustee->polynomial->getShare($senderIdx+1); // TODO check +1
             $senderTrustee->share_sent = $shareToSendBack;
             $senderTrustee->save();
 
