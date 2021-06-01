@@ -12,6 +12,7 @@ use App\P2P\Messages\Freeze\ThisIsMyThresholdBroadcast\ThisIsMyThresholdBroadcas
 use App\P2P\Messages\ThisIsMyMixSet\ThisIsMyMixSetRequest;
 use App\P2P\Messages\Heartbeat\HeartBeatRequest;
 use App\P2P\Messages\IReceivedTheseVotes\IReceivedTheseVotesRequest;
+use App\P2P\Messages\ThisIsMySecretKey\ThisIsMySecretKeyRequest;
 use App\P2P\Messages\WillYouBeAElectionTrusteeForMyElection\WillYouBeAElectionTrusteeForMyElectionRequest;
 use App\P2P\P2PHttp;
 use Exception;
@@ -49,6 +50,8 @@ abstract class P2PMessageRequest extends P2PMessage
         //
         IReceivedTheseVotesRequest::class,
         ThisIsMyMixSetRequest::class,
+        //
+        ThisIsMySecretKeyRequest::class,
     ];
 
     /**

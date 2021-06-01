@@ -217,6 +217,7 @@ class Mix extends Model
     }
 
     /**
+     * TODO has to work with both encryption, decryption, re-encryption
      * @throws \Exception
      */
     public function verify(): void
@@ -240,9 +241,13 @@ class Mix extends Model
                 Log::info('Mix proof is valid!');
 
                 if ($completeMixChain) {
-                    // TODO check
+
                     Log::info('Chain lenght limit reached');
-                    // TODO dispatch extraction
+
+                    /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode $amClass */
+                    $amClass = $election->anonymization_method->getClass();
+                    $amClass::afterSuccessfulMixProcess($election);
+
                     return;
                 }
 
@@ -255,6 +260,8 @@ class Mix extends Model
 
                     // if the current peer server is the next in line TODO check
                     GenerateMix::dispatchSync($election, $this);
+
+                    // TODO here we should execute code, not executed because of the same peer issue
                 }
 
             } else {

@@ -4,9 +4,15 @@
 namespace App\Voting\AnonymizationMethods\MixNets\ReEncryption;
 
 
+use App\Jobs\SendP2PMessage;
 use App\Models\Election;
+use App\Models\PeerServer;
+use App\Models\Trustee;
+use App\P2P\Messages\ThisIsMySecretKey\ThisIsMySecretKeyRequest;
 use App\Voting\AnonymizationMethods\MixNets\Mix;
 use App\Voting\AnonymizationMethods\MixNets\MixNode;
+use App\Voting\CryptoSystems\SecretKey;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class ReEncryptingMixNode
@@ -68,7 +74,72 @@ class ReEncryptingMixNode extends MixNode
     /**
      * @return string|ReEncryptionParameterSet
      */
-    public static function getParameterSetClass(): string{
+    public static function getParameterSetClass(): string
+    {
         return ReEncryptionParameterSet::class;
     }
+
+    /**
+     * @param \App\Models\Election $election
+     * @throws \Exception
+     * @noinspection PhpMissingParentCallCommonInspection
+     */
+    public static function afterSuccessfulMixProcess(Election &$election): void
+    {
+
+        Log::debug('ReEncryptingMixNode afterSuccessfulMixProcess > dispatching ThisIsMySecretKeyRequest');
+
+        // send secret key to the coordinator
+        SendP2PMessage::dispatch(
+            new ThisIsMySecretKeyRequest(
+                PeerServer::me(),
+                $election->peerServerAuthor,
+                $election,
+                $election->getTrusteeFromPeerServer(PeerServer::me())->private_key
+            )
+        );
+
+    }
+
+    /**
+     * @param \App\Models\Election $election
+     * @param \App\Models\Trustee $trustee
+     */
+    public static function onSecretKeyReceived(Election $election, Trustee $trustee){
+        // check if all secret keys have been received
+
+        /** @var \App\Models\Mix $lastMix */
+        $lastMix = $trustee->election->mixes()->latest()->firstOrFail(); // TODO check!!!
+        $mixChain = $lastMix->getMixNodeChain();
+
+        $mixChainTrusteeIDs = array_map(function (\App\Models\Mix $mix) {
+            return $mix->trustee_id;
+        }, $mixChain);
+
+        // count how many needed trustees have yet to send secret keys
+        $missingSecretKeyCount = $election->trustees()
+            ->whereIn('trustees.id', $mixChainTrusteeIDs)
+            ->whereNull('private_key')
+            ->count();
+
+        if ($missingSecretKeyCount === 0) {
+            Log::debug('Setting private key of the election');
+            // if this is the last one, trigger mixnet decryption
+
+            $neededTrustees = $election->trustees()->whereIn('trustees.id', $mixChainTrusteeIDs)->get();
+
+            $election->private_key = $neededTrustees->reduce(function (?SecretKey $carry, Trustee $trustee) {
+                if (is_null($carry)) {
+                    return $trustee->private_key;
+                }
+                return $trustee->private_key->combine($carry); // TODO check polymorphism
+            });
+            $election->save();
+
+            // TODO decrypt
+
+        }
+
+    }
+
 }

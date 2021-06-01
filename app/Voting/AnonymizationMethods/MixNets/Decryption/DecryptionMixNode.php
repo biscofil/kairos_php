@@ -80,4 +80,13 @@ class DecryptionMixNode extends MixNode
         return DecryptionParameterSet::class;
     }
 
+    /**
+     * @param \App\Models\Election $election
+     * @noinspection PhpMissingParentCallCommonInspection
+     */
+    public static function afterSuccessfulMixProcess(Election &$election): void
+    {
+        // TODO dispatch extraction
+    }
+
 }
