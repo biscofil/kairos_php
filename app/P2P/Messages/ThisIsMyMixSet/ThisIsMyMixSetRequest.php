@@ -65,6 +65,7 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
         return [
             'election_uuid' => $this->mixModel->trustee->election->uuid,
             'mix_set' => $this->mixModel->toArray(),
+            'previous_mix_set_hash' => $this->mixModel->previousMix ? $this->mixModel->previousMix->hash : null,
             'file' => $primaryShadowMixes->toArray() // TODO remove
         ];
     }
@@ -80,13 +81,20 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
         $data = Validator::make($messageData, [
             'election_uuid' => ['required', 'uuid'],
             'mix_set' => ['required', 'array'],
+            'previous_mix_set_hash' => ['required', 'string'],
             'file' => ['required', 'array']
         ])->validate();
 
         $election = Election::findFromUuid($data['election_uuid']);
 
+        /** @var Mix $previousMix */
+        $previousMix = is_null($data['previous_mix_set_hash'])
+            ? null
+            : $election->mixes()->where('hash', '=', $data['previous_mix_set_hash'])->firstOrFail();
+
         $mixModel = new Mix();
         $mixModel->trustee_id = $election->getTrusteeFromPeerServer($sender, true)->id;
+        $mixModel->previous_mix_id = $previousMix ? $previousMix->id : null;
         $mixModel->fillFromSharedArray($data['mix_set']);
         $mixModel->save();
 
