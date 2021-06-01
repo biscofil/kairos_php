@@ -596,6 +596,10 @@ class Election extends Model
                         // if threshold and coordinator prepare broadcast and share
                         $meTrustee->polynomial = $meTrustee->private_key->getThresholdPolynomial($this->min_peer_count_t);
                         $meTrustee->broadcast = $meTrustee->polynomial->getBroadcast();
+
+                        // store the share of my own secret key
+                        $meIdx = $meTrustee->getPeerServerIndex();
+                        $meTrustee->share_received = $meTrustee->polynomial->getShare($meIdx + 1);
                     }
                     $meTrustee->save();
                 }
@@ -797,6 +801,51 @@ class Election extends Model
         }
         $this->anonymization_method->getClass()::afterVotingPhaseEnds($this);
         return true;
+    }
+
+    // #######################################################################################
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getElectionPeerServerDomains(): Collection
+    {
+        return $this->peerServers()->get(['domain']);
+    }
+
+    /**
+     * @param \Illuminate\Support\Collection|null $peerServers
+     * @return array [domain => index]
+     */
+    public function getPeerServerIndexMapping(?Collection $peerServers = null): array
+    {
+        if (is_null($peerServers)) {
+            $peerServers = $this->getElectionPeerServerDomains();
+        }
+        return $peerServers->pluck('domain')->sort()->flip()->toArray();
+    }
+
+    /**
+     * @param int $idx
+     * @param \Illuminate\Support\Collection|null $peerServers
+     * @return \App\Models\PeerServer
+     */
+    public function getPeerServerFromIndex(int $idx, ?Collection $peerServers = null): PeerServer
+    {
+        $sortedDomains = $this->getPeerServerIndexMapping($peerServers); // [domain => index]
+        $sortedDomains = array_flip($sortedDomains); // [index => domain]
+        return PeerServer::withDomain($sortedDomains[$idx])->firstOrFail();
+    }
+
+    /**
+     * @param int $id
+     * @param \Illuminate\Support\Collection|null $peerServers
+     * @return int
+     */
+    public function getIndexAfter(int $id, ?Collection $peerServers = null): int
+    {
+        $sortedDomains = $this->getPeerServerIndexMapping($peerServers); // [domain => index]
+        return ($id + 1) % count($sortedDomains);
     }
 
 }

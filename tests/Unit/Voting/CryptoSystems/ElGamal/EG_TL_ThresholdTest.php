@@ -174,8 +174,7 @@ class EG_TL_ThresholdTest extends TestCase
 
             $k = EGSecretKey::fromThresholdShares(
                 $p->pk,
-                $receivedShares,
-                $parameterSet
+                $receivedShares
             );
 
             // if the number of peers $_t is enough (gte t) the value should match

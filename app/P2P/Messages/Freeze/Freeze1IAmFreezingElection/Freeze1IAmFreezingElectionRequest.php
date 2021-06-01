@@ -239,6 +239,10 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
             Log::debug('Generating my own broadcast to send back');
             $meTrustee->broadcast = $meTrustee->polynomial->getBroadcast();
 
+            // store the share of my own secret key
+            $meIdx = $meTrustee->getPeerServerIndex();
+            $meTrustee->share_received = $meTrustee->polynomial->getShare($meIdx + 1);
+
             // t-l threshold
             $jobs[] = new RunP2PTask(new GenerateAndSendShares($this->election));
 
@@ -262,7 +266,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
 
             $senderIdx = $senderTrustee->getPeerServerIndex();
 //            $broadcastToSendBack = $meTrustee->broadcast->toArray();
-            $shareToSendBack = $meTrustee->polynomial->getShare($senderIdx+1); // TODO check +1
+            $shareToSendBack = $meTrustee->polynomial->getShare($senderIdx + 1); // TODO check +1
             $senderTrustee->share_sent = $shareToSendBack;
             $senderTrustee->save();
 

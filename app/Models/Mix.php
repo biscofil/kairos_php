@@ -6,6 +6,7 @@ use App\Jobs\GenerateMix;
 use App\Jobs\SendP2PMessage;
 use App\P2P\Messages\ThisIsMyMixSet\ThisIsMyMixSetRequest;
 use App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes;
+use App\Voting\CryptoSystems\ElGamal\EGSecretKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -79,27 +80,33 @@ class Mix extends Model
     }
 
     /**
+     * @return \App\Models\Mix[]
+     */
+    public function getMixNodeChain(): array
+    {
+        $mixes = $this->trustee->election->mixes()->get()->keyBy('id');
+
+        $previousID = $this->previous_mix_id;
+        $mixChain = [$this];
+
+        while (!is_null($previousID)) {
+            /** @var \App\Models\Mix $previousMix */
+            $previousMix = $mixes->get($previousID);
+
+            $previousID = $previousMix->previous_mix_id;
+            $mixChain[] = $previousMix;
+        }
+
+        return array_reverse($mixChain); // [0] => oldest
+    }
+
+    /**
      * Returns the lenght >=1 of the mix chain
      * @return int
      */
     public function getChainLenght(): int
     {
-        $mixes = $this->trustee->election->mixes()
-            ->select(['mixes.id', 'mixes.previous_mix_id'])
-            ->get()
-            ->pluck('previous_mix_id', 'id');
-
-        $chainLenght = 1;
-
-        $previousID = $this->previous_mix_id;
-        while (!is_null($previousID)) {
-            $previousMixID = $mixes->get($previousID);
-            $chainLenght++;
-            $previousID = $previousMixID;
-        }
-
-        return $chainLenght;
-
+        return count($this->getMixNodeChain());
     }
 
     // ##########################################
@@ -184,6 +191,32 @@ class Mix extends Model
     }
 
     /**
+     * Sets the secret key of the current trustee as the sum of shares received
+     * @param \App\Models\Election $election
+     * @param \App\Models\Trustee $firstTrustee
+     * @throws \Exception
+     */
+    private function generateSecretKeyFromShares(Election $election, Trustee $firstTrustee): void
+    {
+
+        $meTrustee = $election->getTrusteeFromPeerServer(PeerServer::me(), true);
+
+        $index = $firstTrustee->getPeerServerIndex();
+        $receivedShares = [];
+        for ($i = 0; $i < $election->min_peer_count_t; $i++) {
+            $peer = $election->getPeerServerFromIndex($index);
+            $trustee = $election->getTrusteeFromPeerServer($peer);
+            $receivedShares[$index] = $trustee->share_received;
+            $index = $election->getIndexAfter($index);
+        }
+
+        $sk = EGSecretKey::fromThresholdShares($election->public_key, $receivedShares);
+
+        $meTrustee->private_key = $sk;
+        $meTrustee->save();
+    }
+
+    /**
      * @throws \Exception
      */
     public function verify(): void
@@ -197,23 +230,28 @@ class Mix extends Model
             $election = $this->trustee->election;
             $meTrustee = $election->getTrusteeFromPeerServer(PeerServer::me(), true);
 
-            // TODO if fully decrypted, stop
-            // TODO check t-l-threshold encryption
+            // if fully decrypted, stop
+            $completeMixChain = $this->getChainLenght() === $election->min_peer_count_t;
 
-            $incompleteMixChain = $this->getChainLenght() < $election->peerServers()->count();
+            // TODO check t-l-threshold encryption
 
             if ($primaryShadowMixes->isProofValid()) {
                 $this->setAsValid();
                 Log::info('Mix proof is valid!');
 
-                if (!$incompleteMixChain) {
+                if ($completeMixChain) {
                     // TODO check
                     Log::info('Chain lenght limit reached');
+                    // TODO dispatch extraction
                     return;
                 }
 
                 if ($meTrustee->comesAfterTrustee($this->trustee)) {
                     Log::info('Running GenerateMix from previous mix');
+
+                    // todo filter qualified peer trustees and combine keys
+                    $firstValidTrustee = ($this->getMixNodeChain()[0])->trustee;
+                    $this->generateSecretKeyFromShares($election, $firstValidTrustee);
 
                     // if the current peer server is the next in line TODO check
                     GenerateMix::dispatchSync($election, $this);
@@ -224,7 +262,7 @@ class Mix extends Model
                 $this->setAsInvalid();
                 Log::warning('Mix proof is invalid!');
 
-                if (!$incompleteMixChain) {
+                if ($completeMixChain) {
                     // TODO check
                     Log::info('Chain lenght limit reached');
                     return;
@@ -232,6 +270,11 @@ class Mix extends Model
 
                 if ($meTrustee->comesAfterTrustee($this->trustee)) {
                     Log::info('Running GenerateMix from bulletin board');
+
+                    // TODO if t-l-encryption use share of current server and (t-1) keys of the next peers
+
+                    // start from scratch with curent server as first valid mix node
+                    $this->generateSecretKeyFromShares($election, $meTrustee);
 
                     // if the current peer server is the next in line TODO check
                     GenerateMix::dispatchSync($election);

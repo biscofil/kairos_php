@@ -232,13 +232,6 @@ class Trustee extends Model
         $this->public_key_hash = $this->public_key->getFingerprint();
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Collection
-     */
-    private function _getElectionPeerServers(): Collection
-    {
-        return $this->election->peerServers()->get(['domain']);
-    }
 
     /**
      * Returns an integer >= 0 indicating the index of the peer server
@@ -252,10 +245,7 @@ class Trustee extends Model
         if (is_null($this->peer_server_id)) {
             throw new \Exception('getIndex can be called only on peer server trustees');
         }
-        if (is_null($peerServers)) {
-            $peerServers = $this->_getElectionPeerServers();
-        }
-        $sortedDomains = $peerServers->pluck('domain')->flip()->toArray();
+        $sortedDomains = $this->election->getPeerServerIndexMapping($peerServers); // [domain => index]
         return $sortedDomains[$this->peerServer->domain];
     }
 
@@ -268,10 +258,12 @@ class Trustee extends Model
     public function comesAfterTrustee(Trustee $trustee, ?Collection $peerServers = null): bool
     {
         if (is_null($peerServers)) {
-            $peerServers = $this->_getElectionPeerServers();
+            $peerServers = $this->election->getElectionPeerServerDomains();
         }
+
         // check if ( ID1 + 1 ) mod n = ID2
-        return (($trustee->getPeerServerIndex($peerServers) + 1) % $peerServers->count())
+
+        return $trustee->election->getIndexAfter($trustee->getPeerServerIndex($peerServers), $peerServers)
             === $this->getPeerServerIndex($peerServers);
     }
 

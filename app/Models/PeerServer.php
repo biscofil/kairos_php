@@ -30,7 +30,6 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * @property int id
  * @property string name
  * @property string domain
-
  * @property Point|null gps
  * @property string|null country_code
  *
@@ -203,7 +202,7 @@ class PeerServer extends Authenticatable implements JWTSubject
             null, 'election_id');
     }
 
-    // #############################
+    // #######################################################################################
 
     /**
      * @param string $toDomain
@@ -237,7 +236,7 @@ class PeerServer extends Authenticatable implements JWTSubject
         return $peerServer;
     }
 
-    // #############################
+    // #######################################################################################
 
     /**
      * @return bool
