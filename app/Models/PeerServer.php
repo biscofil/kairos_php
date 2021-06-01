@@ -29,7 +29,8 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  *
  * @property int id
  * @property string name
- * @property string $domain
+ * @property string domain
+
  * @property Point|null gps
  * @property string|null country_code
  *
@@ -96,6 +97,7 @@ class PeerServer extends Authenticatable implements JWTSubject
 
     public $shareableFields = [
         'domain',
+        //
         'site_title',
         'help_email_address',
         'main_logo_url',
