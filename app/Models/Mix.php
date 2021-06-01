@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int id
  * @property int round
  * @property string hash
+ * @property bool|null is_valid
  *
  * @property int|null previous_mix_id
  * @property \App\Models\Mix|null previousMix
@@ -28,12 +29,17 @@ class Mix extends Model
         'round',
         'previous_mix_id',
         'hash',
-        'trustee_id'
+        'trustee_id',
+        'is_valid',
     ];
 
     public $shareableFields = [
         'round',
         'hash',
+    ];
+
+    protected $casts = [
+        'is_valid' => 'bool',
     ];
 
     // ########################################## RELATIONS
