@@ -407,11 +407,12 @@ class Election extends Model
     }
 
     /**
-     * @return HasManyThrough|CastVote
+     * TODO check, peers don't have voters
+     * @return HasMany|CastVote
      */
-    public function votes(): HasManyThrough
+    public function votes(): HasMany
     {
-        return $this->hasManyThrough(CastVote::class, Voter::class);
+        return $this->hasMany(CastVote::class, 'election_id');
     }
 
     /**

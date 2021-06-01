@@ -17,13 +17,19 @@ class CreateCastVotesTable extends Migration
 
             $table->id();
 
+            $table->unsignedBigInteger('election_id');
+            $table->foreign('election_id')->references('id')->on('elections');
+
             $table->unsignedBigInteger('voter_id');
-            $table->foreign('voter_id')->references('id')->on('voters');
+//            $table->foreign('voter_id')->references('id')->on('voters');
 
             $table->ipAddress('ip');
 
             $table->text('vote');
             $table->string('hash');
+
+            // TODO binary server verification
+            $table->unsignedBigInteger('verified_by')->default(0);
 
             $table->timestamp('verified_at')->nullable()->default(null);
             $table->timestamp('invalidated_at')->nullable()->default(null);

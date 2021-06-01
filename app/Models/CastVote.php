@@ -14,15 +14,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Class CastVote
  * @package App\Models
  * @property int id
- * @property EGCiphertext vote
  * @property string ip
  * @property string hash
+ *
  * @property int voter_id
- * @property Voter voter
- * @property Carbon|null created_at
- * @property Carbon|null updated_at
+ *
+ * @property CipherText vote
+ *
+ * @property int verified_by
+ *
+ * @property int election_id
+ * @property Election election
+ *
  * @property Carbon|null verified_at
  * @property Carbon|null invalidated_at
+ *
+ * @property Carbon|null created_at
+ * @property Carbon|null updated_at
  */
 class CastVote extends Model
 {
@@ -33,7 +41,10 @@ class CastVote extends Model
         'vote',
         'ip',
         'hash',
+        //
+        'verified_by',
         'verified_at',
+        //
         'invalidated_at',
     ];
 
@@ -46,13 +57,25 @@ class CastVote extends Model
         'vote' => CiphertextCaster::class,
     ];
 
+    // ############################################# RELATIONS
+
     /**
-     * @return BelongsTo|Voter
+     * @return BelongsTo|\App\Models\Voter
      */
-    public function voter(): BelongsTo
+//    public function voter(): BelongsTo
+//    {
+//        return $this->belongsTo(Voter::class, 'voter_id');
+//    }
+
+    /**
+     * @return BelongsTo|\App\Models\Election
+     */
+    public function election(): BelongsTo
     {
-        return $this->belongsTo(Voter::class, 'voter_id');
+        return $this->belongsTo(Election::class, 'election_id');
     }
+
+    // #############################################
 
     /**
      *
@@ -78,4 +101,16 @@ class CastVote extends Model
         return $this->save();
 
     }
+
+    /**
+     * @param int $id
+     */
+    public function setVerifiedBy(int $id)
+    {
+        // 2^0 = 0001
+        // 2^1 = 0010
+        $this->verified_by = $this->verified_by | $id;
+
+    }
+
 }

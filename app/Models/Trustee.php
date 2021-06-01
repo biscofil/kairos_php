@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use App\Models\Cast\BigIntCaster;
-use App\Models\Cast\ModelWithFieldsWithParameterSets;
 use App\Models\Cast\DLogProofCaster;
-use App\Models\Cast\SecretKeyCaster;
+use App\Models\Cast\ModelWithFieldsWithParameterSets;
 use App\Models\Cast\PublicKeyCaster;
+use App\Models\Cast\SecretKeyCaster;
 use App\Models\Cast\ThresholdBroadcastCaster;
 use App\Models\Cast\ThresholdPolynomialCaster;
 use App\Voting\CryptoSystems\ElGamal\DLogProof;
