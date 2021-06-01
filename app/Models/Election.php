@@ -76,6 +76,8 @@ use Illuminate\Support\Str;
  * @property CastVote[]|Collection votes
  * @property-read bool has_system_trustee
  *
+ * @property \App\Models\Mix[] mixes
+ *
  * @method static self create(array $data)
  * @method static self make(array $data)
  * @method static self|null find($id)
@@ -422,6 +424,14 @@ class Election extends Model
     public function peerServerAuthor(): BelongsTo
     {
         return $this->belongsTo(PeerServer::class, 'peer_server_id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough|\App\Models\Mix[]
+     */
+    public function mixes(): HasManyThrough
+    {
+        return $this->hasManyThrough(Mix::class, Trustee::class);
     }
 
     // ############################################

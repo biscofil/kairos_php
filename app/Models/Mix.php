@@ -33,7 +33,7 @@ class Mix extends Model
 
     protected $fillable = [
         'round',
-        'previous_mix_id',
+        'previous_mix_id', // TODO use uuid / hash
         'hash',
         'trustee_id',
         'is_valid',
@@ -76,6 +76,30 @@ class Mix extends Model
     public function getFilename(): string
     {
         return 'election_' . $this->trustee->election->uuid . '_mix_' . $this->id;
+    }
+
+    /**
+     * Returns the lenght >=1 of the mix chain
+     * @return int
+     */
+    public function getChainLenght(): int
+    {
+        $mixes = $this->trustee->election->mixes()
+            ->select(['mixes.id', 'mixes.previous_mix_id'])
+            ->get()
+            ->pluck('previous_mix_id', 'id');
+
+        $chainLenght = 1;
+
+        $previousID = $this->previous_mix_id;
+        while (!is_null($previousID)) {
+            $previousMixID = $mixes->get($previousID);
+            $chainLenght++;
+            $previousID = $previousMixID;
+        }
+
+        return $chainLenght;
+
     }
 
     // ##########################################
@@ -142,8 +166,6 @@ class Mix extends Model
 
     }
 
-    // ##########################################
-
     /**
      * @return \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes
      * @throws \Exception
@@ -160,8 +182,6 @@ class Mix extends Model
         return $primaryShadowMixesClass::load($this->getFilename());
 
     }
-
-    // ##########################################
 
     /**
      * @throws \Exception
@@ -180,9 +200,17 @@ class Mix extends Model
             // TODO if fully decrypted, stop
             // TODO check t-l-threshold encryption
 
+            $incompleteMixChain = $this->getChainLenght() < $election->peerServers()->count();
+
             if ($primaryShadowMixes->isProofValid()) {
                 $this->setAsValid();
                 Log::info('Mix proof is valid!');
+
+                if (!$incompleteMixChain) {
+                    // TODO check
+                    Log::info('Chain lenght limit reached');
+                    return;
+                }
 
                 if ($meTrustee->comesAfterTrustee($this->trustee)) {
                     Log::info('Running GenerateMix from previous mix');
@@ -195,6 +223,12 @@ class Mix extends Model
 
                 $this->setAsInvalid();
                 Log::warning('Mix proof is invalid!');
+
+                if (!$incompleteMixChain) {
+                    // TODO check
+                    Log::info('Chain lenght limit reached');
+                    return;
+                }
 
                 if ($meTrustee->comesAfterTrustee($this->trustee)) {
                     Log::info('Running GenerateMix from bulletin board');

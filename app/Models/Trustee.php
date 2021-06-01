@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use phpseclib3\Math\BigInteger;
 
@@ -51,6 +52,8 @@ use phpseclib3\Math\BigInteger;
  *
  * @property int election_id
  * @property \App\Models\Election election
+ *
+ * @property \App\Models\Mix[] mixes
  *
  * @method static self make()
  * @method self|Builder peerServers() Filters peer server trustees
@@ -195,6 +198,14 @@ class Trustee extends Model
     public function peerServer(): BelongsTo
     {
         return $this->belongsTo(PeerServer::class, 'peer_server_id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany|\App\Models\Mix[]
+     */
+    public function mixes(): HasMany
+    {
+        return $this->hasMany(Mix::class, 'trustee_id');
     }
 
     // ################################################################

@@ -81,7 +81,7 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
         $data = Validator::make($messageData, [
             'election_uuid' => ['required', 'uuid'],
             'mix_set' => ['required', 'array'],
-            'previous_mix_set_hash' => ['required', 'string'],
+            'previous_mix_set_hash' => ['nullable', 'string'],
             'file' => ['required', 'array']
         ])->validate();
 
