@@ -24,6 +24,7 @@ import {store} from "./store";
 import NewBoothWizard from "./views/Election/Booth/NewBoothWizard";
 import Network from "./views/Admin/Network";
 import ElectionVotes from "./views/Election/ElectionVotes";
+import ElectionProofs from "./views/Election/ElectionProofs";
 
 const router = new VueRouter({
     mode: 'history',
@@ -64,6 +65,7 @@ const router = new VueRouter({
         {path: '/elections/:slug/trustee', component: TrusteeHome, name: 'election@trustee'},
         {path: '/elections/:slug/trustees', component: ElectionTrustees, name: "election@trustees@view"},
         {path: '/elections/:slug/audited-ballots', component: ElectionAuditedBallots, name: "election@audited-ballots"},
+        {path: '/elections/:slug/proofs', component: ElectionProofs, name: "election@proofs"},
         {path: '/elections/:slug', component: Election, name: "election@view"},
         {path: "*", component: PageNotFound}
     ]

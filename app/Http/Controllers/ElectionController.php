@@ -217,4 +217,13 @@ class ElectionController extends Controller
         return $election;
     }
 
+    /**
+     * @param \App\Models\Election $election
+     * @return array
+     */
+    public function proofs(Election $election)
+    {
+        return $election->anonymization_method->getClass()::getProofs($election);
+    }
+
 }

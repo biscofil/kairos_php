@@ -84,6 +84,7 @@ Route::middleware(['frozen', 'authenticate_with_election_creator_jwt'])->group(f
 Route::get('/elections', [ElectionController::class, 'index']);
 Route::get('/elections/{election}', [ElectionController::class, 'show']);
 Route::get('/elections/{election}/trustees', [TrusteeController::class, 'index']);
+Route::get('/elections/{election}/proofs', [ElectionController::class, 'proofs']);
 
 Route::get('/elections/{election}/votes', [CastVoteController::class, 'index']);
 

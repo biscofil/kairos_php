@@ -78,6 +78,23 @@ abstract class MixNode implements AnonymizationMethod
 
     // ########################################################################
 
+
+    /**
+     * @param \App\Models\Election $election
+     * @return array
+     */
+    public static function getProofs(Election &$election): array
+    {
+        $peerServerTrusteeIDs = $election->trustees()->peerServers()
+            ->select('trustees.id')
+            ->pluck('trustees.id')
+            ->toArray();
+        return [
+            'mixes' => \App\Models\Mix::query()->whereIn('trustee_id', $peerServerTrusteeIDs)->get()
+        ];
+    }
+
+
     /**
      * @param \App\Models\Election $election
      */

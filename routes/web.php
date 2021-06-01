@@ -34,6 +34,7 @@ Route::get('/elections/{slug}/voters', [SPAController::class, 'home']);
 Route::get('/elections/{slug}/trustee', [SPAController::class, 'home']);
 Route::get('/elections/{slug}/trustees', [SPAController::class, 'home']);
 Route::get('/elections/{slug}/audited-ballots', [SPAController::class, 'home']);
+Route::get('/elections/{slug}/proofs', [SPAController::class, 'home']);
 Route::get('/elections/{slug}', [SPAController::class, 'home']);
 Route::get('/', [SPAController::class, 'home']);
 

@@ -26,4 +26,13 @@ class HomomorphicAnonymizationMethod implements AnonymizationMethod
 
     }
 
+    /**
+     * @param \App\Models\Election $election
+     * @return array
+     */
+    public static function getProofs(Election &$election): array
+    {
+        return []; // TODO
+    }
+
 }
