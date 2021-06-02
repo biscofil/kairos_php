@@ -5,7 +5,10 @@
         <h4>Mixes</h4>
         <ul class="list-group">
             <li v-for="mix in proofs.mixes" class="list-group-item">
-                <b># {{ mix.id }}</b> (previous mix: {{ mix.previous_mix_id }})<br>
+                <b># {{ mix.id }}</b>
+                <span v-if="mix.previous_mix_id">
+                    (previous mix: {{ mix.previous_mix_id }})
+                </span><br>
                 Round: {{ mix.round }}<br>
                 Trustee: # {{ mix.trustee_id }}<br>
                 Hash: <kbd>{{ mix.hash }}</kbd><br>

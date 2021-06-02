@@ -6,8 +6,8 @@ namespace App\Voting\AnonymizationMethods\MixNets;
 
 use App\Jobs\GenerateMix;
 use App\Models\Election;
-use App\Models\PeerServer;
 use App\Voting\AnonymizationMethods\AnonymizationMethod;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -83,7 +83,8 @@ abstract class MixNode implements AnonymizationMethod
     /**
      * @param \App\Models\Election $election
      */
-    public static function afterSuccessfulMixProcess(Election &$election) : void{
+    public static function afterSuccessfulMixProcess(Election &$election): void
+    {
         // do nothing
     }
 
@@ -97,9 +98,33 @@ abstract class MixNode implements AnonymizationMethod
             ->select('trustees.id')
             ->pluck('trustees.id')
             ->toArray();
+
+        /** @var \App\Models\Mix[]|Collection $mixes */
+        $mixes = \App\Models\Mix::query()
+            ->whereIn('trustee_id', $peerServerTrusteeIDs)
+            ->orderByDesc('mixes.id')
+            ->get();
+
         return [
-            'mixes' => \App\Models\Mix::query()->whereIn('trustee_id', $peerServerTrusteeIDs)->get()
+            'mixes' => $mixes //self::createHierarchy($mixes, null);
         ];
+    }
+
+    /**
+     * TODO optimize
+     * @param \Illuminate\Support\Collection $mixes
+     * @param int|null $parent
+     * @return \Illuminate\Support\Collection
+     */
+    private static function createHierarchy(Collection &$mixes, ?int $parent): Collection
+    {
+        return $mixes->filter(function (\App\Models\Mix $mix) use ($parent) {
+            return $mix->previous_mix_id === $parent;
+        })->map(function (\App\Models\Mix $mix) use ($mixes, $parent) {
+            $mixA = $mix->toArray();
+            $mixA['derived'] = self::createHierarchy($mixes, $mix->id);
+            return $mixA;
+        })->values();
     }
 
     /**
