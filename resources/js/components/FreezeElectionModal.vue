@@ -44,6 +44,7 @@
 <script>
 
 import Election from "../Models/Election";
+import {EventBus} from "../event-bus";
 
 export default {
     name: "FreezeElectionModal",
@@ -67,7 +68,7 @@ export default {
             let self = this;
             this.election.freeze()
                 .then(election => {
-                    self.$emit('frozenElection', election);
+                    EventBus.$emit('frozenElection', election);
                     self.$toastr.success("Election frozen");
                     self.closeModal();
                 })
