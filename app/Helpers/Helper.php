@@ -130,3 +130,10 @@ function websocketLog(string $msg, ?PeerServer $messageDestinationServer = null,
     $messageSenderServer = $messageSenderServer ?? getCurrentServer();
     WebsocketLog::dispatch($msg, $messageDestinationServer, $messageSenderServer);
 }
+
+/**
+ * @return \App\Models\PeerServer
+ */
+function getCurrentServer() : PeerServer{
+    return app('peer_server_me');
+}

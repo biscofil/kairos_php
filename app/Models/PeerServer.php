@@ -166,6 +166,9 @@ class PeerServer extends Authenticatable implements JWTSubject
     // #############################################
 
     /**
+     * Never use this, use @see getCurrentServer()
+     * @deprecated
+     * Returns the first created peer server with ID = self::meID (1)
      * @param bool $fail
      * @return \App\Models\PeerServer
      */
