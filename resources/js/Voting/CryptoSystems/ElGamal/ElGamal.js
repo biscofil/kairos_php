@@ -3,8 +3,35 @@
 //
 
 import sha1 from "sha1";
+import EGPublicKey from "./EGPublicKey";
+import EGCiphertext from "./EGCiphertext";
+import EGPlaintext from "./EGPlaintext";
 
 export default class ElGamal {
+
+    /**
+     *
+     * @return {EGPublicKey}
+     */
+    static getPublicKeyClass() {
+        return EGPublicKey;
+    }
+
+    /**
+     *
+     * @return {EGCiphertext}
+     */
+    static getCipherTextClass() {
+        return EGCiphertext;
+    }
+
+    /**
+     *
+     * @return {EGPlaintext}
+     */
+    static getPlainTextClass() {
+        return EGPlaintext;
+    }
 
     /**
      * a challenge generator based on a list of commitments of

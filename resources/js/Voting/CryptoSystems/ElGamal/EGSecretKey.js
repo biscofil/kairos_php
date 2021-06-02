@@ -84,7 +84,7 @@ export default class EGSecretKey {
 
         // the DH tuple we need to prove, given the secret key x, is:
         // g, alpha, y, beta/m
-        let proof = EGProof.generate(this.pk.g, ciphertext.alpha, this.x, this.pk.p, this.pk.q, challenge_generator);
+        let proof = EGProof.generate(this.pk.ps, ciphertext.alpha, this.x, challenge_generator);
 
         return {
             'decryption_factor': decryption_factor,
@@ -99,16 +99,16 @@ export default class EGSecretKey {
      */
     proveKnowledge(challengeGenerator) {
         // generate random w
-        let w = randBetween(this.pk.q);
+        let w = randBetween(this.pk.ps.q);
 
         // compute s = g^w for random w.
-        let s = modPow(this.pk.g, w, this.pk.p);
+        let s = modPow(this.pk.ps.g, w, this.pk.ps.p);
 
         // get challenge
         let challenge = challengeGenerator(s);
 
         // compute response
-        let response = (w + (this.x * challenge)) % this.pk.q;
+        let response = (w + (this.x * challenge)) % this.pk.ps.q;
 
         return new EGDLogProof(s, challenge, response);
     }

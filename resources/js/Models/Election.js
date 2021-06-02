@@ -1,8 +1,11 @@
-import EGPublicKey from "../Voting/CryptoSystems/Elgamal/EGPublicKey";
-import EGSecretKey from "../Voting/CryptoSystems/Elgamal/EGSecretKey";
+import EGPublicKey from "../Voting/CryptoSystems/ElGamal/EGPublicKey";
+import EGSecretKey from "../Voting/CryptoSystems/ElGamal/EGSecretKey";
 import Utils from "./Utils/Utils";
 import Question from "./Question";
 import Trustee from "./Trustee";
+import Cryptosystem from "../Voting/CryptoSystems/Cryptosystem";
+
+var moment = require('moment'); // require
 
 const {SHA256} = require("sha2");
 
@@ -13,6 +16,15 @@ export default class Election {
      */
     constructor() {
         this.slug = null;
+
+        /** @type ?Number */
+        this.admin_id = null;
+
+        this.cryptosystem = null;
+        this.anonymization_method = null;
+
+        this.help_email = null;
+        this.info_url = null;
 
         this.min_peer_count_t = null;
 
@@ -40,13 +52,6 @@ export default class Election {
         this.admin_name = null;
         /** @type Boolean */
         this.is_auth_user_admin = null;
-
-        /** @type ?Date */
-        this.archived_at = null;
-        /** @type ?Date */
-        this.featured_at = null;
-        /** @type ?Date */
-        this.frozen_at = null;
 
         /** @type String */
         this.description = null;
@@ -82,11 +87,6 @@ export default class Election {
         /** @type Boolean */
         this.result = null;
 
-        /** @type ?Date */
-        this.result_released_at = null;
-        /** @type Boolean */
-        this.tallying_started_at = null;
-
         /** @type Number */
         this.trustee_count = null;
 
@@ -95,16 +95,28 @@ export default class Election {
 
         /** @type Boolean */
         this.use_voter_aliases = false;
-        /** @type ?Date */
-        this.voting_ends_at = null;
+
         /** @type ?Date */
         this.voting_extended_until = null;
         /** @type ?Date */
         this.voting_has_stopped = null;
-        /** @type ?Date */
-        this.voting_started_at = null;
-        /** @type ?Date */
+
+        /** @type ?moment */
         this.voting_starts_at = null;
+        /** @type ?moment */
+        this.voting_started_at = null;
+        /** @type ?moment */
+        this.voting_ends_at = null;
+        /** @type ?moment */
+        this.archived_at = null;
+        /** @type ?moment */
+        this.featured_at = null;
+        /** @type ?moment */
+        this.frozen_at = null;
+        /** @type ?Date */
+        this.result_released_at = null;
+        /** @type Boolean */
+        this.tallying_started_at = null;
 
     }
 
@@ -136,11 +148,11 @@ export default class Election {
     }
 
     /**
-     *
+     * @param old_slug : String
      * @return {Promise<Election>}
      */
-    update() {
-        return axios.put(BASE_URL + '/api/elections/' + this.slug, this.toJSONObject())
+    update(old_slug) {
+        return axios.put(BASE_URL + '/api/elections/' + old_slug, this.toJSONObject())
             .then(response => {
                 return Election.fromJSONObject(response.data);
             });
@@ -202,7 +214,7 @@ export default class Election {
     freeze() {
         return axios.post(BASE_URL + '/api/elections/' + this.slug + '/freeze')
             .then(response => {
-                return Election.fromJSONObject(response.data.election);
+                return Election.fromJSONObject(response.data);
             });
     }
 
@@ -214,17 +226,21 @@ export default class Election {
      */
     toJSONObject() {
         let json_obj = {
+            cryptosystem: this.cryptosystem,
+            anonymization_method: this.anonymization_method,
             slug: this.slug,
+            help_email: this.help_email,
+            info_url: this.info_url,
             min_peer_count_t: this.min_peer_count_t,
             description: this.description,
             name: this.name,
-            public_key: this.public_key.toJSONObject(),
+            public_key: this.public_key ? this.public_key.toJSONObject() : null,
             questions: this.questions,
             openreg: this.openreg,
             voters_hash: this.voters_hash,
             use_voter_aliases: this.use_voter_aliases,
-            voting_starts_at: this.voting_starts_at,
-            voting_ends_at: this.voting_ends_at
+            voting_starts_at: this.voting_starts_at,//? this.voting_starts_at : null,
+            voting_ends_at: this.voting_ends_at,//? this.voting_ends_at.format() : null
         };
 
         return Utils.object_sort_keys(json_obj);
@@ -241,9 +257,16 @@ export default class Election {
 
         let el = new Election();
 
+        el.cryptosystem = d.cryptosystem;
+        el.anonymization_method = d.anonymization_method;
+
         el.name = d.name;
+        el.admin_id = d.admin_id;
         el.description = d.description;
         el.slug = d.slug;
+
+        el.help_email = d.help_email;
+        el.info_url = d.info_url;
 
         el.admin = d.admin;
         el.admin_name = d.admin_name;
@@ -260,10 +283,11 @@ export default class Election {
         el.use_voter_aliases = d.use_voter_aliases;
         el.randomize_answer_order = d.randomize_answer_order;
 
-        el.voting_starts_at = d.voting_starts_at;
-        el.voting_ends_at = d.voting_ends_at;
-        el.frozen_at = d.frozen_at;
-        el.archived_at = d.archived_at;
+        el.voting_starts_at = d.voting_starts_at;//? moment(d.voting_starts_at) : null;
+        el.voting_ends_at = d.voting_ends_at;//? moment(d.voting_ends_at) : null;
+
+        el.frozen_at = d.frozen_at;//? moment(d.frozen_at) : null;
+        el.archived_at = d.archived_at;//? moment(d.archived_at) : null;
 
         el.trustees = null;
         if (d.trustees) {
@@ -282,6 +306,7 @@ export default class Election {
 
         // public key
         if (d.public_key) {
+            // let pkClass = this.getCryptoSystemClass().getPublicKeyClass();
             el.public_key = Utils.getPublicKeyFromJSONObject(d.public_key);
         } else {
             // a placeholder that will allow hashing;
@@ -294,6 +319,16 @@ export default class Election {
         }
 
         return el;
+    }
+
+    // ##########################################################
+
+    /**
+     *
+     * @return {RSA|ElGamal}
+     */
+    getCryptoSystemClass(){
+        return Cryptosystem.getCryptosystemClassFromIdentifier(this.cryptosystem);
     }
 
     // ##########################################################

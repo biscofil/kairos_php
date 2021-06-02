@@ -1,4 +1,4 @@
-import EGCiphertext from "../Voting/CryptoSystems/Elgamal/EGCiphertext";
+import EGCiphertext from "../Voting/CryptoSystems/ElGamal/EGCiphertext";
 
 export default class Tally {
 

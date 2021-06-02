@@ -1,4 +1,4 @@
-import EGPublicKey from "../../Voting/CryptoSystems/Elgamal/EGPublicKey";
+import EGPublicKey from "../../Voting/CryptoSystems/ElGamal/EGPublicKey";
 import RSAPublicKey from "../../Voting/CryptoSystems/RSA/RSAPublicKey";
 
 export default class Utils {
@@ -106,7 +106,7 @@ export default class Utils {
     }
 
     /**
-     *
+     * TODO move
      * @param d : Object
      * @return {EGPublicKey|RSAPublicKey}
      */

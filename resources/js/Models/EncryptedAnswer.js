@@ -1,8 +1,8 @@
-import EGCiphertext from "../Voting/CryptoSystems/Elgamal/EGCiphertext";
-import EGDisjunctiveProof from "../Voting/CryptoSystems/Elgamal/EGDisjunctiveProof";
+import EGCiphertext from "../Voting/CryptoSystems/ElGamal/EGCiphertext";
+import EGDisjunctiveProof from "../Voting/CryptoSystems/ElGamal/EGDisjunctiveProof";
 import {randBetween} from "bigint-crypto-utils";
 import {generatePlaintexts} from "./Utils/Utils";
-import ElGamal from "../Voting/CryptoSystems/Elgamal/ElGamal";
+import ElGamal from "../Voting/CryptoSystems/ElGamal/ElGamal";
 
 export default class EncryptedAnswer {
 

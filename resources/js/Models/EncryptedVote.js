@@ -1,5 +1,5 @@
 import EncryptedAnswer from "./EncryptedAnswer";
-import ElGamal from "../Voting/CryptoSystems/Elgamal/ElGamal";
+import ElGamal from "../Voting/CryptoSystems/ElGamal/ElGamal";
 import Utils from "./Utils/Utils";
 
 const {SHA256} = require("sha2");

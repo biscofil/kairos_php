@@ -54,8 +54,8 @@ export default class EGCiphertext {
 
         // homomorphic multiply
         return new EGCiphertext(
-            (this.alpha * other.alpha) % this.pk.p,
-            (this.beta * other.beta) % this.pk.p,
+            (this.alpha * other.alpha) % this.pk.ps.p,// TODO mod
+            (this.beta * other.beta) % this.pk.ps.p, // TODO mod
             this.pk
         );
     }
@@ -69,9 +69,9 @@ export default class EGCiphertext {
         let running_decryption = this.beta;
         let self = this;
         list_of_dec_factors.forEach(function (dec_factor) {
-            running_decryption = (modInv(dec_factor, self.pk.p) * running_decryption) % self.pk.p;
+            running_decryption = (modInv(dec_factor, self.pk.ps.p) * running_decryption) % self.pk.ps.p;
         });
-        return new EGPlaintext(running_decryption, this.pk, false);
+        return new EGPlaintext(running_decryption, this.pk);
     }
 
     /**
@@ -86,11 +86,9 @@ export default class EGCiphertext {
         // g, y, alpha, beta/m
         // with dlog randomness
         return EGProof.generate(
-            this.pk.g,
+            this.pk.ps,
             this.pk.y,
             randomness,
-            this.pk.p,
-            this.pk.q,
             challenge_generator);
     }
 
@@ -103,17 +101,15 @@ export default class EGCiphertext {
     simulateProof(plaintext, challenge = null) {
 
         // compute beta/plaintext, the completion of the DH tuple
-        let beta_over_plaintext = (this.beta * modInv(plaintext.m, this.pk.p)) % this.pk.p;
+        let beta_over_plaintext = (this.beta * modInv(plaintext.m, this.pk.ps.p)) % this.pk.ps.p;
 
         // the DH tuple we are simulating here is
         // g, y, alpha, beta/m
         return EGProof.simulate(
-            this.pk.g,
+            this.pk.ps,
             this.pk.y,
             this.alpha,
             beta_over_plaintext,
-            this.pk.p,
-            this.pk.q,
             challenge); // TODO expects ?bigint, not ?challengeGeneratorCallback
     }
 
@@ -127,8 +123,8 @@ export default class EGCiphertext {
     verifyProof(plaintext, proof, challenge_generator = null) {
         // DH tuple to verify is
         // g, y, alpha, beta/m
-        let beta_over_m = (this.beta * modInv(plaintext.m, this.pk.p)) % this.pk.p;
-        return proof.verify(this.pk.g, this.pk.y, this.alpha, beta_over_m, this.pk.p, this.pk.q, challenge_generator);
+        let beta_over_m = (this.beta * modInv(plaintext.m, this.pk.ps.p)) % this.pk.ps.p;
+        return proof.verify(this.pk.ps, this.pk.y, this.alpha, beta_over_m, challenge_generator);
     }
 
     /**
@@ -141,8 +137,8 @@ export default class EGCiphertext {
         // DH tuple to verify is
         // g, alpha, y, beta/m
         // since the proven dlog is the secret key x, y=g^x.
-        let beta_over_m = (this.beta * modInv(plaintext.m, this.pk.p)) % this.pk.p;
-        return proof.verify(this.pk.g, this.alpha, this.pk.y, beta_over_m, this.pk.p, this.pk.q, challenge_generator);
+        let beta_over_m = (this.beta * modInv(plaintext.m, this.pk.ps.p)) % this.pk.ps.p;
+        return proof.verify(this.pk.ps, this.alpha, this.pk.y, beta_over_m, challenge_generator);
     }
 
     /**
