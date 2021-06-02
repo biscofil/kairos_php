@@ -31,7 +31,7 @@ class Freeze1IAmFreezingElectionTest extends TestCase
         $share = null;
 
         $msg = new Freeze1IAmFreezingElectionRequest(
-            PeerServer::me(),
+            getCurrentServer(),
             $trusteePeerServer,
             $election,
             $election->trustees()->get()->all(),
@@ -40,7 +40,7 @@ class Freeze1IAmFreezingElectionTest extends TestCase
             $share);
 
         $ser = $msg->serialize($trusteePeerServer);
-        $unser = Freeze1IAmFreezingElectionRequest::unserialize(PeerServer::me(), $ser);
+        $unser = Freeze1IAmFreezingElectionRequest::unserialize(getCurrentServer(), $ser);
 
         static::assertEquals($msg->election->uuid, $unser->election->uuid);
 

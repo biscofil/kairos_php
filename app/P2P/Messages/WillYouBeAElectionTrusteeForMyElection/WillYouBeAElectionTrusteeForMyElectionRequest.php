@@ -93,7 +93,7 @@ class WillYouBeAElectionTrusteeForMyElectionRequest extends P2PMessageRequest
 
         return new WillYouBeAElectionTrusteeForMyElectionRequest(
             $sender,
-            [PeerServer::me()],
+            [getCurrentServer()],
             $election
         );
     }
@@ -117,7 +117,7 @@ class WillYouBeAElectionTrusteeForMyElectionRequest extends P2PMessageRequest
 
         Log::info("I now have a copy of the election of {$this->requestSender->name}");
 
-        return new WillYouBeAElectionTrusteeForMyElectionResponse(PeerServer::me(), $this->requestSender);
+        return new WillYouBeAElectionTrusteeForMyElectionResponse(getCurrentServer(), $this->requestSender);
 
     }
 

@@ -90,7 +90,7 @@ class Freeze3CommitFailRequest extends P2PMessageRequest
 
         $commit = boolval($data['commit']);
 
-        return new static($sender, PeerServer::me(), $election, $commit);
+        return new static($sender, getCurrentServer(), $election, $commit);
     }
 
     // ###################################################################
@@ -114,6 +114,6 @@ class Freeze3CommitFailRequest extends P2PMessageRequest
             });
         }
 
-        return new Freeze2IAmReadyForFreezeResponse(PeerServer::me(), $this->requestSender);
+        return new Freeze2IAmReadyForFreezeResponse(getCurrentServer(), $this->requestSender);
     }
 }

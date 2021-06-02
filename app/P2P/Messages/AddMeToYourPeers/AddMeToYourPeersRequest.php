@@ -67,7 +67,7 @@ class AddMeToYourPeersRequest extends P2PMessageRequest
     {
         /** @noinspection PhpVoidFunctionResultUsedInspection */
         return [
-            'my_jwt_public_key' => PeerServer::me()->jwt_public_key->toArray(),
+            'my_jwt_public_key' => getCurrentServer()->jwt_public_key->toArray(),
             'token' => $this->token,
             /**
              * sender_domain is used by @see AddMeToYourPeersRequest::getAuthPeer()
@@ -96,7 +96,7 @@ class AddMeToYourPeersRequest extends P2PMessageRequest
 
         return new static(
             $sender,
-            PeerServer::me(),
+            getCurrentServer(),
             $pk,
             $data['token'] // token the receiving server should use to communicate with the sender
         );
@@ -123,9 +123,9 @@ class AddMeToYourPeersRequest extends P2PMessageRequest
         $tokenForRequestSender = $this->requestSender->getNewToken();
 
         return new AddMeToYourPeersResponse(
-            PeerServer::me(),
+            getCurrentServer(),
             $this->requestSender,
-            PeerServer::me()->jwt_public_key,
+            getCurrentServer()->jwt_public_key,
             $tokenForRequestSender
         );
     }

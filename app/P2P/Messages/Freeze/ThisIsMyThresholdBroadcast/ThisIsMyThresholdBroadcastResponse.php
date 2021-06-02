@@ -87,7 +87,7 @@ class ThisIsMyThresholdBroadcastResponse extends P2PMessageResponse
 
         return new static(
             $requestDestination,
-            PeerServer::me(),
+            getCurrentServer(),
             $broadcast,
             $publicKey,
             $receivedShare

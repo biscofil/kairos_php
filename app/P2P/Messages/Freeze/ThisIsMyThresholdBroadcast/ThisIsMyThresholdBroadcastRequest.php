@@ -110,7 +110,7 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
 
         return new static(
             $sender,
-            PeerServer::me(),
+            getCurrentServer(),
             $election,
             $publicKey,
             $broadcast,
@@ -139,7 +139,7 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
             return new JsonResponse(['error' => 'trustee not found', 400]);
         }
 
-        $meTrustee = $this->election->getTrusteeFromPeerServer(PeerServer::me(), true);
+        $meTrustee = $this->election->getTrusteeFromPeerServer(getCurrentServer(), true);
         // TODO what if same server is not a trustee?
 
         // TODO set polynomial
@@ -158,7 +158,7 @@ class ThisIsMyThresholdBroadcastRequest extends P2PMessageRequest
         }
 
         return new ThisIsMyThresholdBroadcastResponse(
-            PeerServer::me(),
+            getCurrentServer(),
             $this->requestSender,
             $meTrustee->broadcast,
             $meTrustee->public_key,

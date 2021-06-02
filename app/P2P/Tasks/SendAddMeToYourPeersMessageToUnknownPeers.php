@@ -39,9 +39,9 @@ class SendAddMeToYourPeersMessageToUnknownPeers extends Task
         // add missing peers
         $messagesToSend = $this->election->peerServers()->unknown()->get()->each(function (PeerServer $server) {
             return new AddMeToYourPeers\AddMeToYourPeersRequest(
-                PeerServer::me(),
+                getCurrentServer(),
                 $server,
-                PeerServer::me()->jwt_public_key,
+                getCurrentServer()->jwt_public_key,
                 $server->getNewToken()
             );
         });

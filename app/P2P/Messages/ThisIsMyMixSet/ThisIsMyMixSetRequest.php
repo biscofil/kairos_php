@@ -109,7 +109,7 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
 
         return new static(
             $sender,
-            PeerServer::me(),
+            getCurrentServer(),
             $mixModel
         );
     }
@@ -129,7 +129,7 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
         // dispatch verification process and mix if this is the next node
         VerifyReceivedMix::dispatch($this->mixModel);
 
-        return new ThisIsMyMixSetResponse(PeerServer::me(), $this->requestSender);
+        return new ThisIsMyMixSetResponse(getCurrentServer(), $this->requestSender);
     }
 
 }

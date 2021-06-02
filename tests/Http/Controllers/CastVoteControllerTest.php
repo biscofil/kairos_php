@@ -29,7 +29,7 @@ class CastVoteControllerTest extends TestCase
         /** @var Election $election */
         $election = Election::factory()->withAdmin($user)->frozen()->create();
         $election->cryptosystem = 'rsa';
-        $election->createPeerServerTrustee(PeerServer::me());
+        $election->createPeerServerTrustee(getCurrentServer());
 
         // generate key
         $election->cryptosystem->getClass()::onElectionFreeze($election); // generateCombinedPublicKey

@@ -123,7 +123,7 @@ class Freeze1IAmFreezingElectionResponse extends P2PMessageResponse
 
         return new static(
             $requestDestination,
-            PeerServer::me(),
+            getCurrentServer(),
             $election,
             $publicKey,
             $broadcast,

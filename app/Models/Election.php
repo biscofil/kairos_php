@@ -496,7 +496,7 @@ class Election extends Model
 
             //other server
             SendP2PMessage::dispatchSync(
-                new WillYouBeAElectionTrusteeForMyElectionRequest(PeerServer::me(), [$server], $this)
+                new WillYouBeAElectionTrusteeForMyElectionRequest(getCurrentServer(), [$server], $this)
             );
 
         }
@@ -584,7 +584,7 @@ class Election extends Model
                  */
 
                 /** @var \App\Models\Trustee $meTrustee */
-                $meTrustee = $this->getTrusteeFromPeerServer(PeerServer::me());
+                $meTrustee = $this->getTrusteeFromPeerServer(getCurrentServer());
 
                 if ($meTrustee) {
 

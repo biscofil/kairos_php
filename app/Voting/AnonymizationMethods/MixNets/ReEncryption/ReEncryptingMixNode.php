@@ -92,10 +92,10 @@ class ReEncryptingMixNode extends MixNode
         // send secret key to the coordinator
         SendP2PMessage::dispatch(
             new ThisIsMySecretKeyRequest(
-                PeerServer::me(),
+                getCurrentServer(),
                 $election->peerServerAuthor,
                 $election,
-                $election->getTrusteeFromPeerServer(PeerServer::me())->private_key
+                $election->getTrusteeFromPeerServer(getCurrentServer())->private_key
             )
         );
 

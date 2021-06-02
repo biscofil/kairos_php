@@ -18,9 +18,9 @@ class AddMeToYourPeersRequestTest extends TestCase
     public function serialize_unserialize()
     {
 
-        $to = new PeerServer();
+        $to = PeerServer::factory()->create();
 
-        $me = PeerServer::me();
+        $me = getCurrentServer();
 
         $pk = $me->jwt_public_key;
 

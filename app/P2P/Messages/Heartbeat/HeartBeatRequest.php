@@ -28,13 +28,13 @@ class HeartBeatRequest extends P2PMessageRequest
 
     public static function unserialize(PeerServer $sender, array $messageData): P2PMessageRequest
     {
-        return new self($sender, PeerServer::me());
+        return new self($sender, getCurrentServer());
     }
 
     public function onRequestReceived(): P2PMessageResponse
     {
         return new HeartBeatResponse(
-            PeerServer::me(),
+            getCurrentServer(),
             $this->requestSender
         );
     }

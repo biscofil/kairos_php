@@ -9,6 +9,9 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
+
+//    public const ActAsPeerServerKey = 'act_as_peer_server';
+
     /**
      * Register any application services.
      *
@@ -29,16 +32,21 @@ class AppServiceProvider extends ServiceProvider
 
         Schema::defaultStringLength(191);
 
-        // can be accessed with app('peer_server_me')
-//        $this->app->singleton('peer_server_me', function ($app) {
-//            return PeerServer::me();
-//        });
-
         $me = null;
         try {
+
+            // TODO if testing and if request contains "act_as_peer_server" then act as another peer
+//            if (in_array(config('app.env'), ['testing', 'local'])
+//                && $request->hasHeader(self::ActAsPeerServerKey)) {
+//                $peerID = intval($request->header(self::ActAsPeerServerKey));
+//                Log::warning("Acting as peer server $peerID");
+//                $me = PeerServer::findOrFail($peerID);
+//            } else {
             $me = PeerServer::me(false);
+//            }
+
         } catch (\Exception $e) {
-            Log::warning('Failed PeerServer::me() in AppServiceProvider');
+            Log::warning('Failed getCurrentServer() in AppServiceProvider');
         }
         // take the RSA keypair of the current server for JWT auth
 
@@ -50,6 +58,13 @@ class AppServiceProvider extends ServiceProvider
                 config(['jwt.keys.public' => $me->jwt_public_key->toString()]);
             }
         }
+
+        /**
+         * can be accessed with @see getCurrentServer()
+         */
+        $this->app->singleton('peer_server_me', function ($app) use ($me) {
+            return $me;
+        });
 
 
     }

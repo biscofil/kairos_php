@@ -109,7 +109,7 @@ abstract class MixNode implements AnonymizationMethod
     {
         Log::debug('MixNode afterVotingPhaseEnds');
 
-        $meTrustee = $election->getTrusteeFromPeerServer(PeerServer::me());
+        $meTrustee = $election->getTrusteeFromPeerServer(getCurrentServer());
 
         if ($meTrustee) {
             // current server is a peer

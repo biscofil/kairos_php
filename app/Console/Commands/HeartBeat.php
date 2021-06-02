@@ -42,7 +42,7 @@ class HeartBeat extends Command
     {
 
         $messagesToSend = PeerServer::ignoreMyself()->get()->map(function (PeerServer $server) {
-            return new HeartBeatRequest(PeerServer::me(), $server);
+            return new HeartBeatRequest(getCurrentServer(), $server);
         });
         SendP2PMessage::dispatch($messagesToSend->toArray());
 

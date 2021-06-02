@@ -38,7 +38,7 @@ class Freeze2IAmReadyForFreezeResponse extends P2PMessageResponse
      */
     public static function unserialize(PeerServer $requestDestination, array $messageData, $requestMessage): self
     {
-        return new static($requestDestination, PeerServer::me());
+        return new static($requestDestination, getCurrentServer());
     }
 
     // ########################################################################################

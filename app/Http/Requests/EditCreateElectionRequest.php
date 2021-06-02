@@ -80,7 +80,7 @@ class EditCreateElectionRequest extends FormRequest
         $election = Election::make($data);
         $election->uuid = (string)Str::uuid();
         $election->admin()->associate(getAuthUser());
-        $election->peerServerAuthor()->associate(PeerServer::me());
+        $election->peerServerAuthor()->associate(getCurrentServer());
         $election->save();
         return $election;
     }

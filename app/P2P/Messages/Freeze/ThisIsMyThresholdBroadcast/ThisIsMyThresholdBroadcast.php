@@ -48,7 +48,7 @@ class ThisIsMyThresholdBroadcast
 
         SendP2PMessage::dispatch(
             new Freeze2IAmReadyForFreezeRequest(
-                PeerServer::me(),
+                getCurrentServer(),
                 $election->peerServerAuthor,
                 $election,
                 $election->trustees()->get()->toArray()

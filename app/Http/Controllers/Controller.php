@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Election;
-use App\Models\PeerServer;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -73,7 +72,7 @@ class Controller extends BaseController
             ];
         }
 
-        $meServer = PeerServer::me();
+        $meServer = getCurrentServer();
 
         return response()->json([
             'settings' => [
@@ -85,6 +84,7 @@ class Controller extends BaseController
                 'SHOW_LOGIN_OPTIONS' => $meServer->show_login_options,
                 'HELP_EMAIL_ADDRESS' => $meServer->help_email_address,
             ],
+            'peer' => $meServer,
             'login_box' => $auth_providers,
             'user' => $user,
         ]);

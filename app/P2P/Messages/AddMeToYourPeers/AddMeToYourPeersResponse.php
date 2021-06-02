@@ -72,7 +72,7 @@ class AddMeToYourPeersResponse extends P2PMessageResponse
 
         return new static(
             $requestDestination,
-            PeerServer::me(),
+            getCurrentServer(),
             $pk,
             $data['token'] // token the receiving server should use to communicate with the sender
         );

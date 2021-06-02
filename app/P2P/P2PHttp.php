@@ -33,9 +33,12 @@ class P2PHttp
 
         $url = 'https://' . $destPeerServer->domain . '/api/p2p/' . $messageName;
 
-        if ($destPeerServer->domain == PeerServer::me()->domain) {
-            Log::error('CANT SENT A MESSAGE TO YOURSELF : ' . $url);
-            throw new SendingMessageToSelf();
+        if ($destPeerServer->domain == getCurrentServer()->domain) {
+
+            Log::error('CANNOT SEND A MESSAGE TO YOURSELF : ' . $url);
+            return $requestMessage->onRequestReceived($destPeerServer, $requestMessage); // TODO check!!!!
+//            throw new SendingMessageToSelf();
+
         }
 
         websocketLog('Sending a message to ' . $url, $destPeerServer);
@@ -82,6 +85,20 @@ class P2PHttp
      */
     public static function onRequestReceived(Request $request, string $messageName): JsonResponse
     {
+
+        $requestSigned = null;
+        if ($request->has(self::MessageUUIDKey)) {
+            // extract the UUID of the message
+            $messageID = $request->get(self::MessageUUIDKey);
+            $requestSigned = [
+                'message_name' => $messageName,
+                'data' => $request->all(),
+                'message_uuid' => $messageID,
+                'received_at' => Carbon::now()->toDateTimeString(),
+            ];
+            $requestSigned['signature'] = base64_encode(getCurrentServer()->jwt_secret_key->sign(json_encode($requestSigned)));
+//            Log::debug($requestSigned);
+        }
 
         try {
 

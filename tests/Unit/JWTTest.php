@@ -21,7 +21,7 @@ class JWTTest extends TestCase
     {
 
         $signer = new Sha256();
-        $privateKey = new Key(PeerServer::me()->jwt_secret_key->toArray()['v']);
+        $privateKey = new Key(getCurrentServer()->jwt_secret_key->toArray()['v']);
 
         $claimName = Str::random(10);
         $claimValue = Str::random(10);
@@ -37,7 +37,7 @@ class JWTTest extends TestCase
 
         $token = (new Parser())->parse($tokenStrReceived);
 
-        $publicKey = new Key(PeerServer::me()->jwt_public_key->toArray()['v']);
+        $publicKey = new Key(getCurrentServer()->jwt_public_key->toArray()['v']);
 
         static::assertTrue($token->verify($signer, $publicKey));
 

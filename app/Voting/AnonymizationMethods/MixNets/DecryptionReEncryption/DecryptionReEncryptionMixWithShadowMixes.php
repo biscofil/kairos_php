@@ -32,7 +32,7 @@ class DecryptionReEncryptionMixWithShadowMixes extends MixWithShadowMixes
     {
 
         /** @var \App\Voting\CryptoSystems\ElGamal\EGKeyPair $trusteeKeyPair */
-        $trusteeKeyPair = $this->election->getTrusteeFromPeerServer(PeerServer::me()); // TODO
+        $trusteeKeyPair = $this->election->getTrusteeFromPeerServer(getCurrentServer()); // TODO
 
         // ###################  backwards step 3/3 -> deshuffling ###################
         /** @var \App\Voting\AnonymizationMethods\MixNets\DecryptionReEncryption\DecryptionReEncryptionParameterSet $shadowMixPS */

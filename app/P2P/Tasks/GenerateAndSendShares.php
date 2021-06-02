@@ -62,7 +62,7 @@ class GenerateAndSendShares extends Task
 
             if ($server->id === PeerServer::meID // ignore self
                 || $server->id === $this->election->peer_server_id // ignore creator
-                || $server->domain < PeerServer::me()->domain) {// ignore those with lower key
+                || $server->domain < getCurrentServer()->domain) {// ignore those with lower key
                 return;
             }
 
@@ -78,7 +78,7 @@ class GenerateAndSendShares extends Task
 
             SendP2PMessage::dispatchSync(
                 new ThisIsMyThresholdBroadcast\ThisIsMyThresholdBroadcastRequest(
-                    PeerServer::me(),
+                    getCurrentServer(),
                     $server,
                     $this->election,
                     $meTrustee->public_key,

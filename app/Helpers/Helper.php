@@ -127,6 +127,6 @@ function getLagrangianCoefficientMod(array $I, int $j, BigInteger $mod): BigInte
 function websocketLog(string $msg, ?PeerServer $messageDestinationServer = null, ?PeerServer $messageSenderServer = null): void
 {
     Log::debug($msg);
-    $messageSenderServer = $messageSenderServer ?? PeerServer::me();
+    $messageSenderServer = $messageSenderServer ?? getCurrentServer();
     WebsocketLog::dispatch($msg, $messageDestinationServer, $messageSenderServer);
 }

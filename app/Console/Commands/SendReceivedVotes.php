@@ -44,7 +44,7 @@ class SendReceivedVotes extends Command
     {
         $election = Election::find($this->argument('election'));
 
-        $me = PeerServer::me();
+        $me = getCurrentServer();
 
         $to = $election->peerServers->all();
 

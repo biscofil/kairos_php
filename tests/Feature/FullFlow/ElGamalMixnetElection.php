@@ -35,7 +35,7 @@ class ElGamalMixnetElection extends TestCase
         $election->anonymization_method = AnonymizationMethodEnum::EncMixNet();
         $election->save();
 
-        $trustee = $election->createPeerServerTrustee(PeerServer::me());
+        $trustee = $election->createPeerServerTrustee(getCurrentServer());
 
         $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
         $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();

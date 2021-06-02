@@ -98,7 +98,7 @@ class Freeze2IAmReadyForFreezeRequest extends P2PMessageRequest
 
         return new static(
             $sender,
-            PeerServer::me(),
+            getCurrentServer(),
             $election,
             $trustees
         );
@@ -175,7 +175,7 @@ class Freeze2IAmReadyForFreezeRequest extends P2PMessageRequest
             Freeze2IAmReadyForFreeze::onAllPeersReady($this->election);
         }
 
-        return new Freeze2IAmReadyForFreezeResponse(PeerServer::me(), $this->requestSender);
+        return new Freeze2IAmReadyForFreezeResponse(getCurrentServer(), $this->requestSender);
     }
 
     /**

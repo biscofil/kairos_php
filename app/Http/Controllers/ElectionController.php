@@ -52,8 +52,8 @@ class ElectionController extends Controller
     {
         return [
             'election_types' => [],
-            'help_email' => PeerServer::me()->help_email_address,
-            'is_private' => !PeerServer::me()->show_elections,
+            'help_email' => getCurrentServer()->help_email_address,
+            'is_private' => !getCurrentServer()->show_elections,
             'cryptosystems' => [
                 [
                     'id' => CryptoSystemEnum::RSA,

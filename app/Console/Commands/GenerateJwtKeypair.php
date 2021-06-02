@@ -41,7 +41,7 @@ class GenerateJwtKeypair extends Command
     public function handle()
     {
 
-        $me = PeerServer::me();
+        $me = getCurrentServer();
         // copy jwt token to the record corresponding to this server
         $keyPair = RSAKeyPair::generate();
         $me->jwt_public_key = $keyPair->pk;

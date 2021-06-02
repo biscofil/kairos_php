@@ -39,7 +39,7 @@ class AddPeer extends Command
      */
     public function handle()
     {
-//        $me = PeerServer::me();
+//        $me = getCurrentServer();
 //        $this->info('I AM ' . $me->domain);
         $toDomain = $this->argument('domain');
         PeerServer::addPeer($toDomain);

@@ -81,7 +81,7 @@ class ThisIsMySecretKeyRequest extends P2PMessageRequest
 
         return new static(
             $sender,
-            PeerServer::me(),
+            getCurrentServer(),
             $election,
             $SecretKey
         );
@@ -101,7 +101,7 @@ class ThisIsMySecretKeyRequest extends P2PMessageRequest
 
         ReEncryptingMixNode::onSecretKeyReceived($this->election, $trustee);
 
-        return new ThisIsMySecretKeyResponse(PeerServer::me(), $this->requestSender);
+        return new ThisIsMySecretKeyResponse(getCurrentServer(), $this->requestSender);
     }
 
     /**

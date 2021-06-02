@@ -34,7 +34,7 @@ class DecryptionReEncryptionMixNode extends MixNode
         }
 
         /** @var \App\Models\Trustee $mePeer */
-        $mePeer = $election->getTrusteeFromPeerServer(PeerServer::me(), true);
+        $mePeer = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
 
         /** @var \App\Voting\CryptoSystems\PartialDecryptionSecretKey $sk */
         $sk = $mePeer->private_key;

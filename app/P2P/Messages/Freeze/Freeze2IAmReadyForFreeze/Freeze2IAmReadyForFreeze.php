@@ -42,7 +42,7 @@ class Freeze2IAmReadyForFreeze
         // foreach peers generate share, store it and read it in message
         $messagesToSend = $election->peerServers->map(function (PeerServer $trusteePeerServer) use ($election) {
             return new Freeze3CommitFailRequest(
-                PeerServer::me(),
+                getCurrentServer(),
                 $trusteePeerServer,
                 $election,
                 true // TODO <-------------------------

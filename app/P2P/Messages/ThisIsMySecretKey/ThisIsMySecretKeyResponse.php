@@ -31,7 +31,7 @@ class ThisIsMySecretKeyResponse extends P2PMessageResponse
      */
     public static function unserialize(PeerServer $requestDestination, array $messageData, $requestMessage): P2PMessageResponse
     {
-        return new static($requestDestination, PeerServer::me());
+        return new static($requestDestination, getCurrentServer());
     }
 
     /**

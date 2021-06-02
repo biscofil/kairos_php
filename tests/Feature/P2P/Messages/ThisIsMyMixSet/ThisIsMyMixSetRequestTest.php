@@ -28,7 +28,7 @@ class ThisIsMyMixSetRequestTest extends TestCase
 
         $to = new PeerServer();
 
-        $me = PeerServer::me();
+        $me = getCurrentServer();
 
         $election = Election::factory()->create();
         $election->cryptosystem = CryptoSystemEnum::ElGamal();

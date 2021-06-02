@@ -146,7 +146,7 @@ class Mix extends Model
         $primaryShadowMixes->challengeBits = $primaryShadowMixes->getFiatShamirChallengeBits();
         $primaryShadowMixes->generateProofs();
 
-        $meTrustee = $election->getTrusteeFromPeerServer(PeerServer::me(), true);
+        $meTrustee = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
 
         $mixModel = new static();
         $mixModel->round = is_null($previousMix) ? 1 : $previousMix->round + 1;
@@ -161,7 +161,7 @@ class Mix extends Model
         $messagesToSend = $election->peerServers()->get()
             ->map(function (PeerServer $trusteePeerServer) use ($mixModel, $meTrustee) {
                 return new ThisIsMyMixSetRequest(
-                    PeerServer::me(),
+                    getCurrentServer(),
                     $trusteePeerServer,
                     $mixModel
                 );
@@ -199,7 +199,7 @@ class Mix extends Model
     private function generateSecretKeyFromShares(Election $election, Trustee $firstTrustee): void
     {
 
-        $meTrustee = $election->getTrusteeFromPeerServer(PeerServer::me(), true);
+        $meTrustee = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
 
         $index = $firstTrustee->getPeerServerIndex();
         $receivedShares = [];
@@ -229,7 +229,7 @@ class Mix extends Model
         try {
 
             $election = $this->trustee->election;
-            $meTrustee = $election->getTrusteeFromPeerServer(PeerServer::me(), true);
+            $meTrustee = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
 
             // if fully decrypted, stop
             $completeMixChain = $this->getChainLenght() === $election->min_peer_count_t;

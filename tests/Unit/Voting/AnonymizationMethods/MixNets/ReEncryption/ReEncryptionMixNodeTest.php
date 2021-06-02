@@ -64,7 +64,7 @@ class ReEncryptionMixNodeTest extends TestCase
         $election->cryptosystem = CryptoSystemEnum::ElGamal(); // TODO remove
         $election->save();
 
-        $election->createPeerServerTrustee(PeerServer::me());
+        $election->createPeerServerTrustee(getCurrentServer());
 
         $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
         $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
@@ -117,7 +117,7 @@ class ReEncryptionMixNodeTest extends TestCase
         $election->cryptosystem = CryptoSystemEnum::ElGamal();
         $election->save();
 
-        $election->createPeerServerTrustee(PeerServer::me());
+        $election->createPeerServerTrustee(getCurrentServer());
 
         $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
         $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();

@@ -19,7 +19,7 @@ class WillYouBeAElectionTrusteeForMyElectionTest extends TestCase
 
         $to = new PeerServer();
 
-        $me = PeerServer::me();
+        $me = getCurrentServer();
 
         $election = Election::factory()->create();
 

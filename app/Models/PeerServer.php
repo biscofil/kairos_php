@@ -214,8 +214,6 @@ class PeerServer extends Authenticatable implements JWTSubject
      */
     public static function addPeer(string $toDomain): PeerServer
     {
-        $me = self::me();
-
         $toDomain = extractDomain($toDomain);
 
         $peerServer = self::withDomain($toDomain)->first();
@@ -228,9 +226,9 @@ class PeerServer extends Authenticatable implements JWTSubject
 
         SendP2PMessage::dispatch(
             new AddMeToYourPeers\AddMeToYourPeersRequest(
-                $me,
+                getCurrentServer(),
                 $peerServer,
-                PeerServer::me()->jwt_public_key,
+                getCurrentServer()->jwt_public_key,
                 $peerServer->getNewToken()
             )
         );

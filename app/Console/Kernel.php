@@ -48,7 +48,7 @@ class Kernel extends ConsoleKernel
             ->appendOutputTo(config('logging.channels.single.path'));
 
         // TODO
-//        $me = PeerServer::me();
+//        $me = getCurrentServer();
 
         $minute = hexdec(substr(sha1($me->domain), 0, 5)) % 60;
 

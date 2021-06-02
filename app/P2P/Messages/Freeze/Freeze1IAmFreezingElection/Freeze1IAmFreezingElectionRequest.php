@@ -92,7 +92,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         $trusteeData = $this->trustees; // TODO
 
         /** @var \App\Models\Trustee $meTrustee */
-//        $meTrustee = $this->election->getTrusteeFromPeerServer(PeerServer::me());
+//        $meTrustee = $this->election->getTrusteeFromPeerServer(getCurrentServer());
 
 //        $broadcast = null;
 //        $share = null;
@@ -179,7 +179,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
 
         return new static(
             $sender,
-            PeerServer::me(),
+            getCurrentServer(),
             $election,
             $trusteeData,
             $publicKey,
@@ -219,7 +219,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
             new RunP2PTask(new SendAddMeToYourPeersMessageToUnknownPeers($this->election)),
         ];
 
-        $meTrustee = $this->election->getTrusteeFromPeerServer(PeerServer::me(), true);
+        $meTrustee = $this->election->getTrusteeFromPeerServer(getCurrentServer(), true);
 
         Log::debug('Generating my own keypair');
         $meTrustee->generateKeyPair();
@@ -250,7 +250,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
 
         $meTrustee->save();
 //        $jobs[] = new SendP2PMessage(new Freeze2IAmReadyForFreeze(
-//            PeerServer::me(),
+//            getCurrentServer(),
 //            $this->from // send back to coordinator
 //            // TODO
 //        ));
@@ -284,7 +284,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         Bus::chain($jobs)->delay(5)->dispatch();
 
         return new Freeze1IAmFreezingElectionResponse(
-            PeerServer::me(),
+            getCurrentServer(),
             $this->requestSender,
             $this->election,
             $meTrustee->public_key,
