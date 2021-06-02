@@ -15,7 +15,7 @@ class JsonBallotEncoding implements BallotEncoding
 
     /**
      * Encodes a ballot using Json
-     * TODO could store as tring or as number
+     * TODO could store as string or as number
      * @param mixed $vote
      * @param string $outClass
      * @return Plaintext[]
