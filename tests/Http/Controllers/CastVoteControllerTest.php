@@ -23,7 +23,6 @@ class CastVoteControllerTest extends TestCase
     public function store()
     {
 
-        /** @var User $user */
         $user = User::factory()->create();
 
         /** @var Election $election */
