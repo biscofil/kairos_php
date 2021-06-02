@@ -72,10 +72,10 @@ class ElectionController extends Controller
                     'id' => CryptoSystemEnum::ElGamal,
                     'name' => 'ElGamal',
                     'anonymization_methods' => [
-                        [
-                            'id' => AnonymizationMethodEnum::DecMixNet,
-                            'name' => 'Decryption MixNet'
-                        ],
+//                        [
+//                            'id' => AnonymizationMethodEnum::DecMixNet,
+//                            'name' => 'Decryption MixNet'
+//                        ],
                         [
                             'id' => AnonymizationMethodEnum::EncMixNet,
                             'name' => 'Encryption MixNet'
