@@ -133,7 +133,7 @@ class EGParameterSet implements ParameterSet
     {
         $m = $m->add(BI1());
         if (!$m->modPow($this->q, $this->p)->equals(BI1())) {
-            $m = $m->negate()->modPow(BI1(), $this->p);
+            $m = $m->negate()->modPow(BI1(), $this->p); // m = -m mod p
         }
         return $m;
     }
@@ -146,7 +146,7 @@ class EGParameterSet implements ParameterSet
     public function extractMessageFromSubgroup(BigInteger $m): BigInteger
     {
         if ($m >= $this->q) {
-            $m = $m->negate()->modPow(BI1(), $this->p);
+            $m = $m->negate()->modPow(BI1(), $this->p); // m = -m mod p
         }
         return $m->subtract(BI1());
     }
