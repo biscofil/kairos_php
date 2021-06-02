@@ -82,10 +82,11 @@ use Illuminate\Support\Str;
  * @method static self make(array $data)
  * @method static self|null find($id)
  * @method static self findOrFail($id)
- * @method static ElectionFactory factory()
  * @method static self|Builder featured()
  * @method static self|Builder ofThisServer()
  * @method static first()
+ *
+ * @method static ElectionFactory factory()
  */
 class Election extends Model
 {

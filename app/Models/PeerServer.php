@@ -9,6 +9,7 @@ use App\Models\Cast\PublicKeyCaster;
 use App\Models\Cast\SecretKeyCaster;
 use App\P2P\Messages\AddMeToYourPeers;
 use App\Voting\CryptoSystems\RSA\RSAPublicKey;
+use Database\Factories\PeerServerFactory;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
 use Illuminate\Database\Eloquent\Builder;
@@ -59,6 +60,8 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * @method static self|Builder withDomain(string $domain)
  * @method static self|null first()
  * @method static findOrFail($id)
+ *
+ * @method static PeerServerFactory factory()
  */
 class PeerServer extends Authenticatable implements JWTSubject
 {

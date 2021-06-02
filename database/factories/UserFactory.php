@@ -4,10 +4,12 @@ namespace Database\Factories;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class UserFactory
  * @package Database\Factories
+ * @method User create($attributes = [], ?Model $parent = null)
  */
 class UserFactory extends Factory
 {
