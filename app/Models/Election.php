@@ -605,8 +605,9 @@ class Election extends Model
                     $meTrustee->save();
                 }
 
-                // foreach peers generate share, store it and read it in message
-                $messagesToSend = $this->peerServers->map(function (PeerServer $trusteePeerServer) use ($meTrustee) {
+            // foreach peers generate share, store it and read it in message
+            $messagesToSend = $this->peerServers()->ignoreMyself()->get()
+                ->map(function (PeerServer $trusteePeerServer) use ($meTrustee) {
 
                     $share = null;
 
@@ -621,7 +622,7 @@ class Election extends Model
                     }
 
                     return new Freeze1IAmFreezingElectionRequest(
-                        PeerServer::me(),
+                        getCurrentServer(),
                         $trusteePeerServer,
                         $this,
                         $this->trustees->all(),
