@@ -6,11 +6,11 @@ namespace App\Voting\AnonymizationMethods\MixNets\ReEncryption;
 
 use App\Jobs\SendP2PMessage;
 use App\Models\Election;
-use App\Models\PeerServer;
 use App\Models\Trustee;
 use App\P2P\Messages\ThisIsMySecretKey\ThisIsMySecretKeyRequest;
 use App\Voting\AnonymizationMethods\MixNets\Mix;
 use App\Voting\AnonymizationMethods\MixNets\MixNode;
+use App\Voting\BallotEncodings\JsonBallotEncoding;
 use App\Voting\CryptoSystems\SecretKey;
 use Illuminate\Support\Facades\Log;
 
@@ -104,8 +104,10 @@ class ReEncryptingMixNode extends MixNode
     /**
      * @param \App\Models\Election $election
      * @param \App\Models\Trustee $trustee
+     * @throws \Exception
      */
-    public static function onSecretKeyReceived(Election $election, Trustee $trustee){
+    public static function onSecretKeyReceived(Election $election, Trustee $trustee)
+    {
         // check if all secret keys have been received
 
         /** @var \App\Models\Mix $lastMix */
@@ -123,20 +125,42 @@ class ReEncryptingMixNode extends MixNode
             ->count();
 
         if ($missingSecretKeyCount === 0) {
-            Log::debug('Setting private key of the election');
-            // if this is the last one, trigger mixnet decryption
+            self::onAllSecretKeysReceived($election, $mixChainTrusteeIDs);
+        }
 
-            $neededTrustees = $election->trustees()->whereIn('trustees.id', $mixChainTrusteeIDs)->get();
+    }
 
-            $election->private_key = $neededTrustees->reduce(function (?SecretKey $carry, Trustee $trustee) {
-                if (is_null($carry)) {
-                    return $trustee->private_key;
-                }
-                return $trustee->private_key->combine($carry); // TODO check polymorphism
-            });
-            $election->save();
+    /**
+     * @param \App\Models\Election $election
+     * @param array $mixChainTrusteeIDs
+     * @throws \Exception
+     */
+    public static function onAllSecretKeysReceived(Election $election, array $mixChainTrusteeIDs)
+    {
+        Log::debug('Setting private key of the election...');
+        // if this is the last one, trigger mixnet decryption
 
-            // TODO decrypt
+        $neededTrustees = $election->trustees()->whereIn('trustees.id', $mixChainTrusteeIDs)->get();
+
+        $election->private_key = $neededTrustees->reduce(function (?SecretKey $carry, Trustee $trustee) {
+            if (is_null($carry)) {
+                return $trustee->private_key;
+            }
+            return $trustee->private_key->combine($carry); // TODO check polymorphism
+        });
+        $election->save();
+
+        Log::debug('Decrypting votes...');
+
+        /** @var \App\Models\Mix $lastMix */
+        $lastMix = $election->mixes()->latest()->firstOrFail(); // TODO check!!!
+
+        foreach ($lastMix->getMixWithShadowMixes()->primaryMix->ciphertexts as $cipherText) {
+
+            $plainVote = JsonBallotEncoding::decode($election->private_key->decrypt($cipherText));
+            Log::debug($plainVote);
+
+            // TODO store
 
         }
 
