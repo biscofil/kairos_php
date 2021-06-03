@@ -60,4 +60,18 @@ class Question extends Model
         return $this->belongsTo(Election::class, 'election_id');
     }
 
+    /**
+     * @param int $q
+     * @return array
+     */
+    public function getColumnNames(int $q): array
+    {
+        $names = [];
+        for ($aIdx = 0; $aIdx < $this->max; $aIdx++) {
+            $a = $aIdx + 1;
+            $names[] = "q_{$q}_a_{$a}";
+        }
+        return $names;
+    }
+
 }

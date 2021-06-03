@@ -156,6 +156,9 @@ class ReEncryptingMixNode extends MixNode
 
         $connection = $election->getOutputConnection();
 
+        // remove existing records
+        $connection->table($election->getOutputTableName())->truncate();
+
         $successCount = 0;
         $cipherTexts = $lastMix->getMixWithShadowMixes()->primaryMix->ciphertexts;
         foreach ($cipherTexts as $cipherText) {

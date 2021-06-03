@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Voting\AnonymizationMethods\MixNets\MixNode;
 use App\Voting\BallotEncodings\JsonBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
+use App\Voting\QuestionTypes\MultipleChoice;
 use Tests\TestCase;
 
 class ElectionControllerTest extends TestCase
@@ -95,6 +96,8 @@ class ElectionControllerTest extends TestCase
         ];
         $plaintext = (JsonBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
         $cipher = $keyPair->pk->encrypt($plaintext);
+
+        $conn->table($election->getOutputTableName())->truncate();
         self::assertTrue(MixNode::insertBallot($election, $conn, $cipher));
 
 
@@ -106,6 +109,7 @@ class ElectionControllerTest extends TestCase
         ];
         $plaintext = (JsonBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
         $cipher = $keyPair->pk->encrypt($plaintext);
+        $conn->table($election->getOutputTableName())->truncate();
         self::assertTrue(MixNode::insertBallot($election, $conn, $cipher));
 
 
@@ -117,7 +121,11 @@ class ElectionControllerTest extends TestCase
         ];
         $plaintext = (JsonBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
         $cipher = $keyPair->pk->encrypt($plaintext);
+        $conn->table($election->getOutputTableName())->truncate();
         self::assertFalse(MixNode::insertBallot($election, $conn, $cipher));
+
+        $query = MultipleChoice::getTallyQuery($election->questions->first(), 1);
+        self::assertTrue($conn->statement($query));
 
     }
 

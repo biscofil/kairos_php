@@ -141,9 +141,7 @@ abstract class MixNode implements AnonymizationMethod
             //set all as null
             foreach ($election->questions as $questionIdx => $question) {
                 $q = $questionIdx + 1;
-                for ($aIdx = 0; $aIdx < $question->max; $aIdx++) {
-                    $a = $aIdx + 1;
-                    $cName = "q_{$q}_a_{$a}";
+                foreach ($question->getColumnNames($q) as $cName) {
                     $record[$cName] = null;
                 }
             }

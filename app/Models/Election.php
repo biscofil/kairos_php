@@ -727,10 +727,7 @@ class Election extends Model
             foreach ($this->questions as $idx => $question) {
                 $q = $idx + 1;
                 $question_answers_table_name = "e_{$this->id}_q_{$q}_a";
-
-                for ($aIdx = 0; $aIdx < $question->max; $aIdx++) {
-                    $a = $aIdx + 1;
-                    $cName = "q_{$q}_a_{$a}";
+                foreach ($question->getColumnNames($q) as $cName) {
                     $table->unsignedInteger($cName)->nullable();
                     $table->foreign($cName)->references('id')->on($question_answers_table_name);
                 }
