@@ -237,7 +237,8 @@ export default {
         update() {
             let self = this;
 
-            self.post.update()
+            // use the old slug
+            self.post.update(this.election.slug)
                 .then(election => {
                     self.$toastr.success("OK");
                     self.$router.push({name: 'election@view', params: {slug: election.slug}});
