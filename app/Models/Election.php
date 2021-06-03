@@ -22,12 +22,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\SQLiteConnection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use PDO;
 
 /**
  * Class Election
@@ -42,7 +42,7 @@ use Illuminate\Support\Str;
  *
  * @property bool is_private
  * @property bool is_featured
- * @property null|array questions
+ * @property \App\Models\Question[]|Collection questions
  *
  * @property int peer_server_id ID of the server that created the election
  * @property PeerServer peerServerAuthor Server that created the election
@@ -106,7 +106,6 @@ class Election extends Model
         'info_url',
         'is_private',
         'is_featured',
-        'questions',
         //
         'cryptosystem',
         'anonymization_method',
@@ -144,7 +143,6 @@ class Election extends Model
         'info_url',
         'is_private',
         'is_featured',
-        'questions',
         //
         'cryptosystem',
         'anonymization_method',
@@ -167,7 +165,6 @@ class Election extends Model
         'cryptosystem' => CryptoSystemEnum::class,
         'public_key' => PublicKeyCaster::class,
         'private_key' => SecretKeyCaster::class,
-        'questions' => 'array',
         //
         'is_private' => 'bool',
         'is_featured' => 'bool',
@@ -287,7 +284,7 @@ class Election extends Model
     {
         $issues = [];
 
-        if (is_null($this->questions) || count($this->questions) == 0) {
+        if ($this->questions()->count() == 0) {
             $issues[] = [
                 'type' => 'questions',
                 'action' => 'Add questions to the ballot'
@@ -371,6 +368,14 @@ class Election extends Model
     }
 
     // ############################################ Relations ############################################
+
+    /**
+     * @return HasMany|\App\Models\Question
+     */
+    public function questions(): HasMany
+    {
+        return $this->hasMany(Question::class, 'election_id');
+    }
 
     /**
      * @return BelongsTo|User
@@ -554,9 +559,7 @@ class Election extends Model
 
         $this->trustees->load('peerServer');
 
-        if ($this->peerServers()->count()) { // P2P three phase commit for freeze
-
-            if ($this->peer_server_id === PeerServer::meID) { // the curent server is the election creator
+        if ($this->peerServers()->ignoreMyself()->count()) { // if there other peer servers -> P2P three phase commit for freeze
 
 //                if ($this->election->min_peer_count_t > 0
 //                    && $this->election->trustees()->where('peer_server_id', '=', PeerServer::meID)->count()) {
@@ -575,35 +578,35 @@ class Election extends Model
 //                    // TODO move outside of P2P message class
 //                }
 
-                $this->setAsFreezing();
+            $this->setAsFreezing();
+
+            /**
+             * TODO merge code with
+             * @see Freeze1IAmFreezingElectionRequest::onRequestReceived()
+             * as they perforem the same operation
+             */
+
+            /** @var \App\Models\Trustee $meTrustee */
+            $meTrustee = $this->getTrusteeFromPeerServer(getCurrentServer());
+
+            if ($meTrustee) {
 
                 /**
-                 * TODO merge code with
-                 * @see Freeze1IAmFreezingElectionRequest::onRequestReceived()
-                 * as they perforem the same operation
+                 * keypair of current server is generated in
+                 * @see \App\Models\Election::createPeerServerTrustee()
                  */
 
-                /** @var \App\Models\Trustee $meTrustee */
-                $meTrustee = $this->getTrusteeFromPeerServer(getCurrentServer());
+                if ($this->hasTLThresholdScheme()) {
+                    // if threshold and coordinator prepare broadcast and share
+                    $meTrustee->polynomial = $meTrustee->private_key->getThresholdPolynomial($this->min_peer_count_t);
+                    $meTrustee->broadcast = $meTrustee->polynomial->getBroadcast();
 
-                if ($meTrustee) {
-
-                    /**
-                     * keypair of current server is generated in
-                     * @see \App\Models\Election::createPeerServerTrustee()
-                     */
-
-                    if ($this->hasTLThresholdScheme()) {
-                        // if threshold and coordinator prepare broadcast and share
-                        $meTrustee->polynomial = $meTrustee->private_key->getThresholdPolynomial($this->min_peer_count_t);
-                        $meTrustee->broadcast = $meTrustee->polynomial->getBroadcast();
-
-                        // store the share of my own secret key
-                        $meIdx = $meTrustee->getPeerServerIndex();
-                        $meTrustee->share_received = $meTrustee->polynomial->getShare($meIdx + 1);
-                    }
-                    $meTrustee->save();
+                    // store the share of my own secret key
+                    $meIdx = $meTrustee->getPeerServerIndex();
+                    $meTrustee->share_received = $meTrustee->polynomial->getShare($meIdx + 1);
                 }
+                $meTrustee->save();
+            }
 
             // foreach peers generate share, store it and read it in message
             $messagesToSend = $this->peerServers()->ignoreMyself()->get()
@@ -625,22 +628,22 @@ class Election extends Model
                         getCurrentServer(),
                         $trusteePeerServer,
                         $this,
-                        $this->trustees->all(),
+                        $this->questions,
+                        $this->trustees,
                         $meTrustee ? $meTrustee->public_key : null,
                         $meTrustee ? $meTrustee->broadcast : null,
                         $share
                     );
                 });
 
-                if ($messagesToSend->count()) {
-                    SendP2PMessage::dispatch($messagesToSend->toArray());
+            if ($messagesToSend->count()) {
+                SendP2PMessage::dispatch($messagesToSend->toArray());
 
-                    // wait for 10 seconds for a confirmation
-                    // delay : let's specify that a job should not be available for processing until 10 minutes after it has been dispatched:
-                    OnElectionFreezeTimeout::dispatch($this)->delay(now()->addSeconds(15));
-                }
-
+                // wait for 10 seconds for a confirmation
+                // delay : let's specify that a job should not be available for processing until 10 minutes after it has been dispatched:
+                OnElectionFreezeTimeout::dispatch($this)->delay(now()->addSeconds(15));
             }
+
 
         } else { // this is the only server
 
@@ -659,6 +662,89 @@ class Election extends Model
         $this->frozen_at = now();
         $this->save();
         // TODO $this->setupOutputTables();
+    }
+
+    /**
+     * Returns the connections to use for storing plantext ballots
+     * @return \Illuminate\Database\SQLiteConnection
+     */
+    public function getOutputConnection(): SQLiteConnection
+    {
+        $pathname = storage_path('election_' . $this->id . '.sqlite');
+        $pdo = new PDO('sqlite:' . $pathname);
+        $conn = new SQLiteConnection($pdo);
+        $conn->setTablePrefix('');
+        $conn->setDatabaseName('');
+        return $conn;
+//        $builder = new \Illuminate\Database\Query\Builder($connection);
+    }
+
+    /**
+     * Returns the name of the table to use in
+     * @return string
+     * @see \App\Models\Election::getOutputConnection()
+     */
+    public function getOutputTableName(): string
+    {
+        return 'e_' . $this->id;
+    }
+
+    /**
+     * Creates a sqlite database with plaintexts ballots
+     */
+    public function setupOutputTables()
+    {
+        Log::debug('setupOutputTables > ' . storage_path('election_' . $this->id . '.sqlite'));
+        $connection = $this->getOutputConnection();
+
+        // create a table for each question
+        foreach ($this->questions as $idx => $question) {
+            $q = $idx + 1;
+            $question_answers_table_name = "e_{$this->id}_q_{$q}_a";
+            $connection->getSchemaBuilder()->dropIfExists($question_answers_table_name);
+
+            $connection->getSchemaBuilder()->create($question_answers_table_name, function (Blueprint $table) {
+                $table->increments('id');
+
+                $table->string('answer');
+            });
+
+            foreach ($question->answers as $answer) {
+                $qID = $connection->table($question_answers_table_name)->insertGetId([
+                    'answer' => $answer['answer']
+                ]);
+            }
+        }
+
+        // create a table for all ballots
+        $output_table_name = $this->getOutputTableName();
+
+        $connection->getSchemaBuilder()->dropIfExists($output_table_name);
+        $connection->getSchemaBuilder()->create($output_table_name, function (Blueprint $table) {
+
+            $table->increments('id');
+
+            foreach ($this->questions as $idx => $question) {
+                $q = $idx + 1;
+                $question_answers_table_name = "e_{$this->id}_q_{$q}_a";
+
+                for ($aIdx = 0; $aIdx < $question->max; $aIdx++) {
+                    $a = $aIdx + 1;
+                    $cName = "q_{$q}_a_{$a}";
+                    $table->unsignedInteger($cName)->nullable();
+                    $table->foreign($cName)->references('id')->on($question_answers_table_name);
+                }
+            }
+
+//            $table->timestamps();
+
+        });
+
+//        foreach ($this->votes as $vote) {
+//            DB::table($output_table_name)->insert([
+//                'question_1' => $qID // TODO
+//            ]);
+//        }
     }
 
     /**
@@ -695,7 +781,7 @@ class Election extends Model
 
         $e->min_peer_count_t = $this->min_peer_count_t;
 
-        $e->questions = $this->questions;
+//        $e->questions = $this->questions; TODO
         $e->description = $this->description;
         $e->help_email = $this->help_email;
         $e->info_url = $this->info_url;
@@ -707,46 +793,7 @@ class Election extends Model
         return $e;
     }
 
-    /**
-     *
-     */
-    public function setupOutputTables()
-    {
 
-        // TODO create DB / TABLES
-
-        $questions_table_name = 'questions_election_' . $this->id;
-        $output_table_name = 'tally_election_' . $this->id;
-
-        Schema::dropIfExists($output_table_name); // TODO remove
-        Schema::dropIfExists($questions_table_name);
-
-        Schema::create($questions_table_name, function (Blueprint $table) {
-            $table->increments('id');
-            $table->string('q_name');
-            $table->timestamps();
-        });
-
-        $qID = DB::table($questions_table_name)->insertGetId([ // TODO
-            'q_name' => 'first question'
-        ]);
-
-        Schema::create($output_table_name, function (Blueprint $table) use ($questions_table_name) {
-            $table->increments('id');
-            for ($i = 0; $i < 5; $i++) {
-                $table->unsignedInteger('question_' . $i)->nullable();
-                $table->foreign('question_' . $i)->references('id')->on($questions_table_name);
-            }
-            $table->timestamps();
-        });
-
-//        foreach ($this->votes as $vote) {
-//            DB::table($output_table_name)->insert([
-//                'question_1' => $qID // TODO
-//            ]);
-//        }
-
-    }
 
     // ############################################
 

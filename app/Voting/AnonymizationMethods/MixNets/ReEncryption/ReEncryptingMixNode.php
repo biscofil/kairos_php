@@ -10,7 +10,6 @@ use App\Models\Trustee;
 use App\P2P\Messages\ThisIsMySecretKey\ThisIsMySecretKeyRequest;
 use App\Voting\AnonymizationMethods\MixNets\Mix;
 use App\Voting\AnonymizationMethods\MixNets\MixNode;
-use App\Voting\BallotEncodings\JsonBallotEncoding;
 use App\Voting\CryptoSystems\SecretKey;
 use Illuminate\Support\Facades\Log;
 
@@ -155,14 +154,18 @@ class ReEncryptingMixNode extends MixNode
         /** @var \App\Models\Mix $lastMix */
         $lastMix = $election->mixes()->latest()->firstOrFail(); // TODO check!!!
 
-        foreach ($lastMix->getMixWithShadowMixes()->primaryMix->ciphertexts as $cipherText) {
+        $connection = $election->getOutputConnection();
 
-            $plainVote = JsonBallotEncoding::decode($election->private_key->decrypt($cipherText));
-            Log::debug($plainVote);
-
-            // TODO store
-
+        $successCount = 0;
+        $cipherTexts = $lastMix->getMixWithShadowMixes()->primaryMix->ciphertexts;
+        foreach ($cipherTexts as $cipherText) {
+            if (self::insertBallot($election, $connection, $cipherText)) {
+                $successCount++;
+            }
         }
+        $failCount = count($cipherTexts) - $successCount;
+
+        Log::info("DONE! $successCount succesful insertions, $failCount failed insertions");
 
     }
 

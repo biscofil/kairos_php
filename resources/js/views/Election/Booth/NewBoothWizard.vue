@@ -56,7 +56,7 @@ export default {
     data() {
         return {
             election: null,
-            vote: "[1,3,4,[3,5]]"
+            vote: "[]"
         }
     },
 
@@ -77,6 +77,11 @@ export default {
             Election.fetch(slug)
                 .then(election => {
                     self.election = election;
+                    self.vote = JSON.stringify(self.election.questions.map(q => {
+                        return [
+                            1 // index of first answer
+                        ];
+                    }))
                 })
                 .catch(e => {
                     self.$toastr.error("Error");

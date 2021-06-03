@@ -51,7 +51,6 @@ class ElGamalMixnetElection extends TestCase
         // cast votes
         for ($i = 0; $i < 5; $i++) {
 
-            /** @var User $user */
             $user = User::factory()->create();
 
             $voter = new Voter();

@@ -4,10 +4,10 @@
 namespace App\Voting\AnonymizationMethods;
 
 /**
- * Interface BelongsToAnonymizationSystem
+ * Interface BelongsToAnonymizationMethod
  * @package App\Voting\AnonymizationMethods
  */
-interface BelongsToAnonymizationSystem
+interface BelongsToAnonymizationMethod
 {
 
     /**

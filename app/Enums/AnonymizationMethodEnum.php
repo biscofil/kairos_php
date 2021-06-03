@@ -3,7 +3,7 @@
 namespace App\Enums;
 
 use App\Voting\AnonymizationMethods\AnonymizationMethod;
-use App\Voting\AnonymizationMethods\BelongsToAnonymizationSystem;
+use App\Voting\AnonymizationMethods\BelongsToAnonymizationMethod;
 use App\Voting\AnonymizationMethods\HomomorphicAnonymizationMethod;
 use App\Voting\AnonymizationMethods\MixNets\Decryption\DecryptionMixNode;
 use App\Voting\AnonymizationMethods\MixNets\DecryptionReEncryption\DecryptionReEncryptionMixNode;
@@ -24,14 +24,14 @@ final class AnonymizationMethodEnum extends Enum implements GetSetIdentifier
     public const Homomorphic = 'homomorphic';
 
     public const ANONYMIZATION_METHODS = [
-        AnonymizationMethodEnum::EncMixNet => ReEncryptingMixNode::class,
-        AnonymizationMethodEnum::DecMixNet => DecryptionMixNode::class,
-        AnonymizationMethodEnum::DecReEncMixNet => DecryptionReEncryptionMixNode::class, // elgamal only
-        AnonymizationMethodEnum::Homomorphic => HomomorphicAnonymizationMethod::class // exp elgamal only
+        self::EncMixNet => ReEncryptingMixNode::class,
+        self::DecMixNet => DecryptionMixNode::class,
+        self::DecReEncMixNet => DecryptionReEncryptionMixNode::class, // elgamal only
+        self::Homomorphic => HomomorphicAnonymizationMethod::class // exp elgamal only
     ];
 
     /**
-     * @param BelongsToAnonymizationSystem $obj
+     * @param BelongsToAnonymizationMethod $obj
      * @return string
      */
     public static function getIdentifier($obj): string

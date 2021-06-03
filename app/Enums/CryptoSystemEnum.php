@@ -21,9 +21,9 @@ final class CryptoSystemEnum extends Enum implements GetSetIdentifier
     public const ExponentialElGamal = 'exp_eg';
 
     public const CRYPTOSYSTEMS = [
-        CryptoSystemEnum::ElGamal => ElGamal::class,
-        CryptoSystemEnum::ExponentialElGamal => ExpElGamal::class,
-        CryptoSystemEnum::RSA => RSA::class
+        self::ElGamal => ElGamal::class,
+        self::ExponentialElGamal => ExpElGamal::class,
+        self::RSA => RSA::class
     ];
 
     /**

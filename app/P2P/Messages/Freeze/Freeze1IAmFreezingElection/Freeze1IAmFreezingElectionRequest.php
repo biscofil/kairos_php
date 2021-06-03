@@ -8,6 +8,7 @@ use App\Exceptions\NotYourElectionException;
 use App\Jobs\RunP2PTask;
 use App\Models\Election;
 use App\Models\PeerServer;
+use App\Models\Question;
 use App\Models\Trustee;
 use App\Models\User;
 use App\P2P\Messages\Freeze\ThisIsMyThresholdBroadcast\ThisIsMyThresholdBroadcast;
@@ -17,6 +18,7 @@ use App\P2P\Tasks\SendAddMeToYourPeersMessageToUnknownPeers;
 use App\Voting\CryptoSystems\PublicKey;
 use App\Voting\CryptoSystems\ThresholdBroadcast;
 use Exception;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -27,20 +29,22 @@ use phpseclib3\Math\BigInteger;
  * Describes the first message of the three-phase-commit procedure for election freeze
  * Class Freeze1IAmFreezingElectionRequest
  * @package App\P2P\Messages
- * @property Election $election
- * @property Trustee[] $trustees
- * @property null|ThresholdBroadcast $senderThresholdBroadcast
- * @property null|BigInteger $senderShare
- * @property null|PublicKey $senderPublicKey
+ * @property Election election
+ * @property Collection|Question[] questions
+ * @property Collection|Trustee[] trustees
+ * @property null|ThresholdBroadcast senderThresholdBroadcast
+ * @property null|BigInteger senderShare
+ * @property null|PublicKey senderPublicKey
  */
 class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
 {
 
     public Election $election;
-    public array $trustees;
+    public Collection $trustees;
     public ?ThresholdBroadcast $senderThresholdBroadcast;
     public ?BigInteger $senderShare;
     public ?PublicKey $senderPublicKey;
+    public Collection $questions;
 
     /**
      * @return string
@@ -55,7 +59,8 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
      * @param \App\Models\PeerServer $requestSender
      * @param \App\Models\PeerServer $requestDestination
      * @param \App\Models\Election $election
-     * @param \App\Models\Trustee[] $trustees
+     * @param Collection|Question[] $questions
+     * @param Collection|Trustee[] $trustees
      * @param \App\Voting\CryptoSystems\PublicKey|null $senderPublicKey
      * @param \App\Voting\CryptoSystems\ThresholdBroadcast|null $senderThresholdBroadcast
      * @param \phpseclib3\Math\BigInteger|null $senderShare
@@ -64,7 +69,8 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
     public function __construct(PeerServer $requestSender,
                                 PeerServer $requestDestination,
                                 Election $election,
-                                array $trustees,
+                                Collection $questions,
+                                Collection $trustees,
                                 ?PublicKey $senderPublicKey,
                                 ?ThresholdBroadcast $senderThresholdBroadcast = null,
                                 ?BigInteger $senderShare = null
@@ -76,6 +82,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         $this->senderThresholdBroadcast = $senderThresholdBroadcast;
         $this->senderShare = $senderShare;
         $this->senderPublicKey = $senderPublicKey;
+        $this->questions = $questions;
     }
 
     // #####################################################################
@@ -87,27 +94,17 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
      */
     public function serialize(PeerServer $to): array
     {
-
-        $electionData = $this->election->withoutRelations()->toShareableArray();
-        $trusteeData = $this->trustees; // TODO
-
-        /** @var \App\Models\Trustee $meTrustee */
-//        $meTrustee = $this->election->getTrusteeFromPeerServer(getCurrentServer());
-
-//        $broadcast = null;
-//        $share = null;
-//
-//        if ($meTrustee) {
-//            // broadcast
-//            $broadcast = $meTrustee->broadcast;
-//            // share
-//            $senderTrustee = $this->election->getTrusteeFromPeerServer($to);
-//            $share = $senderTrustee->share_sent;
-//        }
-
         return [
-            'election' => $electionData,
-            'trustees' => $trusteeData,
+            'election' => $this->election->withoutRelations()->toShareableArray(),
+            'questions' => $this->questions->map(function (Question $question) {
+                return $question->toShareableArray();
+            })->toArray(),
+            'trustees' => $this->trustees->map(function (Trustee $trustee) {
+                $out = $trustee->toShareableArray();
+                $out['peer_server'] = $trustee->peerServer ? $trustee->peerServer->toShareableArray() : null;
+                $out['user'] = $trustee->user ? $trustee->user->toShareableArray() : null;
+                return $out;
+            })->toArray(),
             //
             'public_key' => $this->senderPublicKey ? $this->senderPublicKey->toArray() : null,
             'broadcast' => $this->senderThresholdBroadcast ? $this->senderThresholdBroadcast->toArray() : null,
@@ -127,12 +124,18 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         $required = $messageData['election']['min_peer_count_t'] > 0
             && in_array($sender->domain, array_column($messageData['trustees'], 'domain')); // TODO change to < peer count!!
 
+        // TODO store questions
+
         $data = Validator::make($messageData, [
             'election' => ['required'],
             'election.uuid' => ['required', 'uuid', 'exists:elections,uuid'],
             'election.min_peer_count_t' => ['required', 'int'],
 
+            'questions' => ['required', 'array', 'min:1'],
+
             'trustees' => ['required', 'array'],
+//            'trustees.*.peer_server' => ['required_without_all:trustees.*.user', 'array'],
+//            'trustees.*.user' => ['required_without_all:trustees.*.peer_server', 'array'],
 
             'public_key' => [
                 'nullable',
@@ -154,8 +157,36 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         $election = Election::findFromUuid($electionData['uuid']);
         $election->fillFromSharedArray($electionData);
 
+        // questions
+        /** @var Collection|Question[] $questions */
+        $questions = collect(array_map(function ($questionData) use ($election) {
+            $q = new Question();
+            $q->fillFromSharedArray($questionData);
+            return $q;
+        }, $data['questions']));
+
         // trustee data
-        $trusteeData = $data['trustees'];
+        $trustees = collect(array_map(function ($trusteeData) use ($election) {
+            $t = new Trustee();
+            $t->fillFromSharedArray($trusteeData);
+
+            if (!is_null($trusteeData['peer_server'])) {
+                $p = new PeerServer();
+                $p->fillFromSharedArray($trusteeData['peer_server']);
+                if ($knownPeer = PeerServer::withDomain($p->domain)->first()) {
+                    $p = $knownPeer; // use existing if domain is known
+                }
+                $t->setAttribute('_peer_server', $p); // temporary, not a fillable field stored in DB
+            } elseif (!is_null($trusteeData['user'])) {
+                $u = new User();
+                $u->fillFromSharedArray($trusteeData['user']);
+                $t->setAttribute('_user', $u); // temporary, not a fillable field stored in DB
+            } else {
+                throw new Exception("peer_server_id and user_id can't both be null");
+            }
+
+            return $t;
+        }, $data['trustees']));
 
         // public key
         $publicKey = $data['public_key'];
@@ -177,11 +208,12 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
             $share = new BigInteger($share, 16);
         }
 
-        return new static(
+        return new self(
             $sender,
             getCurrentServer(),
             $election,
-            $trusteeData,
+            $questions,
+            $trustees,
             $publicKey,
             $broadcast,
             $share);
@@ -202,9 +234,17 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
             throw new NotYourElectionException();
         }
 
-        //
+        // election
         $this->election->save();
-        $trustees = self::getOrCreateTrustees($this->election, $this->trustees); // TODO check $trustees
+
+        // questions
+        $this->questions->each(function (Question $question) {
+            $question->election_id = $this->election->id;
+            $question->save();
+        });
+
+        // trustees
+        self::storeNewTrustees($this->election, $this->trustees);
 
         if ($senderTrustee = $this->election->getTrusteeFromPeerServer($this->requestSender)) {
             $senderTrustee->setPublicKey($this->senderPublicKey);
@@ -213,7 +253,6 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
             $senderTrustee->save();
         }
 
-
         $jobs = [
             // send a AddMeToYourPeers message to each unknown peer
             new RunP2PTask(new SendAddMeToYourPeersMessageToUnknownPeers($this->election)),
@@ -221,22 +260,17 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
 
         $meTrustee = $this->election->getTrusteeFromPeerServer(getCurrentServer(), true);
 
-        Log::debug('Generating my own keypair');
+        //Generating my own keypair
         $meTrustee->generateKeyPair();
 
-        if ($this->election->hasLLThresholdScheme()) {
+        if ($this->election->hasTLThresholdScheme()) {
 
-            Log::debug('Freeze1IAmFreezingElection > no threshold');
-            // no slack : l-l theshold
+            Log::debug('Freeze1IAmFreezingElection > hasTLThresholdScheme --> GenerateAndSendShares');
 
-        } else {
-
-            Log::debug('Freeze1IAmFreezingElection > min_peer_count_t is not 0 --> GenerateAndSendShares');
-
-            Log::debug('Generating my own polynomial to send back');
+            // Generating my own polynomial to send back
             $meTrustee->polynomial = $meTrustee->private_key->getThresholdPolynomial($this->election->min_peer_count_t);
 
-            Log::debug('Generating my own broadcast to send back');
+            // Generating my own broadcast to send back
             $meTrustee->broadcast = $meTrustee->polynomial->getBroadcast();
 
             // store the share of my own secret key
@@ -259,28 +293,28 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
 
 //        $broadcastToSendBack = null;
         $shareToSendBack = null;
-        $freezeReady = false;
+        $freezeReady = true;
 
-        if ($senderTrustee = $this->election->getTrusteeFromPeerServer($this->requestSender)) {
-            // sender (coordinator) is a peer
+        $senderTrustee = $this->election->getTrusteeFromPeerServer($this->requestSender);
+        if ($senderTrustee) { // sender (coordinator) is a peer
 
-            $senderIdx = $senderTrustee->getPeerServerIndex();
-//            $broadcastToSendBack = $meTrustee->broadcast->toArray();
-            $shareToSendBack = $meTrustee->polynomial->getShare($senderIdx + 1); // TODO check +1
-            $senderTrustee->share_sent = $shareToSendBack;
-            $senderTrustee->save();
+            if ($this->election->hasTLThresholdScheme()) {
 
-            if (ThisIsMyThresholdBroadcast::areAllSharesReceived($this->election)) {
-                /**
-                 * Skip the second phase message, reuse the current one
-                 */
-                $freezeReady = true;
+                $senderIdx = $senderTrustee->getPeerServerIndex();
+                // $broadcastToSendBack = $meTrustee->broadcast->toArray();
+                $shareToSendBack = $meTrustee->polynomial->getShare($senderIdx + 1); // TODO check +1
+                $senderTrustee->share_sent = $shareToSendBack;
+                $senderTrustee->save();
+
+                $freezeReady = ThisIsMyThresholdBroadcast::areAllSharesReceived($this->election);
             }
+
         }
 
         // execute jobs in sequence
         Log::debug('Bus chain dispatch in 5 seconds');
-        // wait for 5 seconds to allow everyone to generate its polynomial
+
+        // wait for 5 seconds to allow everyone to receive the first phase message and generate its polynomial
         Bus::chain($jobs)->delay(5)->dispatch();
 
         return new Freeze1IAmFreezingElectionResponse(
@@ -305,44 +339,46 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
     /**
      * Creates trustees (both users and peer servers) if not existing
      * @param \App\Models\Election $election
-     * @param array $trustees
-     * @return \App\Models\Trustee[]|array|null[]
+     * @param \Illuminate\Support\Collection|Trustee[] $trustees
+     * @return void
      * @throws \Exception
      */
-    private static function getOrCreateTrustees(Election $election, array $trustees): array
+    private static function storeNewTrustees(Election $election, Collection $trustees): void
     {
-        return array_map(function (array $trusteeData) use ($election) {
+        foreach ($trustees as $trustee) {
 
             // store
-            $t = new Trustee();
-            $t->fillFromSharedArray($trusteeData);
-            if ($ex = Trustee::findUUID($t->uuid)) {
+            if ($ex = Trustee::findUUID($trustee->uuid)) {
                 //if exists, do not create it
-                Log::debug("Freeze1IAmFreezingElectionResponse > Trustee with uuid $t->uuid exists, skipping creation");
-                return $ex;
+                Log::debug("Freeze1IAmFreezingElectionResponse > Trustee with uuid $trustee->uuid exists, skipping creation");
+//                return $ex;
+                continue;
             }
 
-            $t->election()->associate($election)->save();
-            $t->save();
-            if (!is_null($trusteeData['peer_server'])) {
-                $p = new PeerServer();
-                $p->fillFromSharedArray($trusteeData['peer_server']);
-                if ($knownPeer = PeerServer::withDomain($p->domain)->first()) {
-                    $p = $knownPeer; // use existing if domain is known
-                }
-                $t->peerServer()->associate($p)->save();
-            } elseif (!is_null($trusteeData['user'])) {
-                $u = new User();
-                $u->fillFromSharedArray($trusteeData['user']);
-                $t->user()->associate($u)->save();
+            $_temp_peer_server = null;
+            if (array_key_exists('_peer_server', $trustee->getAttributes())) {
+                $_temp_peer_server = $trustee->getAttributes()['_peer_server'];
+                $trustee->offsetUnset('_peer_server');
+            }
+
+            $_temp_user = null;
+            if (array_key_exists('_user', $trustee->getAttributes())) {
+                $_temp_user = $trustee->getAttributes()['_user'];
+                $trustee->offsetUnset('_user');
+            }
+
+            $trustee->election()->associate($election)->save();
+            $trustee->save();
+
+            if (!is_null($_temp_peer_server)) {
+                $trustee->peerServer()->associate($_temp_peer_server)->save();
+            } elseif (!is_null($_temp_user)) {
+                $trustee->user()->associate($_temp_user)->save();
             } else {
                 throw new Exception("peer_server_id and user_id can't both be null");
             }
 
-            $t->save();
-            return $t;
-
-        }, $trustees);
+        };
     }
 
 }

@@ -4,9 +4,8 @@
 namespace App\Voting\AnonymizationMethods\MixNets;
 
 
-use App\Enums\AnonymizationMethodEnum;
 use App\Models\Election;
-use App\Voting\AnonymizationMethods\BelongsToAnonymizationSystem;
+use App\Voting\AnonymizationMethods\BelongsToAnonymizationMethod;
 use App\Voting\CryptoSystems\CipherText;
 
 /**
@@ -16,7 +15,7 @@ use App\Voting\CryptoSystems\CipherText;
  * @property Ciphertext[] ciphertexts
  * @property MixNodeParameterSet|null $parameterSet
  */
-abstract class Mix implements BelongsToAnonymizationSystem
+abstract class Mix implements BelongsToAnonymizationMethod
 {
 
     public Election $election;

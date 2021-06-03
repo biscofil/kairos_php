@@ -4,7 +4,7 @@
 namespace App\Voting\AnonymizationMethods\MixNets;
 
 
-use App\Voting\AnonymizationMethods\BelongsToAnonymizationSystem;
+use App\Voting\AnonymizationMethods\BelongsToAnonymizationMethod;
 use App\Voting\CryptoSystems\PublicKey;
 
 /**
@@ -13,7 +13,7 @@ use App\Voting\CryptoSystems\PublicKey;
  * @property PublicKey pk // TODO remove
  * @property int[] permutation
  */
-abstract class MixNodeParameterSet implements BelongsToAnonymizationSystem
+abstract class MixNodeParameterSet implements BelongsToAnonymizationMethod
 {
 
     public PublicKey $pk; // TODO remove

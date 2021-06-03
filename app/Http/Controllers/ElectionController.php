@@ -4,15 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
+use App\Exceptions\NotYourElectionException;
 use App\Http\Requests\EditCreateElectionRequest;
 use App\Models\Election;
 use App\Models\PeerServer;
+use App\Models\Question;
 use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class ElectionController
@@ -25,7 +26,7 @@ class ElectionController extends Controller
      * List elections
      * TODO pagination
      * @param Request $request
-     * @return Election[]|Collection|JsonResponse
+     * @return Collection|Election[]
      * @throws \Illuminate\Auth\AuthenticationException
      */
     public function index(Request $request)
@@ -116,7 +117,11 @@ class ElectionController extends Controller
      */
     public function show(Election $election): Election
     {
-        $election->load('trustees.peerServer');
+        $election->load([
+            'questions',
+            'trustees.peerServer'
+        ]);
+        $election->loadCount(['votes', 'mixes']);
         return $election;
     }
 
@@ -181,29 +186,36 @@ class ElectionController extends Controller
         $data = $request->validate([
             'questions' => ['required', 'array', 'min:1'], // at least one question
             'questions.*.question' => ['required', 'string'],
-            'questions.*.min' => ['required', 'int', 'min:1'], // TODO check min
+            'questions.*.min' => ['required', 'int', 'min:0'], // TODO check min
             'questions.*.max' => ['required', 'int', 'gte:questions.*.min'],
             'questions.*.answers' => ['required', 'array', 'min:2'],  // at least two answers
             'questions.*.answers.*.answer' => ['required', 'string'],
             'questions.*.answers.*.url' => ['nullable', 'url'],
         ]);
 
-        $election->questions = $data['questions'];
+        DB::transaction(function () use ($election, $data) {
+
+            $election->questions()->delete();
+
+            foreach ($data['questions'] as $question) {
+                $q = new Question();
+                $q->election_id = $election->id;
+                $q->min = $question['min'];
+                $q->max = $question['max'];
+                $q->question = $question['question'];
+                $q->answers = $question['answers'];
+                $q->question_type = 'multiple_choice';
+                $q->save();
+            }
+
+        });
+
         $election->save();
+
+        $election->load('questions');
 
         return $election;
 
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param Election $election
-     * @return Response
-     */
-    public function destroy(Election $election)
-    {
-        //
     }
 
     /**
@@ -213,6 +225,10 @@ class ElectionController extends Controller
      */
     public function freeze(Election $election): Election
     {
+        // make sure the curent server is the election creator
+        if ($election->peer_server_id !== PeerServer::meID) {
+            throw new NotYourElectionException();
+        }
         $election->freeze();
         return $election;
     }

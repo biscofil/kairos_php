@@ -1,6 +1,18 @@
 version: '3'
 services:
 
+  database_server:
+    image: mysql:8
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    env_file:
+      - db.env
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    user: "${U_ID}:${G_ID}"
+
   webserver:
 #    build:
 #      context: .
@@ -42,6 +54,9 @@ services:
 #      dockerfile: Dockerfile
     image: registry.gitlab.com/biscofil/thelios:user
     restart: always
+    depends_on:
+      - webserver
+      - database_server
     command: php artisan queue:work
     volumes:
       - '.:/var/www/html'
@@ -51,23 +66,14 @@ services:
 #      context: .
 #      dockerfile: Dockerfile
     image: registry.gitlab.com/biscofil/thelios:user
+    depends_on:
+      - webserver
+      - database_server
     command: ./run-scheduler.sh
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
       - '.:/var/www/html'
-
-  database_server:
-    image: mysql:8
-    restart: unless-stopped
-    tty: true
-    ports:
-      - "3306:3306"
-    env_file:
-      - db.env
-    volumes:
-      - ./mysql-data:/var/lib/mysql
-    user: "${U_ID}:${G_ID}"
 
 #  redis:
 #    image: "redis:alpine"

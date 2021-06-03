@@ -68,7 +68,6 @@ class Freeze1IAmFreezingElectionResponse extends P2PMessageResponse
     public function serialize(): array
     {
         return [
-            'status' => 'freezing, I will send ready later on',
             'public_key' => $this->publicKey ? $this->publicKey->toArray() : null,
             'my_broadcast' => $this->broadcast ? $this->broadcast->toArray() : null,
             'my_share' => $this->share ? $this->share->toHex() : null,
@@ -86,7 +85,7 @@ class Freeze1IAmFreezingElectionResponse extends P2PMessageResponse
      */
     public static function unserialize(PeerServer $requestDestination, array $messageData, $requestMessage): Freeze1IAmFreezingElectionResponse
     {
-        $expectingBroadcastShare = $requestMessage->election->min_peer_count_t > 0 // TODO check
+        $expectingBroadcastShare = $requestMessage->election->hasTLThresholdScheme()
             && $requestMessage->election->getTrusteeFromPeerServer($requestMessage->requestSender);
 
         $data = Validator::make($messageData, [
@@ -98,18 +97,19 @@ class Freeze1IAmFreezingElectionResponse extends P2PMessageResponse
 
         // get election from request
         $election = $requestMessage->election;
+        $csClass = $election->cryptosystem->getClass();
 
         // public key without threshold
         $publicKey = null;
         if ($data['public_key']) {
-            $pkClass = $election->cryptosystem->getClass()::getPublicKeyClass();
+            $pkClass = $csClass::getPublicKeyClass();
             $publicKey = $pkClass::fromArray($data['public_key']);
         }
 
         // broadcast
         $broadcast = null;
         if ($data['my_broadcast']) {
-            $thresholdBroadcastClass = $election->cryptosystem->getClass()::getThresholdBroadcastClass();
+            $thresholdBroadcastClass = $csClass::getThresholdBroadcastClass(); // TODO what about rsa?
             $broadcast = $thresholdBroadcastClass::fromArray($data['my_broadcast']); // RSA, ELGAMAL
         }
 
@@ -141,21 +141,23 @@ class Freeze1IAmFreezingElectionResponse extends P2PMessageResponse
      */
     public function onResponseReceived(PeerServer $destPeerServer, $request): void
     {
-        $meTrustee = $this->election->getTrusteeFromPeerServer(PeerServer::me());
+        $meTrustee = $this->election->getTrusteeFromPeerServer(getCurrentServer());
+
         $trustee = $this->election->getTrusteeFromPeerServer($destPeerServer, true);
 
         $trustee->setPublicKey($this->publicKey);
+        $trustee->freeze_ready = true;
 
-        if ($this->election->hasLLThresholdScheme()) {
-            Log::debug('Freeze1IAmFreezingElectionResponse::onResponseReceived > no threshold');
-        } else {
-            Log::debug('Freeze1IAmFreezingElectionResponse::onResponseReceived > threshold');
+        if ($this->election->hasTLThresholdScheme()) {
+
+            Log::debug('Freeze1IAmFreezingElectionResponse::onResponseReceived > hasLLThresholdScheme');
             $trustee->broadcast = $this->broadcast;
             if ($meTrustee) { // only if the current server (creator, coordinator) is also peer TODO check
                 // store broadcast and share
                 $trustee->share_received = $this->share;
             }
             $trustee->freeze_ready = $this->freezeReady;
+
         }
 
         $trustee->save();
@@ -168,8 +170,5 @@ class Freeze1IAmFreezingElectionResponse extends P2PMessageResponse
         }
 
     }
-
-    // #############################################################
-
 
 }

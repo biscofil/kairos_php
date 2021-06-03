@@ -219,22 +219,20 @@ class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
         return $tpClass::random($this->x, $t, $this->pk->parameterSet);
     }
 
-
     /**
      * @param \App\Voting\CryptoSystems\ElGamal\EGPublicKey $publicKey
      * @param BigInteger[] $receivedShares in form [ id => share ] with id >= 1
-     * @param \App\Voting\CryptoSystems\ElGamal\EGParameterSet $parameterSet
      * @return \App\Voting\CryptoSystems\ElGamal\EGSecretKey
      */
-    public static function fromThresholdShares(EGPublicKey $publicKey, array $receivedShares, EGParameterSet $parameterSet): self
+    public static function fromThresholdShares(EGPublicKey $publicKey, array $receivedShares): self
     {
         $x = BI(0);
         $receivedSharesIndexes = array_keys($receivedShares);
         foreach ($receivedShares as $j => $receivedShare) {
-            $lambda = getLagrangianCoefficientMod($receivedSharesIndexes, $j, $parameterSet->q);
+            $lambda = getLagrangianCoefficientMod($receivedSharesIndexes, $j, $publicKey->parameterSet->q);
             $x = $x->add(
                 $receivedShare->multiply($lambda)
-            )->modPow(BI1(), $parameterSet->q);
+            )->modPow(BI1(), $publicKey->parameterSet->q); // TODO check p/q
         }
         return new static($publicKey, $x);
     }

@@ -4,7 +4,7 @@
 namespace App\Voting\AnonymizationMethods\MixNets;
 
 use App\Models\Election;
-use App\Voting\AnonymizationMethods\BelongsToAnonymizationSystem;
+use App\Voting\AnonymizationMethods\BelongsToAnonymizationMethod;
 use App\Voting\CryptoSystems\CipherText;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Config;
@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Storage;
  * @property MixNodeParameterSet[] $parameterSets
  * @property \App\Models\Election election
  */
-abstract class MixWithShadowMixes implements BelongsToAnonymizationSystem
+abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
 {
 
     public Mix $primaryMix;

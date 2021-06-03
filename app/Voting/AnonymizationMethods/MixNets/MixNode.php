@@ -7,6 +7,9 @@ namespace App\Voting\AnonymizationMethods\MixNets;
 use App\Jobs\GenerateMix;
 use App\Models\Election;
 use App\Voting\AnonymizationMethods\AnonymizationMethod;
+use App\Voting\BallotEncodings\JsonBallotEncoding;
+use App\Voting\CryptoSystems\CipherText;
+use Illuminate\Database\Connection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -108,6 +111,59 @@ abstract class MixNode implements AnonymizationMethod
         return [
             'mixes' => $mixes //self::createHierarchy($mixes, null);
         ];
+    }
+
+    /**
+     * @param \App\Models\Election $election
+     * @param \Illuminate\Database\Connection $connection
+     * @param \App\Voting\CryptoSystems\CipherText $cipherText
+     * @return bool
+     */
+    public static function insertBallot(Election &$election, Connection &$connection, CipherText &$cipherText): bool
+    {
+        $plainVote = JsonBallotEncoding::decode($election->private_key->decrypt($cipherText));
+
+        $connection->getSchemaBuilder()->enableForeignKeyConstraints();
+
+//        Log::debug($plainVote);
+
+        if (!is_array($plainVote) || count($plainVote) !== $election->questions->count()) {
+
+            Log::warning('Ignoring vote due to wrong lenght');
+            Log::debug($plainVote);
+            return false;
+
+        }
+
+        try {
+            $record = [];
+
+            //set all as null
+            foreach ($election->questions as $questionIdx => $question) {
+                $q = $questionIdx + 1;
+                for ($aIdx = 0; $aIdx < $question->max; $aIdx++) {
+                    $a = $aIdx + 1;
+                    $cName = "q_{$q}_a_{$a}";
+                    $record[$cName] = null;
+                }
+            }
+
+            // fill
+            foreach ($plainVote as $questionIdx => $questionAnswers) {
+                $q = $questionIdx + 1;
+                foreach ($questionAnswers as $idx => $questionAnswer) {
+                    $a = $idx + 1;
+                    $record["q_{$q}_a_{$a}"] = $questionAnswer;
+                }
+            }
+
+            return $connection->table($election->getOutputTableName())->insert($record);
+
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            Log::debug($record);
+        }
+
     }
 
     /**
