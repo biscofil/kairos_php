@@ -13,6 +13,7 @@ use App\P2P\Messages\Freeze\Freeze1IAmFreezingElection\Freeze1IAmFreezingElectio
 use App\P2P\Messages\WillYouBeAElectionTrusteeForMyElection\WillYouBeAElectionTrusteeForMyElectionRequest;
 use App\Voting\CryptoSystems\PublicKey;
 use App\Voting\CryptoSystems\SecretKey;
+use App\Voting\QuestionTypes\MultipleChoice;
 use Carbon\Carbon;
 use Database\Factories\ElectionFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,6 +26,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\SQLiteConnection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use PDO;
@@ -64,6 +66,9 @@ use PDO;
  * @property null|Carbon voting_started_at
  * @property Carbon voting_ends_at
  * @property null|Carbon voting_ended_at
+ *
+ * @property null|Carbon tallying_started_at
+ * @property null|Carbon tallying_finished_at
  *
  * @property Collection|Trustee[] trustees
  * @property Collection|\App\Models\PeerServer[] peerServers
@@ -727,7 +732,7 @@ class Election extends Model
             foreach ($this->questions as $idx => $question) {
                 $q = $idx + 1;
                 $question_answers_table_name = "e_{$this->id}_q_{$q}_a";
-                foreach ($question->getColumnNames($q) as $cName) {
+                foreach ($question->getAnswerColumnNames($q) as $cName) {
                     $table->unsignedInteger($cName)->nullable();
                     $table->foreign($cName)->references('id')->on($question_answers_table_name);
                 }
@@ -789,8 +794,6 @@ class Election extends Model
         $e->save();
         return $e;
     }
-
-
 
     // ############################################
 
@@ -892,6 +895,33 @@ class Election extends Model
     {
         $sortedDomains = $this->getPeerServerIndexMapping($peerServers); // [domain => index]
         return ($id + 1) % count($sortedDomains);
+    }
+
+    // #######################################################################################
+
+    /**
+     *
+     */
+    public function tally(): void
+    {
+        Log::info("Running tally of election $this->id");
+
+        $this->tallying_started_at = Carbon::now();
+
+        $conn = $this->getOutputConnection();
+
+        foreach ($this->questions as $idx => $question) {
+            $query = MultipleChoice::getTallyQuery($question, $idx + 1);
+            $results = $conn->select(DB::raw($query));
+
+            $question->tally_result = $results;
+            $question->save();
+        }
+        $this->tallying_finished_at = Carbon::now();
+        $this->save();
+
+        Log::info('Ballots tallied');
+
     }
 
 }

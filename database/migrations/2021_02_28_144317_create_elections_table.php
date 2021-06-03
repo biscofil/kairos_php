@@ -48,19 +48,21 @@ class CreateElectionsTable extends Migration
 
             $table->dateTime('registration_starts_at')->nullable();
 
+            $table->dateTime('frozen_at')->nullable();
+
             $table->dateTime('voting_starts_at')->nullable();
             $table->dateTime('voting_started_at')->nullable();
+
             $table->dateTime('voting_extended_until')->nullable();
+
             $table->dateTime('voting_ends_at')->nullable();
             $table->dateTime('voting_ended_at')->nullable();
 
             $table->dateTime('tallying_started_at')->nullable();
             $table->dateTime('tallying_finished_at')->nullable();
             $table->dateTime('tallying_combined_at')->nullable();
-
             $table->dateTime('results_released_at')->nullable();
 
-            $table->dateTime('frozen_at')->nullable();
             $table->dateTime('archived_at')->nullable();
 
             // TODO voter hash

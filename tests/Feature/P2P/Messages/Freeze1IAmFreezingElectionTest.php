@@ -55,7 +55,7 @@ class Freeze1IAmFreezingElectionTest extends TestCase
 
         static::assertEquals($msg->election->uuid, $unser->election->uuid);
 
-        $unser->onRequestReceived();
+//        $unser->onRequestReceived();
 
     }
 

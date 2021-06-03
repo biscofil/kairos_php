@@ -170,6 +170,8 @@ class ReEncryptingMixNode extends MixNode
 
         Log::info("DONE! $successCount succesful insertions, $failCount failed insertions");
 
+        $election->tally();
+
     }
 
 }

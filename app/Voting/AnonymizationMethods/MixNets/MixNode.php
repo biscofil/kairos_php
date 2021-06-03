@@ -141,7 +141,7 @@ abstract class MixNode implements AnonymizationMethod
             //set all as null
             foreach ($election->questions as $questionIdx => $question) {
                 $q = $questionIdx + 1;
-                foreach ($question->getColumnNames($q) as $cName) {
+                foreach ($question->getAnswerColumnNames($q) as $cName) {
                     $record[$cName] = null;
                 }
             }
@@ -160,6 +160,7 @@ abstract class MixNode implements AnonymizationMethod
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             Log::debug($record);
+            return false;
         }
 
     }

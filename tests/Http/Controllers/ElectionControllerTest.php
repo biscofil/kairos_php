@@ -78,55 +78,6 @@ class ElectionControllerTest extends TestCase
         $response = $this->actingAs($user)->json('PUT', 'api/elections/' . $election->slug . '/questions', $data);
         $this->assertResponseStatusCode(200, $response);
 
-        $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
-        $keyPair = $kpClass::generate();
-        $election->public_key = $keyPair->pk;
-        $election->private_key = $keyPair->sk;
-        $election->save();
-
-        $election->setupOutputTables();
-        $conn = $election->getOutputConnection();
-
-
-        // generate a JSON vote structure
-        $votePlain = [
-            [1], // first answer of first question
-            [2], // second answer of second question
-            [3] // third answer of third question
-        ];
-        $plaintext = (JsonBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
-        $cipher = $keyPair->pk->encrypt($plaintext);
-
-        $conn->table($election->getOutputTableName())->truncate();
-        self::assertTrue(MixNode::insertBallot($election, $conn, $cipher));
-
-
-        // generate a JSON vote structure
-        $votePlain = [
-            [],
-            [],
-            []
-        ];
-        $plaintext = (JsonBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
-        $cipher = $keyPair->pk->encrypt($plaintext);
-        $conn->table($election->getOutputTableName())->truncate();
-        self::assertTrue(MixNode::insertBallot($election, $conn, $cipher));
-
-
-        // generate a JSON vote structure
-        $votePlain = [
-            [5], // fifth answer of first question
-            [2], // second answer of second question
-            [3] // third answer of third question
-        ];
-        $plaintext = (JsonBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
-        $cipher = $keyPair->pk->encrypt($plaintext);
-        $conn->table($election->getOutputTableName())->truncate();
-        self::assertFalse(MixNode::insertBallot($election, $conn, $cipher));
-
-        $query = MultipleChoice::getTallyQuery($election->questions->first(), 1);
-        self::assertTrue($conn->statement($query));
-
     }
 
 }

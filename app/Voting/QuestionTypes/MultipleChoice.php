@@ -32,22 +32,22 @@ class MultipleChoice extends QuestionType
          * ) GROUP BY id HAVING id NOT NULL
          */
 
-        $questionCols = $question->getColumnNames($questionId);
+        $questionAnswerCols = $question->getAnswerColumnNames($questionId);
 
         $question_answers_table_name = $question->election->getOutputTableName();
         $query = 'SELECT id, sum(c) as count FROM (';
         $first = true;
-        foreach ($questionCols as $questionCol) {
+        foreach ($questionAnswerCols as $questionAnswerCol) {
             if (!$first) {
                 $query .= ' UNION ALL ';
             }
-            $otherColumns = array_diff($questionCols, [$questionCol]);
+            $otherColumns = array_diff($questionAnswerCols, [$questionAnswerCol]);
             $otherColumnStr = implode('","', $otherColumns);
             $query .= "
-                    SELECT \"$questionCol\" as id, COUNT(id) as c
+                    SELECT \"$questionAnswerCol\" as id, COUNT(id) as c
                     FROM \"$question_answers_table_name\"
-                    WHERE COALESCE(\"$questionCol\" NOT IN (\"$otherColumnStr\"),1)
-                    GROUP BY \"$questionCol\" ";
+                    WHERE COALESCE(\"$questionAnswerCol\" NOT IN (\"$otherColumnStr\"),1)
+                    GROUP BY \"$questionAnswerCol\" ";
             $first = false;
         }
         $query .= ') GROUP BY id HAVING id NOT NULL';

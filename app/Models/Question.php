@@ -23,6 +23,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string question
  * @property array answers
  *
+ * @property array|null tally_result
+ *
  * @method static QuestionFactory factory()
  */
 class Question extends Model
@@ -37,10 +39,12 @@ class Question extends Model
         'election_id',
         'question',
         'answers',
+        'tally_result',
     ];
 
     protected $casts = [
         'answers' => 'array',
+        'tally_result' => 'array',
         'question_type' => QuestionTypeEnum::class,
     ];
 
@@ -64,7 +68,7 @@ class Question extends Model
      * @param int $q
      * @return array
      */
-    public function getColumnNames(int $q): array
+    public function getAnswerColumnNames(int $q): array
     {
         $names = [];
         for ($aIdx = 0; $aIdx < $this->max; $aIdx++) {
