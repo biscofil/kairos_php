@@ -1,15 +1,40 @@
 <template>
     <div>
         <b>Question:</b>
-        <input type="text" class="form-control" v-model="value.question" placeholder="Question">
 
-        <label>
-            Select between <input type="number" class="form-control" min="0" v-model="value.min">
-        </label>
+        <div class="form-group row">
+            <label class="col-sm-3">Question type</label>
+            <div class="col-sm-9">
+                <select class="form-control">
+                    <option value="multiple_choice">Multiple choice</option>
+                </select>
+            </div>
+        </div>
 
-        <label>
-            and <input type="number" class="form-control" min="1" v-model="value.max"> answers.
-        </label><br>
+        <div class="form-group row">
+            <label class="col-sm-3">Question</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" v-model="value.question" placeholder="Question">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-3">
+                Min
+            </label>
+            <div class="col-sm-9">
+                <input type="number" class="form-control" min="0" v-model="value.min">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-3">
+                Max
+            </label>
+            <div class="col-sm-9">
+                <input type="number" class="form-control" min="1" v-model="value.max">
+            </div>
+        </div>
 
         <!--        <label>-->
         <!--            Result Type:-->
@@ -19,25 +44,31 @@
         <!--            </select>-->
         <!--        </label>-->
 
-        <br>
 
-        <b>Answers:</b>
-        <div>
-            <div v-for="(answer,idx) in value.answers" class="row">
-                <label class="col-sm-4">
-                    Answer
-                    <input type="text" class="form-control" v-model="value.answers[idx]['answer']" placeholder="Answer">
-                </label>
-                <label class="col-sm-4">
-                    Answer's URL
-                    <input type="url" class="form-control" v-model="value.answers[idx]['url']" placeholder="Url">
-                </label>
-                <div class="col-sm-4">
-                    <button class="btn btn-sm btn-info" @click="removeAnswer(idx)">Remove answer</button>
+        <div class="form-group row">
+            <label class="col-sm-3">
+                Answers
+            </label>
+            <div class="col-sm-9">
+
+                <div v-for="(answer,idx) in value.answers" class="row">
+                    <label class="col-sm-4">
+                        Answer
+                        <input type="text" class="form-control" v-model="value.answers[idx]['answer']" placeholder="Answer">
+                    </label>
+                    <label class="col-sm-4">
+                        Answer's URL
+                        <input type="url" class="form-control" v-model="value.answers[idx]['url']" placeholder="Url">
+                    </label>
+                    <div class="col-sm-4">
+                        <button class="btn btn-sm btn-info" @click="removeAnswer(idx)">Remove answer</button>
+                    </div>
                 </div>
+
+                <button class="btn btn-sm btn-info" @click="addAnswer">Add answer</button>
+
             </div>
         </div>
-        <button class="btn btn-sm btn-info" @click="addAnswer">Add answer</button>
     </div>
 </template>
 
