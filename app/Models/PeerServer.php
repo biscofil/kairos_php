@@ -166,11 +166,11 @@ class PeerServer extends Authenticatable implements JWTSubject
     // #############################################
 
     /**
-     * Never use this, use @see getCurrentServer()
-     * @deprecated
-     * Returns the first created peer server with ID = self::meID (1)
      * @param bool $fail
      * @return \App\Models\PeerServer
+     * Returns the first created peer server with ID = self::meID (1)
+     * Never use this, use @see getCurrentServer()
+     * @deprecated
      */
     public static function me(bool $fail = true): PeerServer
     {
@@ -271,19 +271,25 @@ class PeerServer extends Authenticatable implements JWTSubject
     {
         $signer = new Sha256();
 
-        $token = (new Parser())->parse($tokenStrReceived);
+        try {
 
-        $publicKey = new Key($this->jwt_public_key->toArray()['v']);
+            $token = (new Parser())->parse($tokenStrReceived);
 
-        if (!$token->verify($signer, $publicKey)) {
+            $publicKey = new Key($this->jwt_public_key->toArray()['v']);
+
+            if (!$token->verify($signer, $publicKey)) {
+                return null;
+            }
+
+            if (!$token->hasClaim(AuthenticateWithElectionCreatorJwt::UserIdClaimName)) {
+                return null;
+            }
+
+            return intval($token->getClaim(AuthenticateWithElectionCreatorJwt::UserIdClaimName));
+
+        } catch (\Exception $e) {
             return null;
         }
-
-        if (!$token->hasClaim(AuthenticateWithElectionCreatorJwt::UserIdClaimName)) {
-            return null;
-        }
-
-        return intval($token->getClaim(AuthenticateWithElectionCreatorJwt::UserIdClaimName));
 
     }
 
