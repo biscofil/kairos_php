@@ -69,6 +69,8 @@ use PDO;
  *
  * @property null|Carbon tallying_started_at
  * @property null|Carbon tallying_finished_at
+ * @property null|Carbon tallying_combined_at
+ * @property null|Carbon results_released_at
  *
  * @property Collection|Trustee[] trustees
  * @property Collection|\App\Models\PeerServer[] peerServers
@@ -925,6 +927,8 @@ class Election extends Model
             $question->save();
         }
         $this->tallying_finished_at = Carbon::now();
+        $this->tallying_combined_at = Carbon::now();
+        $this->results_released_at = Carbon::now();
         $this->save();
 
         Log::info('Ballots tallied');
