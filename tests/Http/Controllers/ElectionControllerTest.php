@@ -7,10 +7,6 @@ use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
 use App\Models\Question;
 use App\Models\User;
-use App\Voting\AnonymizationMethods\MixNets\MixNode;
-use App\Voting\BallotEncodings\JsonBallotEncoding;
-use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
-use App\Voting\QuestionTypes\MultipleChoice;
 use Tests\TestCase;
 
 class ElectionControllerTest extends TestCase
@@ -47,6 +43,33 @@ class ElectionControllerTest extends TestCase
 
         $response = $this->actingAs($user)->json('PUT', 'api/elections/' . $election->slug, $data);
         $this->assertResponseStatusCode(200, $response);
+    }
+
+    /**
+     * @test
+     */
+    public function copy()
+    {
+        $election = Election::factory()->create();
+
+        $nQuestions = rand(0, 3);
+        for ($i = 0; $i < $nQuestions; $i++) {
+            $q = Question::factory()->make();
+            $q->election_id = $election->id;
+            $q->save();
+        }
+
+        self::assertEquals($nQuestions, $election->questions()->count());
+
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)
+            ->json('POST', 'api/elections/' . $election->slug . '/copy');
+        $this->assertResponseStatusCode(201, $response);
+
+        $newElection = Election::findOrFail($response->json('id'));
+
+        self::assertEquals($nQuestions, $newElection->questions()->count());
+
     }
 
     /**

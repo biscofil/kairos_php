@@ -770,29 +770,36 @@ class Election extends Model
      */
     public function duplicate(): Election
     {
-        $e = new Election();
-        $e->uuid = (string)Str::uuid();
-        $e->admin()->associate(getAuthUser());
+        $newElection = new Election();
+        $newElection->uuid = (string)Str::uuid();
+        $newElection->admin()->associate(getAuthUser());
 
-        $e->name = 'Copy of ' . $this->name;
-        $e->slug = $this->slug . '_copy';
-        $e->peer_server_id = PeerServer::meID;
+        $newElection->name = 'Copy of ' . $this->name;
+        $newElection->slug = $this->slug . '_copy';
+        $newElection->peer_server_id = PeerServer::meID;
 
-        $e->cryptosystem = $this->cryptosystem;
-        $e->anonymization_method = $this->anonymization_method;
+        $newElection->cryptosystem = $this->cryptosystem;
+        $newElection->anonymization_method = $this->anonymization_method;
 
-        $e->min_peer_count_t = $this->min_peer_count_t;
+        $newElection->min_peer_count_t = $this->min_peer_count_t;
 
-//        $e->questions = $this->questions; TODO
-        $e->description = $this->description;
-        $e->help_email = $this->help_email;
-        $e->info_url = $this->info_url;
-        $e->use_voter_alias = $this->use_voter_alias;
-        $e->use_advanced_audit_features = $this->use_advanced_audit_features;
-        $e->randomize_answer_order = $this->randomize_answer_order;
+        $newElection->description = $this->description;
+        $newElection->help_email = $this->help_email;
+        $newElection->info_url = $this->info_url;
+        $newElection->use_voter_alias = $this->use_voter_alias;
+        $newElection->use_advanced_audit_features = $this->use_advanced_audit_features;
+        $newElection->randomize_answer_order = $this->randomize_answer_order;
 
-        $e->save();
-        return $e;
+        $newElection->save();
+
+        // replicate questions
+        $this->questions->each(function (Question $question) use ($newElection) {
+            $copy = $question->replicate();
+            $copy->election_id = $newElection->id;
+            $copy->save();
+        });
+
+        return $newElection;
     }
 
     // ############################################
