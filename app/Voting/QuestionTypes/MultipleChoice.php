@@ -19,7 +19,7 @@ class MultipleChoice extends QuestionType
      * @param int $questionId
      * @return string
      */
-    public static function getTallyQuery(Question $question, int $questionId)
+    public static function getTallyQuery(Question $question, int $questionId): string
     {
 
         /**
@@ -42,11 +42,15 @@ class MultipleChoice extends QuestionType
                 $query .= ' UNION ALL ';
             }
             $otherColumns = array_diff($questionAnswerCols, [$questionAnswerCol]);
-            $otherColumnStr = implode('","', $otherColumns);
+            $otherColumnStr = '';
+            if (count($otherColumns)) {
+                $otherColumnStr = implode('","', $otherColumns);
+                $otherColumnStr = " WHERE COALESCE(\"$questionAnswerCol\" NOT IN (\"$otherColumnStr\"),1) ";
+            }
             $query .= "
                     SELECT \"$questionAnswerCol\" as id, COUNT(id) as c
                     FROM \"$question_answers_table_name\"
-                    WHERE COALESCE(\"$questionAnswerCol\" NOT IN (\"$otherColumnStr\"),1)
+                    $otherColumnStr
                     GROUP BY \"$questionAnswerCol\" ";
             $first = false;
         }
