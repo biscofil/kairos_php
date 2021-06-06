@@ -56,6 +56,10 @@ class Question extends Model
         'answers',
     ];
 
+    protected $appends = [
+        'tally_query'
+    ];
+
     /**
      * @return BelongsTo
      */
@@ -76,6 +80,17 @@ class Question extends Model
             $names[] = "q_{$q}_a_{$a}";
         }
         return $names;
+    }
+
+    /**
+     * @noinspection PhpUnused
+     */
+    public function getTallyQueryAttribute(): ?string
+    {
+        if ($this->election_id) {
+            return $this->question_type->getClass()::getTallyQuery($this, 1); // TODO question ID
+        }
+        return null;
     }
 
 }

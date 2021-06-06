@@ -8,12 +8,16 @@ export default class Question {
      * @param answers : Answer[]
      * @param min : Number
      * @param max : Number
+     * @param tally_query : String
+     * @param tally_result : Object
      */
-    constructor(id, answers, min, max) {
+    constructor(id, answers, min, max, tally_query, tally_result) {
         this.id = id;
         this.answers = answers;
         this.min = min;
         this.max = max;
+        this.tally_query = tally_query;
+        this.tally_result = tally_result;
     }
 
     /**
@@ -28,7 +32,9 @@ export default class Question {
                 return Answer.fromJSONObject(a);
             }),
             Number(d.min),
-            Number(d.max)
+            Number(d.max),
+            d.tally_query,
+            d.tally_result
         );
     }
 
