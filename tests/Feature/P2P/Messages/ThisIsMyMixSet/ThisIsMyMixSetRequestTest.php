@@ -72,6 +72,8 @@ class ThisIsMyMixSetRequestTest extends TestCase
 
         self::assertEquals($oldHash, $back->mixModel->hash);
 
+        $primaryShadowMixes->deleteFile($mixModel->getFilename());
+
     }
 
 }

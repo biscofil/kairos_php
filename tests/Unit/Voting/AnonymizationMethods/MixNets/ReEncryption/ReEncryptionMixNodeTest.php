@@ -4,7 +4,6 @@ namespace Tests\Unit\Voting\AnonymizationMethods\MixNets\ReEncryption;
 
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
-use App\Models\PeerServer;
 use App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptingMixNode;
 use App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMixWithShadowMixes;
 use App\Voting\BallotEncodings\JsonBallotEncoding;
@@ -137,8 +136,11 @@ class ReEncryptionMixNodeTest extends TestCase
         $primaryShadowMixes->challengeBits = $primaryShadowMixes->getFiatShamirChallengeBits();
         $primaryShadowMixes->generateProofs();
 
-        $primaryShadowMixes->store('test_without_pk');
-        $primaryShadowMixes->store('test_with_pk', true);
+        $file1 = 'test_without_pk';
+        $primaryShadowMixes->store($file1);
+
+        $file2 = 'test_with_pk';
+        $primaryShadowMixes->store($file2, true);
 
         $primaryShadowMixes = ReEncryptionMixWithShadowMixes::load('test_without_pk');
 
@@ -146,6 +148,10 @@ class ReEncryptionMixNodeTest extends TestCase
 
         // check proof
         static::assertTrue($primaryShadowMixes->isProofValid());
+
+        $primaryShadowMixes->deleteFile($file1);
+        $primaryShadowMixes->deleteFile($file2);
+
     }
 
 }

@@ -207,6 +207,16 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
     }
 
     /**
+     * @param string $fileName
+     * @return bool
+     */
+    public function deleteFile(string $fileName): bool
+    {
+        $jsonFilePath = $fileName . '.json';
+        return Storage::delete($jsonFilePath);
+    }
+
+    /**
      * TODO check
      * @param string $fileName
      */
