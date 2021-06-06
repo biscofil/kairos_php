@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use PDO;
+use Webpatser\Uuid\Uuid;
 
 /**
  * Class Election
@@ -94,6 +95,7 @@ use PDO;
  * @method static first()
  *
  * @method static ElectionFactory factory()
+ * @method static int count()
  */
 class Election extends Model
 {
@@ -215,6 +217,18 @@ class Election extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    /**
+     * @return \Webpatser\Uuid\Uuid
+     * @throws \Exception
+     */
+    public function getNewUUID(): Uuid
+    {
+        return Uuid::generate(
+            5,
+            url('elections/' . (self::count() + 1)),
+            Uuid::NS_URL);
     }
 
     // ############################################ Attributes ############################################
@@ -466,11 +480,12 @@ class Election extends Model
     /**
      * @param User $user
      * @return Trustee
+     * @throws \Exception
      */
     public function createUserTrustee(User $user): Trustee
     {
         $trustee = Trustee::make();
-        $trustee->uuid = (string)Str::uuid();
+        $trustee->uuid = Trustee::getNewUUID()->string;
         $trustee->user()->associate($user);
         $trustee->election()->associate($this);
         $trustee->save();
@@ -488,7 +503,7 @@ class Election extends Model
         Log::debug('Creating peer server trustee for election ' . $this->id);
 
         $trustee = Trustee::make();
-        $trustee->uuid = (string)Str::uuid();
+        $trustee->uuid = Trustee::getNewUUID()->string;
         $trustee->peerServer()->associate($server);
         $trustee->election()->associate($this);
         $trustee->save();
@@ -769,11 +784,12 @@ class Election extends Model
 
     /**
      * @return Election
+     * @throws \Exception
      */
     public function duplicate(): Election
     {
         $newElection = new Election();
-        $newElection->uuid = (string)Str::uuid();
+        $newElection->uuid = self::getNewUUID()->string;
         $newElection->admin()->associate(getAuthUser());
 
         $newElection->name = 'Copy of ' . $this->name;

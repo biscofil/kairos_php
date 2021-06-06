@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use phpseclib3\Math\BigInteger;
+use Webpatser\Uuid\Uuid;
 
 /**
  * Class Trustee
@@ -61,6 +62,7 @@ use phpseclib3\Math\BigInteger;
  * @method self|Builder users() Filter user trustees
  * @method static self findOrFail($id)
  * @method static self|null find(int|array $array)
+ * @method static int count()
  */
 class Trustee extends Model
 {
@@ -124,6 +126,18 @@ class Trustee extends Model
     public function getRouteKeyName()
     {
         return 'uuid';
+    }
+
+    /**
+     * @return \Webpatser\Uuid\Uuid
+     * @throws \Exception
+     */
+    public static function getNewUUID(): Uuid
+    {
+        return Uuid::generate(
+            5,
+            url('trustees/' . (self::count() + 1)),
+            Uuid::NS_URL);
     }
 
     /**
