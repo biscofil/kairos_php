@@ -67,6 +67,10 @@ class MultipleChoicesTest extends TestCase
             static::assertNotEquals(false, $question->tally_result);
         }
 
+        self::assertTrue(file_exists($election->getOutputDatabaseFilename()));
+        unlink($election->getOutputDatabaseFilename());
+        self::assertFalse(file_exists($election->getOutputDatabaseFilename()));
+
     }
 
 
@@ -84,13 +88,11 @@ class MultipleChoicesTest extends TestCase
         $election->private_key = $keyPair->sk;
         $election->save();
 
-        $nQuestions = 3;//rand(1, 3);
-        $questions = [];
+        $nQuestions = 3; //rand(1, 3);
         for ($i = 0; $i < $nQuestions; $i++) {
             $question = Question::factory()->make();
             $question->election_id = $election->id;
             $question->save();
-            $questions[] = $question;
         }
 
         $election->setupOutputTables();
@@ -106,6 +108,7 @@ class MultipleChoicesTest extends TestCase
 //        $conn->table($election->getOutputTableName())->truncate();
         self::assertTrue(MixNode::insertBallot($election, $conn, $cipher));
 
+        unlink($election->getOutputDatabaseFilename());
     }
 
     /**
@@ -123,12 +126,10 @@ class MultipleChoicesTest extends TestCase
         $election->save();
 
         $nQuestions = 3;//rand(1, 3);
-        $questions = [];
         for ($i = 0; $i < $nQuestions; $i++) {
             $question = Question::factory()->make();
             $question->election_id = $election->id;
             $question->save();
-            $questions[] = $question;
         }
 
         $election->setupOutputTables();
@@ -143,6 +144,9 @@ class MultipleChoicesTest extends TestCase
         $cipher = $keyPair->pk->encrypt($plaintext);
 //        $conn->table($election->getOutputTableName())->truncate();
         self::assertFalse(MixNode::insertBallot($election, $conn, $cipher));
+
+        unlink($election->getOutputDatabaseFilename());
+
     }
 
 }

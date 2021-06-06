@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  * Class UserFactory
  * @package Database\Factories
  * @method User create($attributes = [], ?Model $parent = null)
+ * @method User make($attributes = [], ?Model $parent = null)
  */
 class UserFactory extends Factory
 {

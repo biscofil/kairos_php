@@ -61,7 +61,6 @@ class MixTest extends TestCase
      */
     public function reverse()
     {
-        /** @var Election $election */
         $election = Election::factory()->create();
 
         $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();

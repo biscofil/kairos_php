@@ -15,10 +15,8 @@ class TrusteeControllerTest extends TestCase
     public function trustee_home()
     {
 
-        /** @var User $trustee_user */
         $trustee_user = User::factory()->create();
 
-        /** @var Election $election */
         $election = Election::factory()->withAdmin($trustee_user)->create();
 
         $election->createUserTrustee($trustee_user);
@@ -29,11 +27,4 @@ class TrusteeControllerTest extends TestCase
 
     }
 
-    /**
-     * TODO @ test
-     */
-    public function upload_public_key()
-    {
-
-    }
 }

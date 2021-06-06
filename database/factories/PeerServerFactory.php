@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
  * Class PeerServerFactory
  * @package Database\Factories
  * @method PeerServer create($attributes = [], ?Model $parent = null)
+ * @method PeerServer make($attributes = [], ?Model $parent = null)
  */
 class PeerServerFactory extends Factory
 {

@@ -25,7 +25,6 @@ class CastVoteControllerTest extends TestCase
 
         $user = User::factory()->create();
 
-        /** @var Election $election */
         $election = Election::factory()->withAdmin($user)->frozen()->create();
         $election->cryptosystem = 'rsa';
         $election->createPeerServerTrustee(getCurrentServer());

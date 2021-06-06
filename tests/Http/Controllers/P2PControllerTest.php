@@ -14,10 +14,8 @@ class P2PControllerTest extends TestCase
      */
     public function list_peers()
     {
-
         $response = $this->get('/api/p2p');
         $this->assertResponseStatusCode(200, $response);
-
     }
 
 }

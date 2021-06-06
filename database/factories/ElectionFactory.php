@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
  * Class ElectionFactory
  * @package Database\Factories
  * @method Election create($attributes = [], ?Model $parent = null)
+ * @method Election make($attributes = [], ?Model $parent = null)
  */
 class ElectionFactory extends Factory
 {
@@ -88,9 +89,9 @@ class ElectionFactory extends Factory
 
     /**
      * Indicate that the election is frozen
-     * @return Factory
+     * @return self
      */
-    public function frozen()
+    public function frozen() : self
     {
         return $this->state(function (array $attributes) {
             return [
