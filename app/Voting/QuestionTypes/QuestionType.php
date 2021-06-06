@@ -4,8 +4,8 @@
 namespace App\Voting\QuestionTypes;
 
 
-use App\Models\Election;
 use App\Models\Question;
+use Illuminate\Support\Facades\Validator;
 
 abstract class QuestionType
 {
@@ -28,16 +28,21 @@ abstract class QuestionType
      * @param int $questionId
      * @return string
      */
-    abstract public static function getTallyQuery(Question $question, int $questionId) : string;
-
-    // read from DB
+    abstract public static function getTallyQuery(Question $question, int $questionId): string;
 
     /**
-     * TODO
+     * @throws \Illuminate\Validation\ValidationException
      */
-    public function setupOutputTables(Election $election)
+    public static function validate($data): array
     {
-
+        return Validator::make($data, [
+            'question' => ['required', 'string'],
+            'min' => ['required', 'int', 'min:0'],
+            'max' => ['required', 'int', 'gte:min'],
+            'answers' => ['required', 'array', 'min:2'],  // at least two answers
+            'answers.*.answer' => ['required', 'string'],
+            'answers.*.url' => ['nullable', 'url'],
+        ])->validated();
     }
 
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
+use App\Enums\QuestionTypeEnum;
 use App\Exceptions\NotYourElectionException;
 use App\Http\Requests\EditCreateElectionRequest;
 use App\Models\Election;
@@ -14,6 +15,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 /**
  * Class ElectionController
@@ -185,12 +187,11 @@ class ElectionController extends Controller
 
         $data = $request->validate([
             'questions' => ['required', 'array', 'min:1'], // at least one question
-            'questions.*.question' => ['required', 'string'],
-            'questions.*.min' => ['required', 'int', 'min:0'], // TODO check min
-            'questions.*.max' => ['required', 'int', 'gte:questions.*.min'],
-            'questions.*.answers' => ['required', 'array', 'min:2'],  // at least two answers
-            'questions.*.answers.*.answer' => ['required', 'string'],
-            'questions.*.answers.*.url' => ['nullable', 'url'],
+            'questions.*.question_type' => [
+                'required',
+                'string',
+                Rule::in(array_keys(QuestionTypeEnum::QUESTION_TYPES))
+            ],
         ]);
 
         DB::transaction(function () use ($election, $data) {
@@ -198,13 +199,17 @@ class ElectionController extends Controller
             $election->questions()->delete();
 
             foreach ($data['questions'] as $question) {
+
+                $qtClass = QuestionTypeEnum::getByIdentifier($question['question_type']);
+                $qtClass::validate($question);
+
                 $q = new Question();
                 $q->election_id = $election->id;
                 $q->min = $question['min'];
                 $q->max = $question['max'];
                 $q->question = $question['question'];
                 $q->answers = $question['answers'];
-                $q->question_type = 'multiple_choice';
+                $q->question_type = $question['question_type'];
                 $q->save();
             }
 
