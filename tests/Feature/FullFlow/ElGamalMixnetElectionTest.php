@@ -7,14 +7,11 @@ namespace Tests\Feature\FullFlow;
 use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
-use App\Models\PeerServer;
 use App\Models\User;
 use App\Models\Voter;
-use App\Voting\BallotEncodings\JsonBallotEncoding;
+use App\Voting\BallotEncodings\ASCII_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
-use App\Voting\CryptoSystems\RSA\RSAPlaintext;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
