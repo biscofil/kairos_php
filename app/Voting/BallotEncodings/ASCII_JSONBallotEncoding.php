@@ -10,7 +10,7 @@ use App\Voting\CryptoSystems\Plaintext;
  * Class JsonBallotEncoding
  * @package App\Voting\BallotEncodings
  */
-class JsonBallotEncoding implements BallotEncoding
+class ASCII_JSONBallotEncoding extends JSONBallotEncoding
 {
 
     /**
