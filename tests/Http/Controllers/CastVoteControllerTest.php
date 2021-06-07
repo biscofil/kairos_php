@@ -7,7 +7,7 @@ use App\Models\Election;
 use App\Models\PeerServer;
 use App\Models\User;
 use App\Models\Voter;
-use App\Voting\BallotEncodings\JsonBallotEncoding;
+use App\Voting\BallotEncodings\ASCII_JSONBallotEncoding;
 use App\Voting\CryptoSystems\RSA\RSAKeyPair;
 use App\Voting\CryptoSystems\RSA\RSAPlaintext;
 use Illuminate\Support\Str;
@@ -55,7 +55,7 @@ class CastVoteControllerTest extends TestCase
 
         // encrypt it
         /** @var RSAPlaintext $plaintext */
-        $plaintext = (JsonBallotEncoding::encode($votePlain, RSAPlaintext::class))[0];
+        $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, RSAPlaintext::class))[0];
         $cipher = $keyPair->pk->encrypt($plaintext);
 
         $data = ['vote' => $cipher->toArray(true)];
@@ -75,7 +75,7 @@ class CastVoteControllerTest extends TestCase
         $voteCast = $election->votes()->first();
 
         $out = $keyPair->sk->decrypt($voteCast->vote);
-        static::assertEquals($votePlain, JsonBallotEncoding::decode($out));
+        static::assertEquals($votePlain, ASCII_JSONBallotEncoding::decode($out));
 
     }
 }

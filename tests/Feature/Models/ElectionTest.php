@@ -56,7 +56,7 @@ class ElectionTest extends TestCase
 
         $plainVote = ['v' => Str::random(3)];
 
-        $plaintext = (JsonBallotEncoding::encode($plainVote, RSAPlaintext::class))[0];
+        $plaintext = (ASCII_JSONBallotEncoding::encode($plainVote, RSAPlaintext::class))[0];
 
 //        $cipher = $election->public_key->encrypt($plaintext); // TODO use trustee public key sequentially
         // after voting phase ends

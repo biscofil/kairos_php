@@ -7,7 +7,7 @@ namespace App\Voting\AnonymizationMethods\MixNets;
 use App\Jobs\GenerateMix;
 use App\Models\Election;
 use App\Voting\AnonymizationMethods\AnonymizationMethod;
-use App\Voting\BallotEncodings\JsonBallotEncoding;
+use App\Voting\BallotEncodings\ASCII_JSONBallotEncoding;
 use App\Voting\CryptoSystems\CipherText;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Collection;
@@ -121,7 +121,7 @@ abstract class MixNode implements AnonymizationMethod
      */
     public static function insertBallot(Election &$election, Connection &$connection, CipherText &$cipherText): bool
     {
-        $plainVote = JsonBallotEncoding::decode($election->private_key->decrypt($cipherText));
+        $plainVote = ASCII_JSONBallotEncoding::decode($election->private_key->decrypt($cipherText));
 
         $connection->getSchemaBuilder()->enableForeignKeyConstraints();
 

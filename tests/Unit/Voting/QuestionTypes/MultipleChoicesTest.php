@@ -10,7 +10,7 @@ use App\Models\Answer;
 use App\Models\Election;
 use App\Models\Question;
 use App\Voting\AnonymizationMethods\MixNets\MixNode;
-use App\Voting\BallotEncodings\JsonBallotEncoding;
+use App\Voting\BallotEncodings\ASCII_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use Tests\TestCase;
 
@@ -55,7 +55,7 @@ class MultipleChoicesTest extends TestCase
             [2], // second answer of second question
             [3]  // third answer of third question
         ];
-        $plaintext = (JsonBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
+        $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
         $cipher = $keyPair->pk->encrypt($plaintext);
 
 //        $conn->table($election->getOutputTableName())->truncate();
@@ -111,7 +111,7 @@ class MultipleChoicesTest extends TestCase
             [],
             []
         ];
-        $plaintext = (JsonBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
+        $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
         $cipher = $keyPair->pk->encrypt($plaintext);
 //        $conn->table($election->getOutputTableName())->truncate();
         self::assertTrue(MixNode::insertBallot($election, $conn, $cipher));
@@ -148,7 +148,7 @@ class MultipleChoicesTest extends TestCase
             [2], // second answer of second question
             [3] // third answer of third question
         ];
-        $plaintext = (JsonBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
+        $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
         $cipher = $keyPair->pk->encrypt($plaintext);
 //        $conn->table($election->getOutputTableName())->truncate();
         self::assertFalse(MixNode::insertBallot($election, $conn, $cipher));

@@ -37,7 +37,7 @@ class ReEncryptionMixNodeTest extends TestCase
                 'initial_pos' => $i,
                 'v' => Str::random(3)
             ];
-            $msgs = JsonBallotEncoding::encode($obj, EGPlaintext::class);
+            $msgs = ASCII_JSONBallotEncoding::encode($obj, EGPlaintext::class);
             $msg = $msgs[0];
             $ciphers[] = $electionKeyPair->pk->encrypt($msg);
         }

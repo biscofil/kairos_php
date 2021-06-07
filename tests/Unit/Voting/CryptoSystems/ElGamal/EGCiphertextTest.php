@@ -3,7 +3,7 @@
 
 namespace Tests\Unit\Voting\CryptoSystems\ElGamal;
 
-use App\Voting\BallotEncodings\JsonBallotEncoding;
+use App\Voting\BallotEncodings\ASCII_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use phpseclib3\Math\BigInteger;
@@ -24,7 +24,7 @@ class EGCiphertextTest extends TestCase
 
         $keyPair = EGKeyPair::generate();
 
-        $plaintexts = JsonBallotEncoding::encode([123], EGPlaintext::class);
+        $plaintexts = ASCII_JSONBallotEncoding::encode([123], EGPlaintext::class);
         $cipher = $keyPair->pk->encrypt($plaintexts[0]);
 
         $randomness = BigInteger::random(50);
