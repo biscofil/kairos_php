@@ -19,10 +19,10 @@ use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /**
- * Class ElGamalMixnetElection
+ * Class ElGamalMixnetElectionTest
  * @package Tests\Feature\FullFlow
  */
-class ElGamalMixnetElection extends TestCase
+class ElGamalMixnetElectionTest extends TestCase
 {
 
     /**
@@ -67,7 +67,7 @@ class ElGamalMixnetElection extends TestCase
                 ]
             ];
 
-            $plaintext = (JsonBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
+            $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
             $cipher = $keyPair->pk->encrypt($plaintext);
 
             $data = ['vote' => $cipher->toArray(true)];
@@ -79,7 +79,7 @@ class ElGamalMixnetElection extends TestCase
             $response = $this->withHeaders(['Authorization' => "Bearer $token"])
                 ->json('POST', "api/elections/$election->slug/cast", $data);
 
-            $this->assertResponseStatusCode(201, $response);
+            $this->assertResponseStatusCode(200, $response);
         }
 
         $election->anonymization_method->getClass()::afterVotingPhaseEnds($election);

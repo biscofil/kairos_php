@@ -101,6 +101,8 @@ class ExpElGamal implements CryptoSystem, SupportsTLThresholdEncryption
      */
     public static function tally(Election &$election)
     {
+
+        /** @var ExpEGCiphertext $out */
         $out = $election->votes->reduce(function (?ExpEGCiphertext $carry, CastVote $vote) {
             /** @var ExpEGCiphertext $voteCiphertext */
             $voteCiphertext = $vote->vote;
@@ -109,6 +111,11 @@ class ExpElGamal implements CryptoSystem, SupportsTLThresholdEncryption
             }
             return $voteCiphertext->homomorphicSum($carry);
         }, null);
+
+        $result = $election->private_key->decrypt($out);
+
+//        dump($result->toString());
+
         // TODO store? pubblish?
     }
 }

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Class Mix
@@ -49,6 +50,10 @@ class Mix extends Model
         'is_valid' => 'bool',
     ];
 
+    protected $appends = [
+        'download_url'
+    ];
+
     // ########################################## RELATIONS
 
     /**
@@ -76,7 +81,16 @@ class Mix extends Model
      */
     public function getFilename(): string
     {
-        return 'election_' . $this->trustee->election->uuid . '_mix_' . $this->id;
+        return 'election_' . $this->trustee->election->uuid . '_mix_' . $this->id . '.json';
+    }
+
+    /**
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function getDownloadUrlAttribute(): string
+    {
+        return Storage::url($this->getFilename());
     }
 
     /**

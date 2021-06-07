@@ -71,12 +71,13 @@ class EditCreateElectionRequest extends FormRequest
 
     /**
      * @return Election
+     * @throws \Exception
      */
     public function store(): Election
     {
         $data = $this->validated();
         $election = Election::make($data);
-        $election->uuid = (string)Str::uuid();
+        $election->uuid = Election::getNewUUID()->string;
         $election->admin()->associate(getAuthUser());
         $election->peerServerAuthor()->associate(getCurrentServer());
         $election->save();

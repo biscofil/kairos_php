@@ -6,7 +6,7 @@ use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
 use App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptingMixNode;
 use App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMixWithShadowMixes;
-use App\Voting\BallotEncodings\JsonBallotEncoding;
+use App\Voting\BallotEncodings\ASCII_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\ElGamal\EGParameterSet;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
@@ -136,13 +136,13 @@ class ReEncryptionMixNodeTest extends TestCase
         $primaryShadowMixes->challengeBits = $primaryShadowMixes->getFiatShamirChallengeBits();
         $primaryShadowMixes->generateProofs();
 
-        $file1 = 'test_without_pk';
+        $file1 = 'test_without_pk.json';
         $primaryShadowMixes->store($file1);
 
-        $file2 = 'test_with_pk';
+        $file2 = 'test_with_pk.json';
         $primaryShadowMixes->store($file2, true);
 
-        $primaryShadowMixes = ReEncryptionMixWithShadowMixes::load('test_without_pk');
+        $primaryShadowMixes = ReEncryptionMixWithShadowMixes::load('test_without_pk.json');
 
         Storage::delete(['test_without_pk.json', 'test_with_pk.json']);
 

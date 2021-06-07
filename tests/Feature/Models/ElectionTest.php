@@ -5,10 +5,9 @@ namespace Tests\Feature\Models;
 use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
-use App\Models\PeerServer;
 use App\Models\Trustee;
 use App\Models\User;
-use App\Voting\BallotEncodings\JsonBallotEncoding;
+use App\Voting\BallotEncodings\ASCII_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use App\Voting\CryptoSystems\RSA\RSAPlaintext;
@@ -78,7 +77,7 @@ class ElectionTest extends TestCase
         $election->cryptosystem->getClass()::afterAnonymizationProcessEnds($election);
 
         //$out = $election->private_key->decrypt($cipher);
-        static::assertEquals($plainVote, JsonBallotEncoding::decode($out));
+        static::assertEquals($plainVote, ASCII_JSONBallotEncoding::decode($out));
 
         // corrupt one private key
         $trustee = Trustee::findOrFail(intval(array_keys($privateKeys)[0])); // take the first trustee
@@ -103,10 +102,8 @@ class ElectionTest extends TestCase
         $user = User::factory()->create();
 
         // create election
-        /** @var Election $data */
         $data = Election::factory()->make();
         $data->cryptosystem = CryptoSystemEnum::ElGamal();
-//        dd($data->toArray());
         $response = $this->actingAs($user)
             ->json('POST', 'api/elections', $data->toArray());
         $this->assertResponseStatusCode(201, $response);
@@ -133,7 +130,7 @@ class ElectionTest extends TestCase
         static::assertNotNull($election->public_key);
 
         $plainVote = ['v' => Str::random(3)];
-        $plaintext = (JsonBallotEncoding::encode($plainVote, EGPlaintext::class))[0];
+        $plaintext = (ASCII_JSONBallotEncoding::encode($plainVote, EGPlaintext::class))[0];
         $cipher = $election->public_key->encrypt($plaintext);
         // after voting phase ends
 
@@ -149,7 +146,7 @@ class ElectionTest extends TestCase
         $election->cryptosystem->getClass()::afterAnonymizationProcessEnds($election);
 
         $out = $election->private_key->decrypt($cipher);
-        static::assertEquals($plainVote, JsonBallotEncoding::decode($out));
+        static::assertEquals($plainVote, ASCII_JSONBallotEncoding::decode($out));
 
         // corrupt one private key
         $trustee = Trustee::findOrFail(intval(array_keys($privateKeys)[0])); // take the first trustee
@@ -161,7 +158,7 @@ class ElectionTest extends TestCase
         $election->cryptosystem->getClass()::afterAnonymizationProcessEnds($election);
 
         $out = $election->private_key->decrypt($cipher);
-        static::assertNotEquals($plainVote, JsonBallotEncoding::decode($out));
+        static::assertNotEquals($plainVote, ASCII_JSONBallotEncoding::decode($out));
 
     }
 
@@ -173,7 +170,6 @@ class ElectionTest extends TestCase
         $user = User::factory()->create();
 
         // create election
-        /** @var Election $data */
         $data = Election::factory()->make();
         $data->cryptosystem = CryptoSystemEnum::ElGamal();
         $data->anonymization_method = AnonymizationMethodEnum::EncMixNet();
@@ -206,7 +202,7 @@ class ElectionTest extends TestCase
             ];
 
             /** @var RSAPlaintext $plaintext */  // TODO check!!
-            $plaintext = (JsonBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
+            $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
             $cipher = $keypair->pk->encrypt($plaintext); // encrypt it
             $data = ['vote' => $cipher->toArray(true)];
             /**
@@ -215,7 +211,7 @@ class ElectionTest extends TestCase
             $token = $user->getNewJwtToken();
             $response = $this->withHeaders(['Authorization' => "Bearer $token"])
                 ->json('POST', "api/elections/$election->slug/cast", $data);
-            $this->assertResponseStatusCode(201, $response);
+            $this->assertResponseStatusCode(200, $response);
 
         }
 

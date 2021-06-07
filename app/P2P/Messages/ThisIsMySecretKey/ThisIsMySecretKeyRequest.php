@@ -89,6 +89,7 @@ class ThisIsMySecretKeyRequest extends P2PMessageRequest
 
     /**
      * @return \App\P2P\Messages\P2PMessageResponse
+     * @throws \Exception
      */
     public function onRequestReceived(): P2PMessageResponse
     {

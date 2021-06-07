@@ -28,7 +28,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 use PDO;
 use Webpatser\Uuid\Uuid;
 
@@ -309,6 +309,7 @@ class Election extends Model
             ];
         }
 
+        /** @noinspection PhpStaticAsDynamicMethodCallInspection */
         if ($this->trustees()->peerServersAcceptingBallots()->count() == 0) {
             $issues[] = [
                 'type' => 'trustees',
@@ -318,6 +319,7 @@ class Election extends Model
 
         if ($this->hasTLThresholdScheme()) {
             //t-l
+            /** @noinspection PhpStaticAsDynamicMethodCallInspection */
             if ($this->trustees()->users()->count()) {
                 $issues[] = [
                     'type' => 'trustees',
@@ -328,13 +330,11 @@ class Election extends Model
 
         // make sure that user trustees have uploaded their public key
         // peer servers will share theirs with the p2p protocol
-        foreach ($this->trustees()->users()->get() as $userTrustee) {
-            if (is_null($userTrustee->public_key)) {
-                $issues[] = [
-                    'type' => 'trustee keypairs',
-                    'action' => 'have trustee # ' . $userTrustee->id . ' generate a keypair'
-                ];
-            }
+        foreach ($this->trustees()->users()->whereNull('public_key')->get() as $userTrustee) {
+            $issues[] = [
+                'type' => 'trustee keypairs',
+                'action' => 'have trustee # ' . $userTrustee->id . ' generate a keypair'
+            ];
         }
 
 
@@ -359,8 +359,12 @@ class Election extends Model
             return ['name' => 'Waiting for scheduled opening', 'class' => 'warning'];
         } elseif (is_null($this->voting_ended_at)) {
             return ['name' => 'Voting phase. Waiting for scheduled closing', 'class' => 'success'];
-        } else {
+        } elseif (is_null($this->tallying_started_at)) {
             return ['name' => 'Voting phase ended. Waiting for anonymization and tally', 'class' => 'info'];
+        } elseif (is_null($this->tallying_finished_at)) {
+            return ['name' => 'Tally started', 'class' => 'info'];
+        } else {
+            return ['name' => 'Tally finished', 'class' => 'info'];
         }
     }
 
@@ -684,86 +688,6 @@ class Election extends Model
     }
 
     /**
-     * Returns the connections to use for storing plantext ballots
-     * @return \Illuminate\Database\SQLiteConnection
-     */
-    public function getOutputConnection(): SQLiteConnection
-    {
-        $pathname = storage_path('election_' . $this->id . '.sqlite');
-        $pdo = new PDO('sqlite:' . $pathname);
-        $conn = new SQLiteConnection($pdo);
-        $conn->setTablePrefix('');
-        $conn->setDatabaseName('');
-        return $conn;
-//        $builder = new \Illuminate\Database\Query\Builder($connection);
-    }
-
-    /**
-     * Returns the name of the table to use in
-     * @return string
-     * @see \App\Models\Election::getOutputConnection()
-     */
-    public function getOutputTableName(): string
-    {
-        return 'e_' . $this->id;
-    }
-
-    /**
-     * Creates a sqlite database with plaintexts ballots
-     */
-    public function setupOutputTables()
-    {
-        Log::debug('setupOutputTables > ' . storage_path('election_' . $this->id . '.sqlite'));
-        $connection = $this->getOutputConnection();
-
-        // create a table for each question
-        foreach ($this->questions as $idx => $question) {
-            $q = $idx + 1;
-            $question_answers_table_name = "e_{$this->id}_q_{$q}_a";
-            $connection->getSchemaBuilder()->dropIfExists($question_answers_table_name);
-
-            $connection->getSchemaBuilder()->create($question_answers_table_name, function (Blueprint $table) {
-                $table->increments('id');
-
-                $table->string('answer');
-            });
-
-            foreach ($question->answers as $answer) {
-                $qID = $connection->table($question_answers_table_name)->insertGetId([
-                    'answer' => $answer['answer']
-                ]);
-            }
-        }
-
-        // create a table for all ballots
-        $output_table_name = $this->getOutputTableName();
-
-        $connection->getSchemaBuilder()->dropIfExists($output_table_name);
-        $connection->getSchemaBuilder()->create($output_table_name, function (Blueprint $table) {
-
-            $table->increments('id');
-
-            foreach ($this->questions as $idx => $question) {
-                $q = $idx + 1;
-                $question_answers_table_name = "e_{$this->id}_q_{$q}_a";
-                foreach ($question->getAnswerColumnNames($q) as $cName) {
-                    $table->unsignedInteger($cName)->nullable();
-                    $table->foreign($cName)->references('id')->on($question_answers_table_name);
-                }
-            }
-
-//            $table->timestamps();
-
-        });
-
-//        foreach ($this->votes as $vote) {
-//            DB::table($output_table_name)->insert([
-//                'question_1' => $qID // TODO
-//            ]);
-//        }
-    }
-
-    /**
      * @param bool $featured
      */
     public function setFeatured(bool $featured): void
@@ -786,7 +710,7 @@ class Election extends Model
     public function duplicate(): Election
     {
         $newElection = new Election();
-        $newElection->uuid = self::getNewUUID()->string;
+        $newElection->uuid = Election::getNewUUID()->string;
         $newElection->admin()->associate(getAuthUser());
 
         $newElection->name = 'Copy of ' . $this->name;
@@ -809,9 +733,15 @@ class Election extends Model
 
         // replicate questions
         $this->questions->each(function (Question $question) use ($newElection) {
-            $copy = $question->replicate();
-            $copy->election_id = $newElection->id;
-            $copy->save();
+            $questionCopy = $question->replicate();
+            $questionCopy->election_id = $newElection->id;
+            $questionCopy->save();
+            // replicate answers
+            $question->answers->each(function (Answer $answer) use ($questionCopy) {
+                $answerCopy = $answer->replicate();
+                $answerCopy->question_id = $questionCopy->id;
+                $answerCopy->save();
+            });
         });
 
         return $newElection;
@@ -922,6 +852,111 @@ class Election extends Model
     // #######################################################################################
 
     /**
+     * @return string
+     */
+    public function getOutputDatabaseFilename(): string
+    {
+        return 'election_' . $this->id . '.sqlite';
+    }
+
+    /**
+     * @return string
+     * @noinspection PhpUnused
+     */
+    public function getOutputDatabaseFilenameUrlAttribute(): string
+    {
+        return Storage::url($this->getOutputDatabaseFilename());
+    }
+
+    /**
+     * @return string
+     */
+    public function getOutputDatabaseStorageFilePath(): string
+    {
+        return Storage::path($this->getOutputDatabaseFilename());
+    }
+
+    /**
+     * Returns the connections to use for storing plantext ballots
+     * @return \Illuminate\Database\SQLiteConnection
+     */
+    public function getOutputConnection(): SQLiteConnection
+    {
+        $pathname = $this->getOutputDatabaseStorageFilePath();
+        $pdo = new PDO('sqlite:' . $pathname);
+        $conn = new SQLiteConnection($pdo);
+        $conn->setTablePrefix('');
+        $conn->setDatabaseName('');
+        return $conn;
+//        $builder = new \Illuminate\Database\Query\Builder($connection);
+    }
+
+    /**
+     * Returns the name of the table to use in
+     * @return string
+     * @see \App\Models\Election::getOutputConnection()
+     */
+    public function getOutputTableName(): string
+    {
+        return 'e_' . $this->id;
+    }
+
+    /**
+     * Creates a sqlite database with plaintexts ballots
+     */
+    public function setupOutputTables()
+    {
+        Log::debug('setupOutputTables > ' . $this->getOutputDatabaseStorageFilePath());
+        $connection = $this->getOutputConnection();
+
+        // create a table for each question
+        foreach ($this->questions as $idx => $question) {
+            $q = $idx + 1;
+            $question_answers_table_name = "e_{$this->id}_q_{$q}_a";
+            $connection->getSchemaBuilder()->dropIfExists($question_answers_table_name);
+
+            $connection->getSchemaBuilder()->create($question_answers_table_name, function (Blueprint $table) {
+                $table->increments('id');
+
+                $table->string('answer');
+            });
+
+            $question->answers->each(function (Answer $answer) use ($question_answers_table_name, $connection) {
+                $qID = $connection->table($question_answers_table_name)->insertGetId([
+                    'answer' => $answer->answer
+                ]);
+            });
+
+        }
+
+        // create a table for all ballots
+        $output_table_name = $this->getOutputTableName();
+
+        $connection->getSchemaBuilder()->dropIfExists($output_table_name);
+        $connection->getSchemaBuilder()->create($output_table_name, function (Blueprint $table) {
+
+            $table->increments('id');
+
+            foreach ($this->questions as $idx => $question) {
+                $q = $idx + 1;
+                $question_answers_table_name = "e_{$this->id}_q_{$q}_a";
+                foreach ($question->getAnswerColumnNames($q) as $cName) {
+                    $table->unsignedInteger($cName)->nullable();
+                    $table->foreign($cName)->references('id')->on($question_answers_table_name);
+                }
+            }
+
+        });
+
+        // create views with queries from questions
+        foreach ($this->questions as $idx => $question) {
+            $qID = $idx + 1;
+            $connection->statement("CREATE VIEW tally_q_$qID AS " . $question->question_type->getClass()::getTallyQuery($question, $qID));
+        }
+
+    }
+
+    /**
      *
      */
     public function tally(): void
@@ -939,6 +974,7 @@ class Election extends Model
             $question->tally_result = $results;
             $question->save();
         }
+
         $this->tallying_finished_at = Carbon::now();
         $this->tallying_combined_at = Carbon::now();
         $this->results_released_at = Carbon::now();

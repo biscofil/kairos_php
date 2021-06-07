@@ -67,7 +67,7 @@ class CastVoteControllerTest extends TestCase
         $response = $this->withHeaders(['Authorization' => "Bearer $token"])
             ->json('POST', "api/elections/$election->slug/cast", $data);
 
-        $this->assertResponseStatusCode(201, $response);
+        $this->assertResponseStatusCode(200, $response);
 
         static::assertEquals(1, $election->votes()->count());
 
