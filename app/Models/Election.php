@@ -223,12 +223,9 @@ class Election extends Model
      * @return \Webpatser\Uuid\Uuid
      * @throws \Exception
      */
-    public function getNewUUID(): Uuid
+    public static function getNewUUID(): Uuid
     {
-        return Uuid::generate(
-            5,
-            url('elections/' . (self::count() + 1)),
-            Uuid::NS_URL);
+        return Uuid::generate(5, url('elections/' . (self::count() + 1)), Uuid::NS_URL);
     }
 
     // ############################################ Attributes ############################################
