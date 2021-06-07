@@ -1,5 +1,6 @@
 import EGPublicKey from "../../Voting/CryptoSystems/ElGamal/EGPublicKey";
 import RSAPublicKey from "../../Voting/CryptoSystems/RSA/RSAPublicKey";
+import EGPlaintext from "../../Voting/CryptoSystems/ElGamal/EGPlaintext";
 
 export default class Utils {
 
@@ -34,6 +35,7 @@ export default class Utils {
     };
 
     /**
+     * TODO remove
      * generate an array of the first few plaintexts
      * @param pk : EGPublicKey
      * @param min : ?number
@@ -55,7 +57,7 @@ export default class Utils {
             if (i >= min) {
                 plaintexts.push(new EGPlaintext(last_plaintext, pk, false)); // TODO
             }
-            last_plaintext = (last_plaintext * pk.g) % pk.p;
+            last_plaintext = (last_plaintext * pk.ps.g) % pk.ps.p;
         }
 
         return plaintexts;
@@ -99,7 +101,7 @@ export default class Utils {
     /**
      * TODO move
      * @param d : Object
-     * @return {EGPublicKey|RSAPublicKey}
+     * @return {EGPublicKey | RSAPublicKey}
      */
     static getPublicKeyFromJSONObject(d) {
         if (d._cs === "eg") {

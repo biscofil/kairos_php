@@ -30,7 +30,9 @@
             </tab-content>
 
             <!-- sealed, cast / audit -->
-            <tab-content title="Cast / Audit" :before-change="cast">
+            <tab-content title="Cast / Audit"
+                         :after-change="seal"
+                         :before-change="cast">
 
                 <VueObjectView :value="encrypted_vote"/>
 
@@ -40,6 +42,13 @@
             <!-- done -->
             <tab-content title="Done">
                 Done!
+
+                <div class="row" v-for="trustee in election.trustees">
+                    <country-flag
+                        v-if="trustee.peer_server && trustee.accepts_ballots && trustee.peer_server.country_code"
+                        :country='trustee.peer_server.country_code'/>
+                </div>
+
             </tab-content>
 
             <!--            <button slot="prev">Back</button>-->
@@ -54,12 +63,13 @@
 
 import {FormWizard, TabContent} from 'vue-form-wizard'
 import Election from "../../../Models/Election";
-import EGPlaintext from "../../../Voting/CryptoSystems/ElGamal/EGPlaintext";
 import CastingModal from "./CastingModal";
 import CountryFlag from 'vue-country-flag';
 import VueObjectView from "vue-object-view";
 import MultipleChoice from "./QuestionTypes/MultipleChoice";
 import STV from "./QuestionTypes/STV";
+import SmallJSONBallotEncoding from "../../../Voting/BallotEncodings/SmallJSONBallotEncoding";
+import JSONBallotEncoding from "../../../Voting/BallotEncodings/JSONBallotEncoding";
 
 export default {
     name: "NewBoothWizard",
@@ -115,7 +125,39 @@ export default {
                     self.$toastr.error("Error");
                     console.log(e);
                 });
+
+
+            // var iconv = require('iconv-lite');
+            // try {
+            //     iconv.getCodec(); // if you get ANY named table here, then you won't except.
+            // } catch (e) {
+            //     // ignore
+            //     console.log('ignored:', e);
+            // }
+            // console.log(iconv.encodings);
+            // iconv.encodings['mycustommap'] = {
+            //     type: '_sbcs',
+            //     chars: '0123456789[],'
+            // };
+            // // test our two duplicate characters and the first PUA character
+            // const buf = Buffer.from('[1,2,3]', 'ASCII');
+            // const str = iconv.decode(buf, 'mycustommap');
+            // const buf2 = iconv.encode(str, 'mycustommap');
+            // console.log('src: ', buf);
+            // console.log('string: ' + str + '');
+            // const be = Buffer.from(str, 'utf16le').swap16();
+            // console.log('string in utf16be: ', be);
+            // console.log('back to big5: ', buf2);
+
+            // let c = '[1,2,3]';
+            // console.log(c);
+            // let encoded = SmallJSONBallotEncoding.encodeStr(c);
+            // console.log(encoded);
+            // let decoded = SmallJSONBallotEncoding.decodeStr(encoded);
+            // console.log(decoded);
+
         },
+
 
         seal() {
             let vote = [];
@@ -123,10 +165,18 @@ export default {
                 vote.push(this.picked_answers[k]);
             });
             console.log(vote);
-            const voteInt = EGPlaintext.getBigIntFromDict(vote);
-            console.log(voteInt);
 
-            console.log(EGPlaintext.getDictFromBigInt(voteInt));
+            let vote_str = JSON.stringify(vote);
+
+            console.log("############################################## JSONBallotEncoding");
+            const voteInt = JSONBallotEncoding.encodeStr(vote_str);
+            console.log(voteInt);
+            console.log(JSON.parse(JSONBallotEncoding.decodeStr(voteInt)));
+
+            console.log("############################################## SmallJSONBallotEncoding");
+            const voteIntSM = SmallJSONBallotEncoding.encodeStr(vote_str);
+            console.log(voteIntSM);
+            console.log(JSON.parse(SmallJSONBallotEncoding.decodeStr(voteIntSM)));
 
             // encrypt vote
             let ptClass = this.election.getCryptoSystemClass().getPlainTextClass();
@@ -134,7 +184,7 @@ export default {
 
             /** @type {EGPlaintext|RSAPlaintext} */
             let p = new ptClass(voteInt, this.election.public_key);
-            console.log(p);
+            // console.log(p);
 
             this.encrypted_vote = p.encrypt().toJSONObject();
             console.log(this.encrypted_vote);

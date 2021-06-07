@@ -50,14 +50,14 @@
                     <div v-if="election.is_auth_user_admin">
                         <!-- TODO only shown for admin -->
                         <div v-if="trustee.user">
-                            <!-- Use trustee -->
-                            ({{ trustee.user.email }})
+                            <!-- User trustee -->
+                            User ({{ trustee.user.email }})
                             <a v-if="!election.frozen_at" @click="remove_trustee(trustee)"
                                href="javascript:void(0)" class="brackets_around">x</a>
                         </div>
                         <div v-else-if="trustee.peer_server">
-                            <!-- Use trustee -->
-                            ({{ trustee.peer_server.name }})
+                            <!-- Server trustee -->
+                            Server ({{ trustee.peer_server.name }})
                             <a v-if="!election.frozen_at" @click="remove_trustee(trustee)"
                                href="javascript:void(0)" class="brackets_around">x</a>
                         </div>

@@ -9,23 +9,16 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="#">Elections</a></li>
                     <li class="breadcrumb-item">
-                        <router-link :to="{name:'election@view', params:{ slug: election.slug }}" >{{ election.name }}</router-link>
+                        <router-link :to="{name:'election@view', params:{ slug: election.slug }}">{{
+                                election.name
+                            }}
+                        </router-link>
                     </li>
                     <li class="breadcrumb-item active" aria-current="page">Questions</li>
                 </ol>
             </nav>
 
-            <h3 class="title">{{ election.name }} &mdash; Questions
-            </h3>
-
-            <div>
-                <vue-query-builder :rules="rules"
-                                   :maxDepth="3"
-                                   v-model="query"></vue-query-builder>
-                <pre lang="sql">{{rules_sql}}</pre>
-            </div>
-
-            <hr>
+            <h3 class="title">{{ election.name }} &mdash; Questions</h3>
 
             <div>
                 <fieldset v-for="(question,idx) in questions">
@@ -45,47 +38,23 @@
 </template>
 
 <script>
-import VueQueryBuilder from 'vue-query-builder';
-import QuestionEditor from "../../components/QuestionEditor";
+import QuestionEditor from "../../components/Question/QuestionEditor";
 
 export default {
     name: "ElectionQuestions",
 
-    components: {QuestionEditor, VueQueryBuilder},
+    components: {QuestionEditor},
 
     data() {
         return {
             election: null,
             questions: null,
-            rules_sql: '',
-            //
-            rules: [
-                {
-                    type: "text",
-                    id: "party",
-                    label: "Party",
-                    //operators: ['<>', '=']
-                },
-                {
-                    type: "radio",
-                    id: "gender",
-                    label: "Gender",
-                    choices: [
-                        {label: "Male", value: "male"},
-                        {label: "Female", value: "female"}
-                    ],
-                },
-            ],
-            query: null
         }
     },
 
     watch: {
         $route(to, from) {
             this.fetch_questions(to.params.slug);
-        },
-        query() {
-            this.rules_sql = this.getGroupSQL(this.query);
         }
     },
 
@@ -96,24 +65,6 @@ export default {
 
     methods: {
 
-        getSql(c) {
-            if (c.type === "query-builder-group") {
-                return this.getGroupSQL(c.query);
-            } else {
-                return this.getRuleSQL(c.query);
-            }
-        },
-
-        getGroupSQL(query) {
-            let self = this;
-            return "(" + query.children.map(c => {
-                return self.getSql(c);
-            }).join(query.logicalOperator === "all" ? " AND " : " OR ") + ")";
-        },
-
-        getRuleSQL(query) {
-            return "(" + query.operand + " " + query.operator + " '" + query.value + "')";
-        },
 
         fetch_questions(election_slug) {
             let self = this;
@@ -165,30 +116,5 @@ export default {
 <style scoped>
 fieldset {
     margin: 20px;
-}
-</style>
-
-<style>
-.vqb-group {
-    border: 1px solid #a2a2a2;
-    margin: 2px;
-    border-radius: 5px;
-}
-
-.match-type-container{
-    padding: 5px;
-}
-
-.vqb-group-heading {
-    background: #9e9e9e;
-    padding: 5px;
-    border-radius: 5px;
-}
-
-.vqb-rule {
-    border: 1px solid #a2a2a2;
-    padding: 10px;
-    margin: 2px;
-    border-radius: 5px;
 }
 </style>

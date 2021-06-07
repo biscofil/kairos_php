@@ -83,31 +83,5 @@ export default class EGPlaintext extends Plaintext {
         return new EGCiphertext(alpha, beta, this.pk);
     }
 
-    /**
-     *
-     * @param message : Object
-     * @returns {BigInt}
-     */
-    static getBigIntFromDict(message) {
-        const iconv = require('iconv-lite');
-        let message_str = JSON.stringify(message);
-        let buffer = iconv.encode(message_str, 'ASCII');
-        // console.log(buffer);
-        let hexBuffer = Utils.bytesToHex(buffer);
-        // console.log(hexBuffer);
-        return BigInt("0x" + hexBuffer);
-    }
-
-    /**
-     *
-     * @param bigIntHexBuffer : BigInt
-     */
-    static getDictFromBigInt(bigIntHexBuffer) {
-        const iconv = require('iconv-lite');
-        let hexBuffer = bigIntHexBuffer.toString(16);
-        let buffer = Utils.hexToBytes(hexBuffer);
-        let message_str = iconv.decode(buffer, 'ASCII');
-        return JSON.parse(message_str);
-    }
 
 }
