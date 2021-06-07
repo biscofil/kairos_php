@@ -27,7 +27,8 @@
         "phpseclib/phpseclib": "~3.0",
         "pusher/pusher-php-server": "^5.0",
         "santigarcor/laravel-vuetable": "^1.1",
-        "tymon/jwt-auth": "^1.0"
+        "tymon/jwt-auth": "^1.0",
+        "webpatser/laravel-uuid": "^3.0"
     },
     "require-dev": {
         "facade/ignition": "^2.5",
