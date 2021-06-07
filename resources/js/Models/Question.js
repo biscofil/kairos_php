@@ -10,14 +10,16 @@ export default class Question {
      * @param max : Number
      * @param tally_query : String
      * @param tally_result : Object
+     * @param question_type : String
      */
-    constructor(id, answers, min, max, tally_query, tally_result) {
+    constructor(id, answers, min, max, tally_query, tally_result, question_type) {
         this.id = id;
         this.answers = answers;
         this.min = min;
         this.max = max;
         this.tally_query = tally_query;
         this.tally_result = tally_result;
+        this.question_type = question_type;
     }
 
     /**
@@ -34,7 +36,8 @@ export default class Question {
             Number(d.min),
             Number(d.max),
             d.tally_query,
-            d.tally_result
+            d.tally_query,
+            d.question_type
         );
     }
 

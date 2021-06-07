@@ -7,18 +7,22 @@ namespace App\Enums;
 use App\Voting\QuestionTypes\BelongsToQuestionType;
 use App\Voting\QuestionTypes\MultipleChoice;
 use App\Voting\QuestionTypes\QuestionType;
+use App\Voting\QuestionTypes\STV;
 use BenSampo\Enum\Enum;
 
 /**
  * @method static static MultipleChoice()
+ * @method static static STV()
  */
-final class  QuestionTypeEnum extends Enum implements GetSetIdentifier
+final class QuestionTypeEnum extends Enum implements GetSetIdentifier
 {
 
     public const MultipleChoice = 'multiple_choice';
+    public const STV = 'stv';
 
     public const QUESTION_TYPES = [
         self::MultipleChoice => MultipleChoice::class,
+        self::STV => STV::class,
     ];
 
     /**

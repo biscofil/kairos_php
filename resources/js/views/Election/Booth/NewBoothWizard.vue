@@ -16,48 +16,23 @@
         </nav>
 
         <!-- voting wizard -->
-        <form-wizard title="AAA" subtitle="BBB" @on-complete="onComplete">
+        <form-wizard :title="election.name" subtitle="Voting booth" @on-complete="onComplete">
 
-            <!-- test -->
-            <!--            <tab-content title="TEST">-->
-            <!--                Vote:-->
-            <!--                <input type="text" class="form-control" v-model="vote">-->
-            <!--                <button class="btn btn-success" @click="cast">OK</button>-->
+            <!-- questions -->
+            <tab-content v-for="(question,q_idx) in election.questions" :key="q_idx" :title="'Question #' + (q_idx+1)">
 
-            <!--                <div class="row" v-for="trustee in election.trustees">-->
-            <!--                    <div class="col-sm-6" align="right">-->
-            <!--                        <country-flag-->
-            <!--                            v-if="trustee.peer_server && trustee.accepts_ballots && trustee.peer_server.country_code"-->
-            <!--                            :country='trustee.peer_server.country_code'/>-->
-            <!--                    </div>-->
-            <!--                    <div class="col-sm-6" align="left">-->
-
-            <!--                    </div>-->
-            <!--                </div>-->
-            <!--            </tab-content>-->
-
-            <!-- actual questions -->
-            <tab-content v-for="(question,q_idx) in election.questions" :key="q_idx" :title="'Question #' + (q_idx+1)"
-                         :before-change="seal">
                 <b>{{ question.question }}</b>
-                <span>You can pick {{ question.min }} to {{ question.max }} answers</span>
-                <div v-for="(answer,a_idx) in question.answers">
-                    <label>
-                        <input type="checkbox"
-                               :name="'question_' + q_idx"
-                               v-model="picked_answers[question.id]"
-                               :value="a_idx"
-                               :disabled="picked_answers[question.id].length >= question.max && picked_answers[question.id].indexOf(a_idx) === -1">
-                        {{ answer.answer }}
-                        <a :href="answer.url" target="_blank" class="brackets_around" v-if="answer.url">Link</a>
-                    </label>
-                </div>
+                <MultipleChoice v-if="question.question_type ==='multiple_choice'" :question="question" :q_idx="q_idx"
+                                v-model="picked_answers[question.id]"></MultipleChoice>
+                <STV v-if="question.question_type ==='stv'" :question="question" :q_idx="q_idx"
+                     v-model="picked_answers[question.id]"></STV>
+
             </tab-content>
 
             <!-- sealed, cast / audit -->
             <tab-content title="Cast / Audit" :before-change="cast">
 
-                <VueObjectView :value="encrypted_vote" />
+                <VueObjectView :value="encrypted_vote"/>
 
                 Sealed, cast / audit?
             </tab-content>
@@ -78,17 +53,20 @@
 <script>
 
 import {FormWizard, TabContent} from 'vue-form-wizard'
-import 'vue-form-wizard/dist/vue-form-wizard.min.css'
 import Election from "../../../Models/Election";
 import EGPlaintext from "../../../Voting/CryptoSystems/ElGamal/EGPlaintext";
 import CastingModal from "./CastingModal";
 import CountryFlag from 'vue-country-flag';
 import VueObjectView from "vue-object-view";
+import MultipleChoice from "./QuestionTypes/MultipleChoice";
+import STV from "./QuestionTypes/STV";
 
 export default {
     name: "NewBoothWizard",
 
     components: {
+        STV,
+        MultipleChoice,
         FormWizard,
         TabContent,
         CastingModal,
@@ -141,7 +119,7 @@ export default {
 
         seal() {
             let vote = [];
-            Object.keys(this.picked_answers).forEach(k =>{
+            Object.keys(this.picked_answers).forEach(k => {
                 vote.push(this.picked_answers[k]);
             });
             console.log(vote);
@@ -188,6 +166,10 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
+@import 'vue-form-wizard/dist/vue-form-wizard.min.css';
 
+.wizard-progress-with-circle {
+    background: #f3f2ee !important;
+}
 </style>
