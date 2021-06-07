@@ -1,7 +1,7 @@
 <template>
     <ul class="list-group">
-        <SlickList lockAxis="y" v-model="items" tag="ul">
-            <SlickItem v-for="(answer, index) in items" :index="index" :key="index" tag="li" class="list-group-item">
+        <SlickList lockAxis="y" v-model="answer_ids" tag="ul">
+            <SlickItem v-for="(answer, index) in sorted_answers" :index="index" :key="index" tag="li" class="list-group-item">
                 {{ answer.answer }}
                 <a :href="answer.url" target="_blank" class="brackets_around" v-if="answer.url">Link</a>
             </SlickItem>
@@ -39,18 +39,27 @@ export default {
     },
 
     mounted() {
-        this.items = this.question.answers;
+        this.answer_ids = Array.from(this.question.answers.keys());
     },
 
     data() {
         return {
-            items: []
+            answer_ids: []
         };
     },
 
+    computed : {
+      sorted_answers(){
+          let self = this;
+          return this.value.map( idx => {
+              return self.question.answers[idx];
+          });
+      }
+    },
+
     watch: {
-        items() {
-            this.$emit('input', this.items);
+        answer_ids() {
+            this.$emit('input', this.answer_ids);
         }
     }
 }
