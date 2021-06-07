@@ -6,6 +6,7 @@ namespace Tests\Unit\Voting\QuestionTypes;
 
 use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
+use App\Models\Answer;
 use App\Models\Election;
 use App\Models\Question;
 use App\Voting\AnonymizationMethods\MixNets\MixNode;
@@ -31,12 +32,19 @@ class MultipleChoicesTest extends TestCase
         $election->private_key = $keyPair->sk;
         $election->save();
 
-        $nQuestions = 3;//rand(1, 3);
+        $nQuestions = 3; //rand(1, 3);
+        $nAnswers = 3; //rand(1, 3);
 
         for ($i = 0; $i < $nQuestions; $i++) {
             $question = Question::factory()->make();
             $question->election_id = $election->id;
             $question->save();
+            for ($k = 0; $k < $nAnswers; $k++) {
+                $answer = Answer::factory()->make();
+                $answer->local_id = $k + 1;
+                $answer->question_id = $question->id;
+                $answer->save();
+            }
         }
 
         $election->setupOutputTables();

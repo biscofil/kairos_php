@@ -7,6 +7,7 @@ use App\Enums\CryptoSystemEnum;
 use App\Enums\QuestionTypeEnum;
 use App\Exceptions\NotYourElectionException;
 use App\Http\Requests\EditCreateElectionRequest;
+use App\Models\Answer;
 use App\Models\Election;
 use App\Models\PeerServer;
 use App\Models\Question;
@@ -120,7 +121,7 @@ class ElectionController extends Controller
     public function show(Election $election): Election
     {
         $election->load([
-            'questions',
+            'questions.answers',
             'trustees.peerServer'
         ]);
         $election->loadCount(['votes', 'mixes']);
@@ -196,7 +197,11 @@ class ElectionController extends Controller
 
         DB::transaction(function () use ($election, $data) {
 
-            $election->questions()->delete();
+
+            $election->questions->each(function (Question $question) {
+                $question->answers()->delete(); // also delete answers
+                $question->delete();
+            });
 
             foreach ($data['questions'] as $question) {
 
@@ -208,16 +213,28 @@ class ElectionController extends Controller
                 $q->min = $question['min'];
                 $q->max = $question['max'];
                 $q->question = $question['question'];
-                $q->answers = $question['answers'];
                 $q->question_type = $question['question_type'];
                 $q->save();
+
+//                $q->answers = $question['answers']; // TODO
+                foreach ($question['answers'] as $idx => $answer) {
+                    // TODO create
+                    $a = new Answer();
+                    $a->question_id = $q->id;
+                    $a->local_id = $idx + 1;
+                    $a->answer = $answer['answer'];
+                    $a->url = $answer['url'];
+                    // TODO attributes
+                    $a->save();
+                }
+
             }
 
         });
 
         $election->save();
 
-        $election->load('questions');
+        $election->load('questions.answers');
 
         return $election;
 

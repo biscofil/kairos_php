@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @property int election_id
  * @property Election election
+ * @property int|null answer_id
  *
  * @property Carbon|null verified_at
  * @property Carbon|null invalidated_at
@@ -41,6 +42,9 @@ class CastVote extends Model
         'vote',
         'ip',
         'hash',
+        //
+        'election_id',
+        'answer_id',
         //
         'verified_by',
         'verified_at',

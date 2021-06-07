@@ -31,38 +31,27 @@ class CastVoteController extends Controller
      * Cast a vote, store without re-ecnrypting it for not
      * @param Election $election
      * @param Request $request
-     * @return CastVote
+     * @return array
      */
-    public function store(Election $election, Request $request): CastVote
+    public function store(Election $election, Request $request): array
     {
         $data = $request->validate([
-            'vote' => ['required', 'array'],
             /**
              * claim added by @see AuthenticateWithElectionCreatorJwt::handle()
              */
             AuthenticateWithElectionCreatorJwt::UserIdClaimName => ['required']
         ]);
 
+        $userID = $request->get(AuthenticateWithElectionCreatorJwt::UserIdClaimName);
+
         /** @var CipherText $skClass */
         $skClass = $election->cryptosystem->getClass()::getCipherTextClass();
 
-        $voteArray = $skClass::validate($data['vote']);
-
-        $userID = $request->get(AuthenticateWithElectionCreatorJwt::UserIdClaimName);
-
-        $vote = $skClass::fromArray($voteArray, $election->public_key);
-
-        $cast_vote = new CastVote();
-        $cast_vote->vote = $vote;
-        $cast_vote->election_id = $election->id;
-        $cast_vote->voter_id = $userID; // TODO user ID vs voter ID
-        $cast_vote->hash = $vote->getFingerprint();
-        $cast_vote->ip = \request()->ip();
-        $cast_vote->save();
+        $votes = $skClass::validateAndStoreVotes($userID, $election, $request);
 
 //        VerifyVote::dispatch($cast_vote);
 
-        return $cast_vote->withoutRelations();
+        return $votes; //->withoutRelations();
 
     }
 

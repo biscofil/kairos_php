@@ -7,6 +7,7 @@ use Database\Factories\QuestionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Class Question
@@ -21,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property \App\Models\Election election
  *
  * @property string question
- * @property array answers
+ * @property \App\Models\Answer[]|\Illuminate\Support\Collection answers
  *
  * @property array|null tally_result
  *
@@ -38,12 +39,10 @@ class Question extends Model
         'max',
         'election_id',
         'question',
-        'answers',
         'tally_result',
     ];
 
     protected $casts = [
-        'answers' => 'array',
         'tally_result' => 'array',
         'question_type' => QuestionTypeEnum::class,
     ];
@@ -53,12 +52,13 @@ class Question extends Model
         'min',
         'max',
         'question',
-        'answers',
     ];
 
     protected $appends = [
         'tally_query'
     ];
+
+    // ############################################# RELATIONS
 
     /**
      * @return BelongsTo
@@ -67,6 +67,16 @@ class Question extends Model
     {
         return $this->belongsTo(Election::class, 'election_id');
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany|\App\Models\Answer
+     */
+    public function answers(): HasMany
+    {
+        return $this->hasMany(Answer::class, 'question_id');
+    }
+
+    // #############################################
 
     /**
      * @param int $q

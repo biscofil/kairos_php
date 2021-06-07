@@ -4,25 +4,25 @@
 namespace Database\Factories;
 
 
-use App\Models\Question;
+use App\Models\Answer;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 /**
- * Class QuestionFactory
+ * Class AnswerFactory
  * @package Database\Factories
- * @method Question create($attributes = [], ?Model $parent = null)
- * @method Question make($attributes = [], ?Model $parent = null)
+ * @method Answer create($attributes = [], ?Model $parent = null)
+ * @method Answer make($attributes = [], ?Model $parent = null)
  */
-class QuestionFactory extends Factory
+class AnswerFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
      * @var string
      */
-    protected $model = Question::class;
+    protected $model = Answer::class;
 
     /**
      * @return array
@@ -30,10 +30,8 @@ class QuestionFactory extends Factory
     public function definition()
     {
         return [
-            'question' => Str::random(10),
-            'min' => 0,
-            'max' => 1,
-            'question_type' => 'multiple_choice'
+            'answer' => Str::random(10),
+            'url' => $this->faker->url
         ];
     }
 

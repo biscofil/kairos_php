@@ -4,6 +4,7 @@ namespace Tests\Http\Controllers;
 
 use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
+use App\Models\Answer;
 use App\Models\Election;
 use App\Models\Question;
 use App\Models\User;
@@ -92,12 +93,16 @@ class ElectionControllerTest extends TestCase
         // edit
         $election = Election::findOrFail($response->json('id'));
         $data = [
-            'questions' => [
-                Question::factory()->make()->toArray(),
-                Question::factory()->make()->toArray(),
-                Question::factory()->make()->toArray(),
-            ]
+            'questions' => []
         ];
+        for ($i = 0; $i < 3; $i++) {
+            $q = Question::factory()->make()->toArray();
+            $q['answers'] = [];
+            for ($j = 0; $j < 3; $j++) {
+                $q['answers'][] = Answer::factory()->make()->toArray();
+            }
+            $data['questions'][] = $q;
+        }
         $response = $this->actingAs($user)->json('PUT', 'api/elections/' . $election->slug . '/questions', $data);
         $this->assertResponseStatusCode(200, $response);
 

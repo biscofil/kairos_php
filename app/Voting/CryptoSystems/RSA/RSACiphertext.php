@@ -3,7 +3,11 @@
 
 namespace App\Voting\CryptoSystems\RSA;
 
+use App\Models\CastVote;
+use App\Models\Election;
 use App\Voting\CryptoSystems\CipherText;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -90,15 +94,30 @@ class RSACiphertext implements CipherText
     }
 
     /**
-     * @param array $data
-     * @return array
+     * @param int $userID
+     * @param \App\Models\Election $election
+     * @param \Illuminate\Http\Request $request
+     * @return CastVote[]
      * @throws \Illuminate\Validation\ValidationException
      */
-    public static function validate(array $data): array
+    public static function validateAndStoreVotes(int $userID, Election $election, Request $request): array
     {
-        return Validator::make($data, [
-            'c' => ['required', 'string'],
+        $voteArray = Validator::make($request->all(), [
+            'vote' => ['required', 'array'],
+            'vote.c' => ['required', 'string'],
         ])->validated();
+
+        $vote = self::fromArray($voteArray['vote'], $election->public_key);
+
+        $cast_vote = new CastVote();
+        $cast_vote->vote = $vote;
+        $cast_vote->election_id = $election->id;
+        $cast_vote->voter_id = $userID; // TODO user ID vs voter ID
+        $cast_vote->hash = $vote->getFingerprint();
+        $cast_vote->ip = $request->ip();
+        $cast_vote->save();
+
+        return [$cast_vote];
     }
 
 }

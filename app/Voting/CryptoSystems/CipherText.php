@@ -5,6 +5,8 @@ namespace App\Voting\CryptoSystems;
 
 
 use App\Models\Cast\Castable;
+use App\Models\Election;
+use Illuminate\Http\Request;
 
 /**
  * Class CipherText
@@ -21,7 +23,7 @@ interface CipherText extends Castable, BelongsToCryptoSystem
      * @return CipherText
      * @noinspection PhpMissingParamTypeInspection
      */
-    public static function fromArray(array $data, $publicKey = null, bool $ignoreParameterSet = false, int $base = 16) : CipherText;
+    public static function fromArray(array $data, $publicKey = null, bool $ignoreParameterSet = false, int $base = 16): CipherText;
 
     /**
      * @param bool $includePublicKey
@@ -46,9 +48,12 @@ interface CipherText extends Castable, BelongsToCryptoSystem
     public function equals($b): bool;
 
     /**
-     * @param array $data
+     * @param int $userID
+     * @param \App\Models\Election $election
+     * @param \Illuminate\Http\Request $request
      * @return array
+     * @noinspection PhpMissingParamTypeInspection
      */
-    public static function validate(array $data): array;
+    public static function validateAndStoreVotes(int $userID, Election $election, Request $request): array;
 
 }

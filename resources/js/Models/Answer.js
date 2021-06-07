@@ -4,10 +4,12 @@ export default class Answer {
      *
      * @param answer : String
      * @param url : String
+     * @param local_id : Number
      */
-    constructor(answer, url) {
+    constructor(answer, url, local_id) {
         this.answer = answer;
         this.url = url;
+        this.local_id = local_id;
     }
 
     /**
@@ -18,7 +20,8 @@ export default class Answer {
     static fromJSONObject(d) {
         return new Answer(
             d.answer,
-            d.url
+            d.url,
+            d.local_id
         );
     }
 
