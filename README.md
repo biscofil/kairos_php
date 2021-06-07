@@ -107,4 +107,5 @@ U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose down
 U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose up -d
 php artisan key:generate
 php artisan generate:jwt-keypair
+php artisan storage:link
 ```
