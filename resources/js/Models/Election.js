@@ -118,6 +118,9 @@ export default class Election {
         /** @type Boolean */
         this.tallying_started_at = null;
 
+        /** @type String */
+        this.output_database_filename_url = null;
+
     }
 
     /**
@@ -241,6 +244,7 @@ export default class Election {
             use_voter_aliases: this.use_voter_aliases,
             voting_starts_at: this.voting_starts_at,//? this.voting_starts_at : null,
             voting_ends_at: this.voting_ends_at,//? this.voting_ends_at.format() : null
+            output_database_filename_url: this.output_database_filename_url,
         };
 
         return Utils.object_sort_keys(json_obj);
@@ -288,6 +292,8 @@ export default class Election {
 
         el.frozen_at = d.frozen_at;//? moment(d.frozen_at) : null;
         el.archived_at = d.archived_at;//? moment(d.archived_at) : null;
+
+        el.output_database_filename_url = d.output_database_filename_url;
 
         el.trustees = null;
         if (d.trustees) {

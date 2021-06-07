@@ -75,9 +75,9 @@ class MultipleChoicesTest extends TestCase
             static::assertNotEquals(false, $question->tally_result);
         }
 
-        self::assertTrue(file_exists($election->getOutputDatabaseFilename()));
-        unlink($election->getOutputDatabaseFilename());
-        self::assertFalse(file_exists($election->getOutputDatabaseFilename()));
+        self::assertTrue(file_exists($election->getOutputDatabaseStorageFilePath()));
+        unlink($election->getOutputDatabaseStorageFilePath());
+        self::assertFalse(file_exists($election->getOutputDatabaseStorageFilePath()));
 
     }
 
@@ -123,7 +123,7 @@ class MultipleChoicesTest extends TestCase
 //        $conn->table($election->getOutputTableName())->truncate();
         self::assertTrue(MixNode::insertBallot($election, $conn, $cipher));
 
-        unlink($election->getOutputDatabaseFilename());
+        unlink($election->getOutputDatabaseStorageFilePath());
     }
 
     /**
@@ -167,7 +167,7 @@ class MultipleChoicesTest extends TestCase
 //        $conn->table($election->getOutputTableName())->truncate();
         self::assertFalse(MixNode::insertBallot($election, $conn, $cipher));
 
-        unlink($election->getOutputDatabaseFilename());
+        unlink($election->getOutputDatabaseStorageFilePath());
 
     }
 

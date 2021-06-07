@@ -6,10 +6,6 @@ namespace App\Voting\AnonymizationMethods\MixNets;
 use App\Models\Election;
 use App\Voting\AnonymizationMethods\BelongsToAnonymizationMethod;
 use App\Voting\CryptoSystems\CipherText;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -201,9 +197,8 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
      */
     public function store(string $fileName, bool $storePrivateValues = false): void
     {
-        $jsonFilePath = $fileName . '.json';
         $data = $this->toArray($storePrivateValues);
-        Storage::put($jsonFilePath, json_encode($data, JSON_PRETTY_PRINT));
+        Storage::put($fileName, json_encode($data, JSON_PRETTY_PRINT));
     }
 
     /**
@@ -212,56 +207,7 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
      */
     public function deleteFile(string $fileName): bool
     {
-        $jsonFilePath = $fileName . '.json';
-        return Storage::delete($jsonFilePath);
-    }
-
-    /**
-     * TODO check
-     * @param string $fileName
-     */
-    public function toSqlite(string $fileName)
-    {
-
-        $filePath = base_path($fileName . '.sqlite');
-        $name = 'temp';
-        Config::set('database.connections.' . $name, [
-            'driver' => 'sqlite',
-            'database' => $filePath,
-            'prefix' => '',
-            'foreign_key_constraints' => true,
-        ]);
-
-        if (!file_exists($filePath)) {
-
-            // create file
-            /** @noinspection PhpExpressionResultUnusedInspection */
-            new SQLite3($filePath);
-
-            // create tables
-            Schema::connection($name)->create('shadow_mixes', function (Blueprint $table) {
-                $table->id();
-                $table->string('ciphertext');
-                $table->timestamps();
-            });
-
-            foreach ($this->shadowMixes as $idx => $shadowMix) {
-                Schema::connection($name)->create('shadow_mix_' . $idx, function (Blueprint $table) {
-                    $table->id();
-                    $table->string('ciphertext');
-                    $table->timestamps();
-                });
-            }
-        }
-
-        foreach ($this->shadowMixes as $idx => $shadowMix) {
-            DB::connection($name)->table('shadow_mix_' . $idx)
-                ->insert(array_map(function (CipherText $cipherText) {
-                    return [
-                        'ciphertext' => $cipherText->toArray()// TODO check
-                    ];
-                }, $shadowMix->ciphertexts));
-        }
+        return Storage::delete($fileName);
     }
 
     /**
@@ -271,8 +217,7 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
      */
     public static function load(string $fileName): self
     {
-        $jsonFilePath = $fileName . '.json';
-        $data = json_decode(Storage::get($jsonFilePath), true);
+        $data = json_decode(Storage::get($fileName), true);
         return self::fromArray($data);
     }
 

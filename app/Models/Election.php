@@ -198,6 +198,7 @@ class Election extends Model
     ];
 
     protected $appends = [
+        'output_database_filename_url',
         'is_auth_user_admin',
         'is_auth_user_trustee',
         'trustee_count',
