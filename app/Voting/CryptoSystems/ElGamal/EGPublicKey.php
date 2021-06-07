@@ -169,9 +169,15 @@ class EGPublicKey implements PublicKey
      * @param BigInteger $randomness r
      * @return EGCiphertext
      * @noinspection PhpMissingReturnTypeInspection
+     * @throws \Exception
      */
     public function encryptWithRandomness(EGPlaintext $plainText, BigInteger $randomness)
     {
+
+        // check plaintext size: make sure that bin lenght of the message is lett than the bit lenght of p
+        if ($plainText->m->getLength() >= $this->parameterSet->p->getLength()) {
+            throw new \Exception("Bit lenght of the message is {$plainText->m->getLength()} but has to be < {$this->parameterSet->p->getLength()}");
+        }
 
         $m = $plainText->m;
 
