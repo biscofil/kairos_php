@@ -62,6 +62,7 @@ use Webpatser\Uuid\Uuid;
  *
  * @property null|Carbon frozen_at
  * @property null|Carbon archived_at
+ * @property-read bool is_freezing
  *
  * @property Carbon voting_starts_at
  * @property null|Carbon voting_started_at
@@ -207,6 +208,7 @@ class Election extends Model
         'admin_name',
         'issues',
         'current_phase',
+        'is_freezing',
     ];
 
     /**
@@ -367,6 +369,15 @@ class Election extends Model
         } else {
             return ['name' => 'Tally finished', 'class' => 'info'];
         }
+    }
+
+    /**
+     * @return bool
+     * @noinspection PhpUnused
+     */
+    public function getIsFreezingAttribute(): bool
+    {
+        return $this->isFreezing();
     }
 
     // ############################################ Scopes ############################################
@@ -685,8 +696,45 @@ class Election extends Model
         $this->cryptosystem->getClass()::onElectionFreeze($this);
         $this->frozen_at = now();
         $this->save();
-        // TODO $this->setupOutputTables();
+
+        $this->clearFreezingStatus();
+
+        $this->setupOutputTables();
     }
+
+    /**
+     * @return string
+     */
+    public function getFreezingCacheKey(): string
+    {
+        return 'freezing_election_' . $this->id;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isFreezing(): bool
+    {
+        return Cache::get($this->getFreezingCacheKey(), false);
+    }
+
+    /**
+     *
+     */
+    public function setAsFreezing(): void
+    {
+        Cache::forever($this->getFreezingCacheKey(), true);
+    }
+
+    /**
+     *
+     */
+    public function clearFreezingStatus(): void
+    {
+        Cache::forget($this->getFreezingCacheKey());
+    }
+
+    // ############################################
 
     /**
      * @param bool $featured

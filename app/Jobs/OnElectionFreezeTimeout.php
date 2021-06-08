@@ -48,6 +48,8 @@ class OnElectionFreezeTimeout implements ShouldQueue
         //    election is actually frozen
         //    if not the freeze is invalid
 
+        $this->election->clearFreezingStatus();
+
         Log::warning('OnElectionFreezeTimeout > Timeout expired after Freeze1IAmFreezingElection');
 
     }
