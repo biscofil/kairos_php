@@ -1,8 +1,5 @@
 image: registry.gitlab.com/biscofil/thelios:no_user
 
-services:
-  - mysql:8
-
 variables:
   MYSQL_DATABASE: homestead
   MYSQL_ROOT_PASSWORD: secret
