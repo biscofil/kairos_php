@@ -185,9 +185,11 @@ class ElectionTest extends TestCase
         $election->voting_started_at = Carbon::now();
         $election->voting_ends_at = Carbon::now();
         $election->public_key = $keypair->pk;
-        $election->actualFreeze();
 
         $trustee = $election->createPeerServerTrustee(getCurrentServer());
+
+        $election->actualFreeze();
+
 
         for ($i = 0; $i < rand(3, 5); $i++) {
 
