@@ -42,8 +42,7 @@ class ExpElGamalHomomorphicElectionTest extends TestCase
         $election->private_key = $keyPair->sk;
         $election->save();
 
-        $election->frozen_at = Carbon::now(); // todo use freeze()
-        $election->save();
+        $election->actualFreeze();
 
         $q = Question::factory()->make();
         $q->election_id = $election->id;

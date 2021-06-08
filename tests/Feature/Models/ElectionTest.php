@@ -181,12 +181,11 @@ class ElectionTest extends TestCase
         $keypair = EGKeyPair::generate(); // TODO check!!
 
         $election = Election::findOrFail($response->json('id'));
-        $election->frozen_at = Carbon::now();
         $election->voting_starts_at = Carbon::now();
         $election->voting_started_at = Carbon::now();
         $election->voting_ends_at = Carbon::now();
         $election->public_key = $keypair->pk;
-        $election->save();
+        $election->actualFreeze();
 
         $trustee = $election->createPeerServerTrustee(getCurrentServer());
 

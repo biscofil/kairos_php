@@ -6,9 +6,9 @@
 
 
 ```shell
-# comment out the user part in DockerFile
+# comment out the user part in DockerFile (gitlab)
 docker build -t registry.gitlab.com/biscofil/thelios:no_user .
-# uncomment the user part in DockerFile
+# uncomment the user part in DockerFile (local)
 docker build -t registry.gitlab.com/biscofil/thelios:user .
 docker push -a registry.gitlab.com/biscofil/thelios
 ```

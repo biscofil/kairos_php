@@ -5,6 +5,7 @@ rsync -azP \
     --exclude '.idea' \
     --exclude 'node_modules/*' \
     --exclude 'bootstrap/cache/*' \
+    --exclude 'storage/app/*' \
     --exclude 'storage/app/public/*' \
     --exclude 'storage/framework/cache/data/*' \
     --exclude 'storage/framework/sessions/*' \
@@ -30,6 +31,7 @@ rsync -azP \
     --exclude '.idea' \
     --exclude 'node_modules/*' \
     --exclude 'bootstrap/cache/*' \
+    --exclude 'storage/app/*' \
     --exclude 'storage/app/public/*' \
     --exclude 'storage/framework/cache/data/*' \
     --exclude 'storage/framework/sessions/*' \
@@ -54,6 +56,7 @@ rsync -azP \
     --exclude '.idea' \
     --exclude 'node_modules/*' \
     --exclude 'bootstrap/cache/*' \
+    --exclude 'storage/app/*' \
     --exclude 'storage/app/public/*' \
     --exclude 'storage/framework/cache/data/*' \
     --exclude 'storage/framework/sessions/*' \
@@ -71,5 +74,17 @@ rsync -azP \
 rsync -azP _docker/peer22/ root@peer22.biscofil.it:/root/helios
 
 
+#ssh -t root@peer20.biscofil.it 'cd /root/helios && docker-compose exec webserver php artisan route:cache'
+#ssh -t root@peer21.biscofil.it 'cd /root/helios && docker-compose exec webserver php artisan route:cache'
+#ssh -t root@peer22.biscofil.it 'cd /root/helios && docker-compose exec webserver php artisan route:cache'
 
+#ssh -t root@peer20.biscofil.it 'cd /root/helios && docker-compose exec webserver php artisan migrate'
+#ssh -t root@peer21.biscofil.it 'cd /root/helios && docker-compose exec webserver php artisan migrate'
+#ssh -t root@peer22.biscofil.it 'cd /root/helios && docker-compose exec webserver php artisan migrate'
+#
+#ssh -t root@peer20.biscofil.it 'cd /root/helios && docker-compose exec webserver composer dump-autoload'
+#ssh -t root@peer21.biscofil.it 'cd /root/helios && docker-compose exec webserver composer dump-autoload'
+#ssh -t root@peer22.biscofil.it 'cd /root/helios && docker-compose exec webserver composer dump-autoload'
+
+notify-send Done
 

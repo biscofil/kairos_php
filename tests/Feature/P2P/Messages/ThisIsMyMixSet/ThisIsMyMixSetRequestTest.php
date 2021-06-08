@@ -40,6 +40,8 @@ class ThisIsMyMixSetRequestTest extends TestCase
 
         $trustee = $election->createPeerServerTrustee($me);
 
+        $election->actualFreeze();
+
         $primaryShadowMixes = ReEncryptingMixNode::generate($election, [
             $election->public_key->encrypt(new EGPlaintext(BI(3)))
         ], 2);
