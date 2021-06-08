@@ -1,8 +1,12 @@
 image: registry.gitlab.com/biscofil/thelios:no_user
 
+services:
+  - mysql:8
+
 variables:
-  MYSQL_DATABASE: homestead
-  MYSQL_ROOT_PASSWORD: secret
+  # Configure mysql environment variables (https://hub.docker.com/_/mysql/)
+  MYSQL_DATABASE: laravel
+  MYSQL_ROOT_PASSWORD: your_mysql_root_password
   DB_HOST: mysql
   DB_USERNAME: root
 
@@ -21,6 +25,7 @@ php_test:
       - vendor/
   before_script:
     - cp .env.example .env
+    - cp db.env.example db.env
     - composer install
     - rm bootstrap/cache/*
     - php artisan config:clear

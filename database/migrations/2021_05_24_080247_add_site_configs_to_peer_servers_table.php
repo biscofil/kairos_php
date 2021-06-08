@@ -29,7 +29,7 @@ class AddSiteConfigsToPeerServersTable extends Migration
 
         });
 
-        $me = getCurrentServer();
+        $me = PeerServer::findOrFail(PeerServer::meID);
         $me->site_title = config('app.name');
         $me->help_email_address = 'help@example.com';
         $me->main_logo_url = asset('favicon.ico');
