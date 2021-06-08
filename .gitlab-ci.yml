@@ -28,11 +28,11 @@ php_test:
     - php artisan route:clear
     - php artisan view:clear
     - php artisan key:generate
+    - php artisan migrate
+    - php artisan db:seed
     - php artisan generate:jwt-keypair
     - php artisan config:cache
     - php artisan route:cache
-    - php artisan migrate
-    - php artisan db:seed
   script:
     - echo PHPUNIT TEST
     - vendor/phpunit/phpunit/phpunit tests/ --coverage-text --colors=never --configuration phpunit_gitlab.xml
