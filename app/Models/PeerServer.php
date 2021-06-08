@@ -54,12 +54,12 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * @property \Illuminate\Support\Collection|\App\Models\Election[] elections
  *
  * @method static self|null find(int|array $array)
+ * @method static self findOrFail($id)
  * @method static self firstOrFail()
  * @method static self|Builder unknown()
  * @method static self|Builder ignoreMyself()
  * @method static self|Builder withDomain(string $domain)
  * @method static self|null first()
- * @method static findOrFail($id)
  *
  * @method static PeerServerFactory factory()
  */

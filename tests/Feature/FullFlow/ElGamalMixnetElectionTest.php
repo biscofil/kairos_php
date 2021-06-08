@@ -42,7 +42,7 @@ class ElGamalMixnetElectionTest extends TestCase
         $election->private_key = $keyPair->sk;
         $election->save();
 
-        $election->frozen_at = Carbon::now(); // todo use freeze()
+        $election->actualFreeze();
         $election->save();
 
         // cast votes
@@ -81,6 +81,7 @@ class ElGamalMixnetElectionTest extends TestCase
 
         $election->anonymization_method->getClass()::afterVotingPhaseEnds($election);
 
+        $election->anonymization_method->getClass()::onSecretKeyReceived($election, $trustee);
 
     }
 

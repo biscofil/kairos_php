@@ -42,8 +42,12 @@ RUN pecl install pcov && docker-php-ext-enable pcov
 
 RUN apt-get install -y cron
 
-# comment out for default user
+# comment out for default user (CI)
 RUN addgroup app_user_g -u 1000
 RUN useradd -m -r -u 1000 -g app_user_g app_user
 USER app_user
+# comment out for default user (CI)
 
+RUN apt-get install -y libsqlite3-dev
+
+RUN docker-php-ext-install pdo_sqlite && docker-php-ext-enable pdo_sqlite
