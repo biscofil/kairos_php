@@ -21,7 +21,7 @@ class AddTimezoneAndLanguageToPeerServersTable extends Migration
 
         });
 
-        $me = getCurrentServer();
+        $me = PeerServer::findOrFail(PeerServer::meID);
         $me->timezone = config('app.timezone');
         $me->locale = config('app.locale');
         $me->save();
