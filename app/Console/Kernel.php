@@ -40,17 +40,19 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
 
+        $logFile = getDailyLogFilename();
+
         $schedule->command('heartbeat')
             ->everyTwoHours()
-            ->appendOutputTo(config('logging.channels.single.path'));
+            ->appendOutputTo($logFile);
 
         $schedule->command('open_election_phase')
             ->everyMinute()
-            ->appendOutputTo(config('logging.channels.single.path'));
+            ->appendOutputTo($logFile);
 
         $schedule->command('close_election_phase')
             ->everyMinute()
-            ->appendOutputTo(config('logging.channels.single.path'));
+            ->appendOutputTo($logFile);
 
         // TODO
 //        $me = getCurrentServer();

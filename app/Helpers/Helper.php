@@ -134,6 +134,15 @@ function websocketLog(string $msg, ?PeerServer $messageDestinationServer = null,
 /**
  * @return \App\Models\PeerServer
  */
-function getCurrentServer() : PeerServer{
+function getCurrentServer(): PeerServer
+{
     return app('peer_server_me');
+}
+
+/**
+ * @return string
+ */
+function getDailyLogFilename(): string
+{
+    return storage_path(sprintf("logs/laravel-%s-%s-%s.log", date("Y"), date("m"), date("d")));
 }
