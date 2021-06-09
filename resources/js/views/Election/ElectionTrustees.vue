@@ -58,6 +58,7 @@
                         <div v-else-if="trustee.peer_server">
                             <!-- Server trustee -->
                             Server ({{ trustee.peer_server.name }})
+                            <span v-if="trustee.accepts_ballots" class="badge badge-info">Bulletin board</span>
                             <a v-if="!election.frozen_at" @click="remove_trustee(trustee)"
                                href="javascript:void(0)" class="brackets_around">x</a>
                         </div>
@@ -83,7 +84,7 @@
             </li>
         </div>
 
-        <div class="card">
+        <div class="card" v-if="election.trustees">
             <div class="card-body">
                 <div class="form">
                     <h3>Threshold encryption</h3>
