@@ -99,6 +99,7 @@ class TallyDatabase
         Log::debug('setupOutputTables > ' . $this->election->getOutputDatabaseStorageFilePath());
 
         // create a table for each question
+        Log::debug('Creating a table for each question');
         foreach ($this->election->questions as $question) {
             $question_answers_table_name = $this->getQuestionAnswersTableName($question);
             $this->connection->getSchemaBuilder()->dropIfExists($question_answers_table_name);
@@ -122,6 +123,7 @@ class TallyDatabase
         // create a table for all ballots
         $output_table_name = $this->getOutputTableName();
 
+        Log::debug("Dropping (if exists) and creating table $output_table_name");
         $this->connection->getSchemaBuilder()->dropIfExists($output_table_name);
         $this->connection->getSchemaBuilder()->create($output_table_name, function (Blueprint $table) {
 
@@ -137,9 +139,17 @@ class TallyDatabase
 
         });
 
+
         // create views with queries from questions
+        Log::debug('Creating tally view');
         foreach ($this->election->questions as $question) {
-            $this->connection->statement("CREATE VIEW tally_q_{$question->local_id} AS " . $question->question_type->getClass()::getTallyQuery($question));
+            $query = "CREATE VIEW tally_q_{$question->local_id} AS " . $question->question_type->getClass()::getTallyQuery($question);
+            try {
+                $this->connection->statement($query);
+            } catch (\Throwable $e) {
+                Log::error('Error during view creation');
+                Log::debug($query);
+            }
         }
 
     }
