@@ -5,6 +5,7 @@ namespace App\Http;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\AuthenticateWithElectionCreatorJwt;
 use App\Http\Middleware\CanVote;
+use App\Http\Middleware\DuringVotingPhase;
 use App\Http\Middleware\ElectionFrozen;
 use App\Http\Middleware\ElectionNotFrozen;
 use App\Http\Middleware\ElectionTrustee;
@@ -85,6 +86,7 @@ class Kernel extends HttpKernel
         'election_admin' => MustBeElectionAdmin::class,
 
         'election_trustee' => ElectionTrustee::class,
+        'during_voting_phase' => DuringVotingPhase::class,
         'frozen' => ElectionFrozen::class,
         'not_frozen' => ElectionNotFrozen::class,
         'no_issues' => NoElectionIssues::class,

@@ -77,7 +77,8 @@ Route::middleware('auth:user_api')->group(function () {
 
 });
 
-Route::middleware(['frozen', 'authenticate_with_election_creator_jwt'])->group(function () { // , 'can_vote'
+Route::middleware(['during_voting_phase', 'authenticate_with_election_creator_jwt'])->group(function () { // , 'can_vote'
+    //Route::options('/elections/{election}/cast', [CastVoteController::class, 'store_preflight']);
     Route::post('/elections/{election}/cast', [CastVoteController::class, 'store']);
 });
 
