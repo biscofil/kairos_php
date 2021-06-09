@@ -16,17 +16,17 @@ class ASCII_JSONBallotEncoding extends JSONBallotEncoding
     /**
      * Encodes a ballot using Json
      * TODO could store as string or as number
-     * @param mixed $vote
+     * @param array $vote
      * @param string $outClass
-     * @return Plaintext[]
+     * @return Plaintext
      */
-    public static function encode($vote, string $outClass): array
+    public static function encode(array $vote, string $outClass): Plaintext
     {
         $jsonStr = json_encode($vote);
         // from UTF-8 to ASCII
         $str = iconv('UTF-8', 'ASCII', $jsonStr);
         $str = head(unpack('H*', $str));
-        return [new $outClass($str)];
+        return new $outClass($str);
     }
 
     /**

@@ -8,7 +8,7 @@ use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
 use App\Models\Question;
-use App\Voting\BallotEncodings\ASCII_JSONBallotEncoding;
+use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use Tests\TestCase;
 
@@ -36,10 +36,10 @@ class MultipleChoicesTest extends TestCase
             [2], // second answer of second question
             [3]  // third answer of third question
         ];
-        $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
+        $plaintext =Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
         $cipher = $keyPair->pk->encrypt($plaintext);
 
-        $plainVote = ASCII_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
+        $plainVote = Small_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
 
         $tallyDatabase = $election->getTallyDatabase();
         self::assertTrue($tallyDatabase->insertBallot($plainVote));
@@ -86,10 +86,10 @@ class MultipleChoicesTest extends TestCase
             [],
             []
         ];
-        $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
+        $plaintext =Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
         $cipher = $keyPair->pk->encrypt($plaintext);
 
-        $plainVote = ASCII_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
+        $plainVote = Small_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
         $tallyDatabase = $election->getTallyDatabase();
         self::assertTrue($tallyDatabase->insertBallot($plainVote));
         $tallyDatabase->tally();
@@ -121,10 +121,10 @@ class MultipleChoicesTest extends TestCase
             [2], // second answer of second question
             [3] // third answer of third question
         ];
-        $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
+        $plaintext =Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
         $cipher = $keyPair->pk->encrypt($plaintext);
 
-        $plainVote = ASCII_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
+        $plainVote = Small_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
         self::assertFalse($tallyDatabase->insertBallot($plainVote));
 
         $tallyDatabase->delete();

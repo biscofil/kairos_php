@@ -61,8 +61,8 @@ abstract class Mix implements BelongsToAnonymizationMethod
         for ($i = 0; $i < count($this->ciphertexts); $i++) {
 
             if (!$this->ciphertexts[$i]->equals($b->ciphertexts[$i])) {
-                dump($this->ciphertexts[$i]->toArray());
-                dump($b->ciphertexts[$i]->toArray());
+//                dump($this->ciphertexts[$i]->toArray());
+//                dump($b->ciphertexts[$i]->toArray());
                 return false;
             }
 

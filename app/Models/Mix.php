@@ -224,7 +224,7 @@ class Mix extends Model
             $index = $election->getIndexAfter($index);
         }
 
-        $sk = EGSecretKey::fromThresholdShares($election->public_key, $receivedShares);
+        $sk = EGSecretKey::fromThresholdShares($election->public_key, $receivedShares);// TODO generalize
 
         $meTrustee->private_key = $sk;
         $meTrustee->save();

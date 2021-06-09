@@ -4,13 +4,11 @@ namespace Tests\Http\Controllers;
 
 use App\Models\CastVote;
 use App\Models\Election;
-use App\Models\PeerServer;
 use App\Models\User;
 use App\Models\Voter;
-use App\Voting\BallotEncodings\ASCII_JSONBallotEncoding;
+use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
 use App\Voting\CryptoSystems\RSA\RSAKeyPair;
 use App\Voting\CryptoSystems\RSA\RSAPlaintext;
-use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class CastVoteControllerTest extends TestCase
@@ -41,21 +39,16 @@ class CastVoteControllerTest extends TestCase
         $voter->election_id = $election->id;
         $voter->save();
 
+        self::createElectionQuestions($election);
+
         static::assertEquals(0, $voter->votes()->count());
 
-
         // generate a JSON vote structure
-        $votePlain = [
-            Str::random(10) => Str::random(10),
-            Str::random(10) => [
-                Str::random(10),
-                Str::random(10),
-            ]
-        ];
+        $votePlain = [[1], [3], []];
 
         // encrypt it
         /** @var RSAPlaintext $plaintext */
-        $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, RSAPlaintext::class))[0];
+        $plaintext = Small_JSONBallotEncoding::encode($votePlain, RSAPlaintext::class);
         $cipher = $keyPair->pk->encrypt($plaintext);
 
         $data = ['vote' => $cipher->toArray(true)];
@@ -75,7 +68,7 @@ class CastVoteControllerTest extends TestCase
         $voteCast = $election->votes()->first();
 
         $out = $keyPair->sk->decrypt($voteCast->vote);
-        static::assertEquals($votePlain, ASCII_JSONBallotEncoding::decode($out));
+        static::assertEquals($votePlain, Small_JSONBallotEncoding::decode($out));
 
     }
 }

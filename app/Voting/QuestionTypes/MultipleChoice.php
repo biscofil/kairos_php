@@ -44,15 +44,15 @@ class MultipleChoice extends QuestionType
                 $query .= ' UNION ALL ';
             }
             $otherColumns = array_diff($questionAnswerCols, [$questionAnswerCol]);
-            $otherColumnStr = '';
+            $whereDifferentFromOtherColumsClause = '';
             if (count($otherColumns)) {
-                $otherColumnStr = implode('","', $otherColumns);
-                $otherColumnStr = " WHERE COALESCE(\"$questionAnswerCol\" NOT IN (\"$otherColumnStr\"),1) ";
+                $whereDifferentFromOtherColumsClause = implode('","', $otherColumns);
+                $whereDifferentFromOtherColumsClause = " WHERE COALESCE(\"$questionAnswerCol\" NOT IN (\"$whereDifferentFromOtherColumsClause\"),1) ";
             }
             $query .= "
                     SELECT \"$questionAnswerCol\" as id, COUNT(id) as c
                     FROM \"$question_answers_table_name\"
-                    $otherColumnStr
+                    $whereDifferentFromOtherColumsClause
                     GROUP BY \"$questionAnswerCol\" ";
             $first = false;
         }

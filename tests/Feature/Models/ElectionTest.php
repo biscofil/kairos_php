@@ -7,7 +7,7 @@ use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
 use App\Models\Trustee;
 use App\Models\User;
-use App\Voting\BallotEncodings\ASCII_JSONBallotEncoding;
+use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use App\Voting\CryptoSystems\RSA\RSAPlaintext;
@@ -55,7 +55,7 @@ class ElectionTest extends TestCase
 
         $plainVote = ['v' => Str::random(3)];
 
-        $plaintext = (ASCII_JSONBallotEncoding::encode($plainVote, RSAPlaintext::class))[0];
+        $plaintext = Small_JSONBallotEncoding::encode($plainVote, RSAPlaintext::class);
 
 //        $cipher = $election->public_key->encrypt($plaintext); // TODO use trustee public key sequentially
         // after voting phase ends
@@ -77,7 +77,7 @@ class ElectionTest extends TestCase
         $election->cryptosystem->getClass()::afterAnonymizationProcessEnds($election);
 
         //$out = $election->private_key->decrypt($cipher);
-        static::assertEquals($plainVote, ASCII_JSONBallotEncoding::decode($out));
+        static::assertEquals($plainVote, Small_JSONBallotEncoding::decode($out));
 
         // corrupt one private key
         $trustee = Trustee::findOrFail(intval(array_keys($privateKeys)[0])); // take the first trustee
@@ -102,13 +102,14 @@ class ElectionTest extends TestCase
         $user = User::factory()->create();
 
         // create election
-        $data = Election::factory()->make();
-        $data->cryptosystem = CryptoSystemEnum::ElGamal();
+        $election = Election::factory()->make();
+        $election->cryptosystem = CryptoSystemEnum::ElGamal();
         $response = $this->actingAs($user)
-            ->json('POST', 'api/elections', $data->toArray());
+            ->json('POST', 'api/elections', $election->toArray());
         $this->assertResponseStatusCode(201, $response);
 
         $election = Election::findOrFail($response->json('id'));
+        self::createElectionQuestions($election);
 
         $privateKeys = [];
         for ($i = 1; $i < 5; $i++) {
@@ -129,8 +130,8 @@ class ElectionTest extends TestCase
         $election->cryptosystem->getClass()::onElectionFreeze($election);
         static::assertNotNull($election->public_key);
 
-        $plainVote = ['v' => Str::random(3)];
-        $plaintext = (ASCII_JSONBallotEncoding::encode($plainVote, EGPlaintext::class))[0];
+        $plainVote = [[2], [3], [1]];
+        $plaintext = Small_JSONBallotEncoding::encode($plainVote, EGPlaintext::class);
         $cipher = $election->public_key->encrypt($plaintext);
         // after voting phase ends
 
@@ -146,7 +147,7 @@ class ElectionTest extends TestCase
         $election->cryptosystem->getClass()::afterAnonymizationProcessEnds($election);
 
         $out = $election->private_key->decrypt($cipher);
-        static::assertEquals($plainVote, ASCII_JSONBallotEncoding::decode($out));
+        static::assertEquals($plainVote, Small_JSONBallotEncoding::decode($out));
 
         // corrupt one private key
         $trustee = Trustee::findOrFail(intval(array_keys($privateKeys)[0])); // take the first trustee
@@ -158,8 +159,12 @@ class ElectionTest extends TestCase
         $election->cryptosystem->getClass()::afterAnonymizationProcessEnds($election);
 
         $out = $election->private_key->decrypt($cipher);
-        static::assertNotEquals($plainVote, ASCII_JSONBallotEncoding::decode($out));
-
+        try {
+            // if succeeds (unlikely)
+            static::assertNotEquals($plainVote, Small_JSONBallotEncoding::decode($out));
+        } catch (\Throwable $e) {
+            self::assertTrue(true);
+        }
     }
 
     /**
@@ -190,20 +195,17 @@ class ElectionTest extends TestCase
 
         $election->actualFreeze();
 
+        self::createElectionQuestions($election);
 
         for ($i = 0; $i < rand(3, 5); $i++) {
 
             // generate a JSON vote structure
             $votePlain = [
-                Str::random(10) => Str::random(10),
-                Str::random(10) => [
-                    Str::random(10),
-                    Str::random(10),
-                ]
+                [3], [], []
             ];
 
             /** @var RSAPlaintext $plaintext */  // TODO check!!
-            $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
+            $plaintext = Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
             $cipher = $keypair->pk->encrypt($plaintext); // encrypt it
             $data = ['vote' => $cipher->toArray(true)];
             /**

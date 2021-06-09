@@ -146,7 +146,7 @@ class ReEncryptingMixNode extends MixNode
 
         $cipherTexts = $lastMix->getMixWithShadowMixes()->primaryMix->ciphertexts;
 
-        $election->getTallyDatabase()->insertBallots($cipherTexts);
+        $election->getTallyDatabase()->insertBallots($cipherTexts); // TODO check
 
         $election->tally();
 

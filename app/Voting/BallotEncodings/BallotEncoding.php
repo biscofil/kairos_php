@@ -10,11 +10,11 @@ interface BallotEncoding
 {
 
     /**
-     * @param mixed $vote // TODO Ballot
+     * @param array $vote // TODO Ballot
      * @param string $outClass
-     * @return Plaintext[]
+     * @return Plaintext
      */
-    public static function encode($vote, string $outClass): array;
+    public static function encode(array $vote, string $outClass): Plaintext;
 
     /**
      * @param Plaintext $representation

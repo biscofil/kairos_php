@@ -9,7 +9,7 @@ use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use Tests\TestCase;
 
 /**
- * Class JsonBallotEncodingTest
+ * Class ASCII_JSONBallotEncodingTest
  * @package Tests\Unit\Voting\BallotEncodings
  */
 class ASCII_JSONBallotEncodingTest extends TestCase
@@ -20,10 +20,10 @@ class ASCII_JSONBallotEncodingTest extends TestCase
      */
     public function encode_decode()
     {
-        $votePlain =  [[1, 3], [4, 5]];
+        $votePlain = [[1, 3], [4, 5]];
 
         /** @var \App\Voting\CryptoSystems\ElGamal\EGPlaintext $plaintext */
-        $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
+        $plaintext = ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
 
         $out = ASCII_JSONBallotEncoding::decode($plaintext);
 
@@ -43,7 +43,7 @@ class ASCII_JSONBallotEncodingTest extends TestCase
         // js output : 110244460886710670085338461n
 
         /** @var \App\Voting\CryptoSystems\ElGamal\EGPlaintext $plaintext */
-        $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
+        $plaintext = ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
 
         $pt = new EGPlaintext(BI('110244460886710670085338461', 10));
 
@@ -51,7 +51,7 @@ class ASCII_JSONBallotEncodingTest extends TestCase
 
         $jsEncoding = ASCII_JSONBallotEncoding::decode($pt);
 
-        self::assertEquals($votePlain, $jsEncoding);
+        self::assertTrue($votePlain === $jsEncoding);
 
     }
 
@@ -71,17 +71,17 @@ class ASCII_JSONBallotEncodingTest extends TestCase
         self::assertFalse(ASCII_JSONBallotEncoding::isBallotValid($c));
         self::assertFalse(ASCII_JSONBallotEncoding::isBallotValid($d));
 
-        self::assertEquals(json_decode($a), json_decode($b));
-        self::assertEquals(json_decode($a), json_decode($c));
+        self::assertTrue(json_decode($a) === json_decode($b));
+        self::assertTrue(json_decode($a) === json_decode($c));
 
-        self::assertEquals($a, json_encode(json_decode($a)));
+        self::assertTrue($a === json_encode(json_decode($a)));
         $invalidItemsD = array_filter(json_decode($a, true), function ($v) {
             return !is_int($v);
         });
         self::assertCount(0, $invalidItemsD);
 
-        self::assertNotEquals($b, json_encode(json_decode($b)));
-        self::assertNotEquals($c, json_encode(json_decode($c)));
+        self::assertFalse($b === json_encode(json_decode($b)));
+        self::assertFalse($c === json_encode(json_decode($c)));
 
 //        dump(json_decode($d));
 //        self::assertNotEquals(json_decode($a, true), json_decode($d, true));

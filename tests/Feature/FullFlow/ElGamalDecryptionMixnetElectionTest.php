@@ -14,10 +14,10 @@ use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use Tests\TestCase;
 
 /**
- * Class ElGamalEncryptionMixnetElectionTest
+ * Class ElGamalDecryptionMixnetElectionTest
  * @package Tests\Feature\FullFlow
  */
-class ElGamalEncryptionMixnetElectionTest extends TestCase
+class ElGamalDecryptionMixnetElectionTest extends TestCase
 {
 
     /**
@@ -27,21 +27,21 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
     {
         $election = Election::factory()->create();
         $election->cryptosystem = CryptoSystemEnum::ElGamal();
-        $election->anonymization_method = AnonymizationMethodEnum::EncMixNet();
-        $election->min_peer_count_t = 1;
+        $election->anonymization_method = AnonymizationMethodEnum::DecMixNet();
         $election->save();
 
-        $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
-
         $trustee = $election->createPeerServerTrustee(getCurrentServer());
-        $trusteeKeyPair = $kpClass::generate();
-        $trustee->public_key = $trusteeKeyPair->pk;
-        $trustee->save();
 
-//        $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
+        $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
+        $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
 
         $keyPair = $kpClass::generate();
+        $election->public_key = $keyPair->pk;
+        $election->private_key = $keyPair->sk;
+        $election->save();
+
         $election->actualFreeze();
+        $election->save();
 
         self::createElectionQuestions($election);
 
@@ -55,9 +55,11 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
             $voter->election_id = $election->id;
             $voter->save();
 
+            // generate a JSON vote structure
             $votePlain = [[1], [3], [2]];
+
             $plaintext = Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
-            $cipher = $election->public_key->encrypt($plaintext);
+            $cipher = $keyPair->pk->encrypt($plaintext);
 
             $data = ['vote' => $cipher->toArray(true)];
 
@@ -73,12 +75,7 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
 
         $election->anonymization_method->getClass()::afterVotingPhaseEnds($election);
 
-//        $election->private_key = $keyPair->sk;
-//        $election->save();
-
-        $trustee->private_key = $trusteeKeyPair->sk;
-        $trustee->save();
-        $election->anonymization_method->getClass()::onSecretKeyReceived($election, $trustee);
+        $election->anonymization_method->getClass()::afterSuccessfulMixProcess($election);
 
     }
 

@@ -65,4 +65,21 @@ class DecryptionParameterSet extends MixNodeParameterSet
         );
     }
 
+    // ##########################################################################
+
+    /**
+     * @param self $primaryMixPS
+     * @return self
+     * @throws \Exception
+     */
+    public function combine(DecryptionParameterSet $primaryMixPS): self
+    {
+
+        // undo shadow mix shuffling (this)
+        // recover inverse mapping of shadow mix permutation
+        $permutation = $primaryMixPS->permuteArray($this->getShufflingOrderReversed());
+
+        return new static($this->pk, $permutation);
+    }
+
 }

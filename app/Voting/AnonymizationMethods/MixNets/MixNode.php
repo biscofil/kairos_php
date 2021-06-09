@@ -137,6 +137,7 @@ abstract class MixNode implements AnonymizationMethod
 
         if ($meTrustee) {
             // current server is a peer
+            Log::debug('afterVotingPhaseEnds > Current server is a trustee');
 
             // if ($meTrustee->getPeerServerIndex() === 1) { // TODO check
             if ($meTrustee->accepts_ballots) { // TODO check
@@ -146,7 +147,11 @@ abstract class MixNode implements AnonymizationMethod
 
                 // dispatch mix job
                 GenerateMix::dispatchSync($election);
+            } else {
+                Log::debug('afterVotingPhaseEnds > Current server does not accept vallots');
             }
+        } else {
+            Log::debug('afterVotingPhaseEnds > Current server is not a trustee > do nothing');
         }
     }
 

@@ -25,6 +25,7 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
      */
     public function checkLeftProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof): bool
     {
+        return false;
         // TODO: Implement checkLeftProof() method.
     }
 
@@ -36,6 +37,7 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
      */
     public function checkRightProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof): bool
     {
+        return false;
         // TODO: Implement checkRightProof() method.
     }
 
@@ -45,7 +47,7 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
      */
     public function getLeftEquivalenceParameterSet(Mix $shadow): MixNodeParameterSet
     {
-        // TODO: Implement getLeftEquivalenceParameterSet() method.
+        return $shadow->parameterSet;
     }
 
     /**
@@ -54,7 +56,7 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
      */
     public function getRightEquivalenceParameterSet(Mix $shadow): MixNodeParameterSet
     {
-        // TODO: Implement getRightEquivalenceParameterSet() method.
+        return $shadow->parameterSet->combine($this->primaryMix->parameterSet);
     }
 
     /**
@@ -62,7 +64,10 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
      */
     public function getLeftProof(Mix $shadow)
     {
-        // TODO: Implement getLeftProof() method.
+//        foreach ($shadow->ciphertexts as $cipherText){
+//
+//        }
+        return null; // TODO DLOG proof
     }
 
     /**
@@ -70,7 +75,7 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
      */
     public function getRightProof(Mix $shadow)
     {
-        // TODO: Implement getRightProof() method.
+        return null; // TODO DLOG proof
     }
 
 }

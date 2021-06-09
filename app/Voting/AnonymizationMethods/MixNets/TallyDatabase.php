@@ -7,7 +7,7 @@ namespace App\Voting\AnonymizationMethods\MixNets;
 use App\Models\Answer;
 use App\Models\Election;
 use App\Models\Question;
-use App\Voting\BallotEncodings\ASCII_JSONBallotEncoding;
+use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
 use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\SQLiteConnection;
@@ -214,11 +214,8 @@ class TallyDatabase
         $questionCount = $this->election->questions->count();
 
         foreach ($cipherTexts as $cipherText) {
-            dump($cipherText->toArray());
             $plainVoteStr = $this->election->private_key->decrypt($cipherText);
-            dump($plainVoteStr->toString());
-            $plainVoteArray = ASCII_JSONBallotEncoding::decode($plainVoteStr); // TODO generalize
-            dump($plainVoteArray);
+            $plainVoteArray = Small_JSONBallotEncoding::decode($plainVoteStr); // TODO generalize
             if ($this->insertBallot($plainVoteArray, $questionCount)) {
                 $successCount++;
             }
@@ -246,9 +243,8 @@ class TallyDatabase
         $questionCount = $questionCount ?? $this->election->questions->count();
 
         if (!is_array($plainVote) || count($plainVote) !== $questionCount) {
-            dump('Ignoring vote due to wrong lenght');
-            dump('plainVote:');
-            dump($plainVote);
+            Log::error('Ignoring vote due to wrong lenght');
+            Log::debug($plainVote);
             return false;
         }
 
@@ -260,10 +256,9 @@ class TallyDatabase
         try {
             return $this->connection->table($this->getOutputTableName())->insert($record);
         } catch (\Throwable $e) {
-            dump('Record:');
-            dump($record);
-            dump($e->getMessage());
-            dump($this->connection->getQueryLog());
+            Log::error($e->getMessage());
+            Log::debug($this->connection->getQueryLog());
+            Log::debug($record);
         }
 
         $this->connection->disableQueryLog();

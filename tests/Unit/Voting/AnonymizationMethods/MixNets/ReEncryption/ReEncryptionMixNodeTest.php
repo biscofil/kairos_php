@@ -6,7 +6,7 @@ use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
 use App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptingMixNode;
 use App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMixWithShadowMixes;
-use App\Voting\BallotEncodings\ASCII_JSONBallotEncoding;
+use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\ElGamal\EGParameterSet;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
@@ -37,7 +37,7 @@ class ReEncryptionMixNodeTest extends TestCase
                 'initial_pos' => $i,
                 'v' => Str::random(3)
             ];
-            $msgs = ASCII_JSONBallotEncoding::encode($obj, EGPlaintext::class);
+            $msgs = Small_JSONBallotEncoding::encode($obj, EGPlaintext::class);
             $msg = $msgs[0];
             $ciphers[] = $electionKeyPair->pk->encrypt($msg);
         }
