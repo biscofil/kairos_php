@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @package App\Models
  * @property int id
  * @property int local_id
+ *
  * @property string answer
  * @property string|null url
  * @property array|null attributes
@@ -21,6 +22,7 @@ use Illuminate\Database\Eloquent\Model;
 class Answer extends Model
 {
     use HasFactory;
+    use HasShareableFields;
 
     protected $fillable = [
         'local_id',
@@ -32,6 +34,13 @@ class Answer extends Model
 
     protected $casts = [
         'attributes' => 'array'
+    ];
+
+    public $shareableFields = [
+        'local_id',
+        'answer',
+        'url',
+        'attributes',
     ];
 
 }

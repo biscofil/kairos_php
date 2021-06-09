@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Class Question
  * @package App\Models
  * @property int id
+ * @property int local_id
+ *
  * @property string|QuestionTypeEnum question_type
  *
  * @property int min
@@ -30,11 +32,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Question extends Model
 {
+
     use HasFactory;
     use HasShareableFields;
 
     protected $fillable = [
-        'question_type', // TODO
+        'local_id',
+        'question_type',
         'min',
         'max',
         'election_id',
@@ -48,6 +52,7 @@ class Question extends Model
     ];
 
     public $shareableFields = [
+        'local_id',
         'question_type',
         'min',
         'max',

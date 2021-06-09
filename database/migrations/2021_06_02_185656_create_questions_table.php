@@ -85,7 +85,7 @@ class CreateQuestionsTable extends Migration
             ];
         }
         foreach ($electionQuestions as $electionID => $questions) {
-            Election::where('id', '=', $electionID)->update([
+            Election::query()->where('id', '=', $electionID)->update([
                 'questions' => json_encode($questions)
             ]);
         }

@@ -203,25 +203,24 @@ class ElectionController extends Controller
                 $question->delete();
             });
 
-            foreach ($data['questions'] as $question) {
+            foreach ($data['questions'] as $question_idx => $question) {
 
                 $qtClass = QuestionTypeEnum::getByIdentifier($question['question_type']);
                 $qtClass::validate($question);
 
                 $q = new Question();
                 $q->election_id = $election->id;
+                $q->local_id = $question_idx + 1;
                 $q->min = $question['min'];
                 $q->max = $question['max'];
                 $q->question = $question['question'];
                 $q->question_type = $question['question_type'];
                 $q->save();
 
-//                $q->answers = $question['answers']; // TODO
-                foreach ($question['answers'] as $idx => $answer) {
-                    // TODO create
+                foreach ($question['answers'] as $answer_idx => $answer) {
                     $a = new Answer();
                     $a->question_id = $q->id;
-                    $a->local_id = $idx + 1;
+                    $a->local_id = $answer_idx + 1;
                     $a->answer = $answer['answer'];
                     $a->url = $answer['url'];
                     // TODO attributes
