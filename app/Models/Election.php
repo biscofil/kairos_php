@@ -160,6 +160,8 @@ class Election extends Model
         'randomize_answer_order',
         //
         'registration_starts_at',
+        'voting_starts_at',
+        'voting_ends_at',
         'voting_extended_until',
     ];
 
@@ -224,7 +226,7 @@ class Election extends Model
      */
     public static function getNewUUID(): Uuid
     {
-        return Uuid::generate(5, url('elections/' . (self::count() + 1)), Uuid::NS_URL);
+        return Uuid::generate(5, url('elections/' . (self::count() + 1) . '/' . rand(0, 9999999)), Uuid::NS_URL);
     }
 
     // ############################################ Attributes ############################################

@@ -134,7 +134,7 @@ class Trustee extends Model
      */
     public static function getNewUUID(): Uuid
     {
-        return Uuid::generate(5, url('trustees/' . (self::count() + 1)), Uuid::NS_URL);
+        return Uuid::generate(5, url('trustees/' . (self::count() + 1) . '/' . rand(0, 9999999)), Uuid::NS_URL);
     }
 
     /**
