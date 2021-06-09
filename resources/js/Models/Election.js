@@ -102,21 +102,23 @@ export default class Election {
         this.voting_has_stopped = null;
 
         /** @type ?moment */
+        this.frozen_at = null;
+        /** @type ?moment */
         this.voting_starts_at = null;
         /** @type ?moment */
         this.voting_started_at = null;
         /** @type ?moment */
         this.voting_ends_at = null;
         /** @type ?moment */
-        this.archived_at = null;
-        /** @type ?moment */
-        this.featured_at = null;
-        /** @type ?moment */
-        this.frozen_at = null;
+        this.voting_ended_at = null;
         /** @type ?Date */
         this.result_released_at = null;
         /** @type Boolean */
         this.tallying_started_at = null;
+        /** @type ?moment */
+        this.archived_at = null;
+        /** @type ?moment */
+        this.featured_at = null;
 
         /** @type String */
         this.output_database_filename_url = null;
@@ -243,7 +245,9 @@ export default class Election {
             voters_hash: this.voters_hash,
             use_voter_aliases: this.use_voter_aliases,
             voting_starts_at: this.voting_starts_at,//? this.voting_starts_at : null,
+            voting_started_at: this.voting_started_at,//? this.voting_starts_at : null,
             voting_ends_at: this.voting_ends_at,//? this.voting_ends_at.format() : null
+            voting_ended_at: this.voting_ended_at,//? this.voting_ends_at.format() : null
             output_database_filename_url: this.output_database_filename_url,
         };
 
@@ -287,10 +291,12 @@ export default class Election {
         el.use_voter_aliases = d.use_voter_aliases;
         el.randomize_answer_order = d.randomize_answer_order;
 
-        el.voting_starts_at = d.voting_starts_at;//? moment(d.voting_starts_at) : null;
-        el.voting_ends_at = d.voting_ends_at;//? moment(d.voting_ends_at) : null;
-
         el.frozen_at = d.frozen_at;//? moment(d.frozen_at) : null;
+        el.voting_starts_at = d.voting_starts_at;//? moment(d.voting_starts_at) : null;
+        el.voting_started_at = d.voting_started_at;//? moment(d.voting_starts_at) : null;
+        el.voting_ends_at = d.voting_ends_at;//? moment(d.voting_ends_at) : null;
+        el.voting_ended_at = d.voting_ended_at;//? moment(d.voting_ends_at) : null;
+
         el.archived_at = d.archived_at;//? moment(d.archived_at) : null;
 
         el.output_database_filename_url = d.output_database_filename_url;

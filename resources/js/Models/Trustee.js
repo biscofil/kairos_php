@@ -9,6 +9,7 @@ export default class Trustee {
 
     /**
      *
+     * @param id : Number
      * @param user : ?User
      * @param peer_server : ?PeerServer
      * @param uuid : String
@@ -19,9 +20,10 @@ export default class Trustee {
      * @param decryption_proofs : Array
      * @param accepts_ballots : Boolean
      */
-    constructor(user, peer_server, uuid, public_key, public_key_hash,
+    constructor(id, user, peer_server, uuid, public_key, public_key_hash,
                 pok, decryption_factors, decryption_proofs,
                 accepts_ballots) {
+        this.id = id;
         this.user = user;
         this.peer_server = peer_server;
         //
@@ -83,6 +85,7 @@ export default class Trustee {
         }
 
         return new Trustee(
+            d.id,
             user,
             peer_server,
             d.uuid,
