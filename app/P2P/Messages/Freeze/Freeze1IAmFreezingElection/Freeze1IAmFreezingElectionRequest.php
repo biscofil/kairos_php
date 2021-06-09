@@ -6,6 +6,7 @@ namespace App\P2P\Messages\Freeze\Freeze1IAmFreezingElection;
 
 use App\Exceptions\NotYourElectionException;
 use App\Jobs\RunP2PTask;
+use App\Models\Answer;
 use App\Models\Election;
 use App\Models\PeerServer;
 use App\Models\Question;
@@ -97,7 +98,12 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         return [
             'election' => $this->election->withoutRelations()->toShareableArray(),
             'questions' => $this->questions->map(function (Question $question) {
-                return $question->toShareableArray();
+                return [
+                    '_question' => $question->toShareableArray(),
+                    '_answers' => $question->answers->map(function (Answer $answer) {
+                        return $answer->toShareableArray();
+                    })->toArray()
+                ];
             })->toArray(),
             'trustees' => $this->trustees->map(function (Trustee $trustee) {
                 $out = $trustee->toShareableArray();
@@ -132,6 +138,8 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
             'election.min_peer_count_t' => ['required', 'int'],
 
             'questions' => ['required', 'array', 'min:1'],
+            'questions.*._question' => ['required', 'array'],
+            'questions.*._answers' => ['required', 'array'],
 
             'trustees' => ['required', 'array'],
 //            'trustees.*.peer_server' => ['required_without_all:trustees.*.user', 'array'],
@@ -160,8 +168,14 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         // questions
         /** @var Collection|Question[] $questions */
         $questions = collect(array_map(function ($questionData) use ($election) {
+            $answers = collect(array_map(function ($answerData) use ($election) {
+                $a = new Answer();
+                $a->fillFromSharedArray($answerData);
+                return $a;
+            }, $questionData['_answers']));
             $q = new Question();
-            $q->fillFromSharedArray($questionData);
+            $q->fillFromSharedArray($questionData['_question']);
+            $q->setAttribute('_answers', $answers);  // temporary, not a fillable field stored in DB
             return $q;
         }, $data['questions']));
 
@@ -228,7 +242,7 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
      */
     public function onRequestReceived(): Freeze1IAmFreezingElectionResponse
     {
-        Log::debug('Freezing election of another peer');
+        Log::debug('Freezing election of peer ' . $this->requestSender->name);
 
         if ($this->requestSender->id !== $this->election->peer_server_id) {
             throw new NotYourElectionException();
@@ -237,10 +251,17 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         // election
         $this->election->save();
 
-        // questions
+        // questions and answers
         $this->questions->each(function (Question $question) {
+            /** @var Collection|Answer[] $answers */
+            $answers = $question->getAttributes()['_answers'];
+            $question->offsetUnset('_answers');
             $question->election_id = $this->election->id;
             $question->save();
+            $answers->each(function (Answer $answer) use ($question) {
+                $answer->question_id = $question->id;
+                $answer->save();
+            });
         });
 
         // trustees
