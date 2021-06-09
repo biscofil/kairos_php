@@ -11,6 +11,7 @@ use App\Models\Answer;
 use App\Models\Election;
 use App\Models\PeerServer;
 use App\Models\Question;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\Collection;
@@ -249,6 +250,9 @@ class ElectionController extends Controller
         // make sure the curent server is the election creator
         if ($election->peer_server_id !== PeerServer::meID) {
             throw new NotYourElectionException();
+        }
+        if ($election->voting_starts_at->subMinutes(2)->gte(Carbon::now())) {
+            throw new \Exception('voting_starts_at must be at least two minutes after the election freeze time.');
         }
         $election->freeze();
         return $election;
