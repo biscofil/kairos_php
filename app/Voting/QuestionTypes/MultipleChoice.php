@@ -37,11 +37,11 @@ class MultipleChoice extends QuestionType
 
         $question_answers_table_name = $tallyDatabase->getOutputTableName();
 
-        $query = 'SELECT id, sum(c) as count FROM (';
+        $innerQuery = '';
         $first = true;
         foreach ($questionAnswerCols as $questionAnswerCol) {
             if (!$first) {
-                $query .= ' UNION ALL ';
+                $innerQuery .= ' UNION ALL ';
             }
             $otherColumns = array_diff($questionAnswerCols, [$questionAnswerCol]);
             $whereDifferentFromOtherColumsClause = '';
@@ -49,16 +49,16 @@ class MultipleChoice extends QuestionType
                 $whereDifferentFromOtherColumsClause = implode('","', $otherColumns);
                 $whereDifferentFromOtherColumsClause = " WHERE COALESCE(\"$questionAnswerCol\" NOT IN (\"$whereDifferentFromOtherColumsClause\"),1) ";
             }
-            $query .= "
+            $innerQuery .= "
                     SELECT \"$questionAnswerCol\" as id, COUNT(id) as c
                     FROM \"$question_answers_table_name\"
                     $whereDifferentFromOtherColumsClause
                     GROUP BY \"$questionAnswerCol\" ";
             $first = false;
         }
-        $query .= ') GROUP BY id HAVING id NOT NULL';
 
-        return $query;
+        $outerQuery = 'SELECT id, SUM(c) as count FROM (%s) GROUP BY id HAVING id IS NOT NULL';
+        return sprintf($outerQuery, $innerQuery);
 
     }
 
