@@ -251,10 +251,13 @@ class ElectionController extends Controller
         if ($election->peer_server_id !== PeerServer::meID) {
             throw new NotYourElectionException();
         }
-        if ($election->voting_starts_at->subMinutes(2)->gte(Carbon::now())) {
+        if ($election->voting_starts_at->subMinutes(2)->lte(Carbon::now())) {
             throw new \Exception('voting_starts_at must be at least two minutes after the election freeze time.');
         }
         $election->freeze();
+
+        $election->load('questions.answers');
+
         return $election;
     }
 
