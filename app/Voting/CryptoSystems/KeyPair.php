@@ -7,8 +7,8 @@ namespace App\Voting\CryptoSystems;
 /**
  * Class KeyPair
  * @package App\Voting\CryptoSystems
- * @property $pk
- * @property $sk
+ * @property \App\Voting\CryptoSystems\PublicKey $pk
+ * @property \App\Voting\CryptoSystems\SecretKey $sk
  */
 interface KeyPair extends BelongsToCryptoSystem
 {
