@@ -43,11 +43,23 @@
             <tab-content title="Done">
                 Done!
 
-                <div class="row" v-for="trustee in election.trustees">
-                    <country-flag
-                        v-if="trustee.peer_server && trustee.accepts_ballots && trustee.peer_server.country_code"
-                        :country='trustee.peer_server.country_code'/>
-                </div>
+                <ul class="list-group" v-if="peer_submit_statuses">
+                    <li class="list-group-item" v-for="pair in peer_submit_statuses">
+                        <country-flag
+                            v-if="pair.peer_server.country_code"
+                            :country='pair.peer_server.country_code'/>
+                        {{ pair.peer_server.name }}
+                        <span v-if="pair.submitted === null" class="badge badge-warning submit-status-badge">
+                            ....
+                        </span>
+                        <span v-else-if="pair.submitted === true" class="badge badge-success submit-status-badge">
+                            OK
+                        </span>
+                        <span v-else-if="pair.submitted === false" class="badge badge-danger submit-status-badge">
+                            Not ok
+                        </span>
+                    </li>
+                </ul>
 
             </tab-content>
 
@@ -69,7 +81,7 @@ import VueObjectView from "vue-object-view";
 import MultipleChoice from "./QuestionTypes/MultipleChoice";
 import STV from "./QuestionTypes/STV";
 import SmallJSONBallotEncoding from "../../../Voting/BallotEncodings/SmallJSONBallotEncoding";
-import JSONBallotEncoding from "../../../Voting/BallotEncodings/JSONBallotEncoding";
+import Vue from 'vue';
 
 export default {
     name: "NewBoothWizard",
@@ -88,7 +100,8 @@ export default {
         return {
             election: null,
             encrypted_vote: null,
-            picked_answers: null
+            picked_answers: null,
+            peer_submit_statuses: null,
         }
     },
 
@@ -168,10 +181,10 @@ export default {
 
             let vote_str = JSON.stringify(vote);
 
-            console.log("############################################## JSONBallotEncoding");
-            const voteInt = JSONBallotEncoding.encodeStr(vote_str);
-            console.log(voteInt);
-            console.log(JSON.parse(JSONBallotEncoding.decodeStr(voteInt)));
+            // console.log("############################################## JSONBallotEncoding");
+            // const voteInt = JSONBallotEncoding.encodeStr(vote_str);
+            // console.log(voteInt);
+            // console.log(JSON.parse(JSONBallotEncoding.decodeStr(voteInt)));
 
             console.log("############################################## SmallJSONBallotEncoding");
             const voteIntSM = SmallJSONBallotEncoding.encodeStr(vote_str);
@@ -183,7 +196,7 @@ export default {
             // console.log(ptClass);
 
             /** @type {EGPlaintext|RSAPlaintext} */
-            let p = new ptClass(voteInt, this.election.public_key);
+            let p = new ptClass(voteIntSM, this.election.public_key);
             // console.log(p);
 
             this.encrypted_vote = p.encrypt().toJSONObject();
@@ -194,16 +207,35 @@ export default {
 
         cast() {
             let self = this;
+
+            self.peer_submit_statuses = {};
+
             this.election.trustees.filter(trustee => {
                 return trustee.peer_server && trustee.accepts_ballots;
             }).forEach(trustee => {
+
+                Vue.set(self.peer_submit_statuses, "" + trustee.peer_server.id, {
+                    peer_server: trustee.peer_server,
+                    submitted: null
+                });
+
                 axios.post("https://" + trustee.peer_server.domain + '/api/elections/' + this.election.slug + '/cast', {
                     vote: this.encrypted_vote
                 })
                     .then(response => {
+
+                        let newValue = self.peer_submit_statuses["" + trustee.peer_server.id];
+                        newValue.submitted = true;
+                        Vue.set(self.peer_submit_statuses, "" + trustee.peer_server.id, newValue);
+
                         self.$toastr.success("OK " + trustee.peer_server.domain);
                     })
                     .catch(e => {
+
+                        let newValue = self.peer_submit_statuses["" + trustee.peer_server.id];
+                        newValue.submitted = false;
+                        Vue.set(self.peer_submit_statuses, "" + trustee.peer_server.id, newValue);
+
                         self.$toastr.error("Error " + trustee.peer_server.domain);
                     });
             });
@@ -221,5 +253,9 @@ export default {
 
 .wizard-progress-with-circle {
     background: #f3f2ee !important;
+}
+
+.submit-status-badge{
+    float: right;
 }
 </style>
