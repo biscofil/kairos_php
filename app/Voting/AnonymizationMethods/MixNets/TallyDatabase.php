@@ -149,7 +149,7 @@ class TallyDatabase
      */
     public function tally(): void
     {
-        Log::info("Running tally of election $this->election->id");
+        Log::info("Running tally of election {$this->election->id}");
 
         $this->election->tallying_started_at = Carbon::now();
 
@@ -214,11 +214,21 @@ class TallyDatabase
         $questionCount = $this->election->questions->count();
 
         foreach ($cipherTexts as $cipherText) {
-            $plainVoteStr = $this->election->private_key->decrypt($cipherText);
-            $plainVoteArray = Small_JSONBallotEncoding::decode($plainVoteStr); // TODO generalize
-            if ($this->insertBallot($plainVoteArray, $questionCount)) {
-                $successCount++;
+            /** @var \App\Voting\CryptoSystems\Plaintext $plainVoteStr */
+            $plainVoteStr = null;
+            $plainVoteArray = null;
+            try {
+                $plainVoteStr = $this->election->private_key->decrypt($cipherText);
+                $plainVoteArray = Small_JSONBallotEncoding::decode($plainVoteStr); // TODO generalize
+                if ($this->insertBallot($plainVoteArray, $questionCount)) {
+                    $successCount++;
+                }
+            } catch (\Throwable $e) {
+                Log::error($e->getMessage());
+                Log::debug($plainVoteStr->toString());
+                Log::debug($plainVoteArray);
             }
+
         }
 
         $failCount = count($cipherTexts) - $successCount;
