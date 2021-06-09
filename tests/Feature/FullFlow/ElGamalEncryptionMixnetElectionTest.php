@@ -11,15 +11,13 @@ use App\Models\User;
 use App\Models\Voter;
 use App\Voting\BallotEncodings\ASCII_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
-use Carbon\Carbon;
-use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /**
- * Class ElGamalMixnetElectionTest
+ * Class ElGamalEncryptionMixnetElectionTest
  * @package Tests\Feature\FullFlow
  */
-class ElGamalMixnetElectionTest extends TestCase
+class ElGamalEncryptionMixnetElectionTest extends TestCase
 {
 
     /**
@@ -30,20 +28,19 @@ class ElGamalMixnetElectionTest extends TestCase
         $election = Election::factory()->create();
         $election->cryptosystem = CryptoSystemEnum::ElGamal();
         $election->anonymization_method = AnonymizationMethodEnum::EncMixNet();
+        $election->min_peer_count_t = 1;
         $election->save();
 
         $trustee = $election->createPeerServerTrustee(getCurrentServer());
 
         $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
-        $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
+//        $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
 
         $keyPair = $kpClass::generate();
         $election->public_key = $keyPair->pk;
-        $election->private_key = $keyPair->sk;
-        $election->save();
-
         $election->actualFreeze();
-        $election->save();
+
+        self::createElectionQuestions($election);
 
         // cast votes
         for ($i = 0; $i < 5; $i++) {
@@ -55,17 +52,11 @@ class ElGamalMixnetElectionTest extends TestCase
             $voter->election_id = $election->id;
             $voter->save();
 
-            // generate a JSON vote structure
-            $votePlain = [
-                Str::random(10) => Str::random(10),
-                Str::random(10) => [
-                    Str::random(10),
-                    Str::random(10),
-                ]
-            ];
-
-            $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
+            $votePlain = [[1], [3], [2]];
+            $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0]; // TODO check [0]
             $cipher = $keyPair->pk->encrypt($plaintext);
+            $decryption = ASCII_JSONBallotEncoding::decode($keyPair->sk->decrypt($cipher));
+            self::assertTrue($votePlain === $decryption);
 
             $data = ['vote' => $cipher->toArray(true)];
 
@@ -81,6 +72,8 @@ class ElGamalMixnetElectionTest extends TestCase
 
         $election->anonymization_method->getClass()::afterVotingPhaseEnds($election);
 
+        $election->private_key = $keyPair->sk;
+        $election->save();
         $election->anonymization_method->getClass()::onSecretKeyReceived($election, $trustee);
 
     }

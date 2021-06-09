@@ -6,7 +6,6 @@ namespace Tests\Feature\P2P\Messages;
 
 use App\Models\Election;
 use App\Models\PeerServer;
-use App\Models\Question;
 use App\P2P\Messages\Freeze\Freeze1IAmFreezingElection\Freeze1IAmFreezingElectionRequest;
 use Tests\TestCase;
 
@@ -23,9 +22,7 @@ class Freeze1IAmFreezingElectionTest extends TestCase
 
         $election = Election::factory()->create();
 
-        $question = Question::factory()->make();
-        $question->election_id = $election->id;
-        $question->save();
+        self::createElectionQuestions($election, 1, 1);
 
         $trusteePeerServer = PeerServer::factory()->create();
         $election->createPeerServerTrustee($trusteePeerServer);

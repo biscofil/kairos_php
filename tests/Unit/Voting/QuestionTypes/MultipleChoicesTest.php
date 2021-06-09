@@ -6,10 +6,8 @@ namespace Tests\Unit\Voting\QuestionTypes;
 
 use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
-use App\Models\Answer;
 use App\Models\Election;
 use App\Models\Question;
-use App\Voting\AnonymizationMethods\MixNets\MixNode;
 use App\Voting\BallotEncodings\ASCII_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use Tests\TestCase;
@@ -30,25 +28,8 @@ class MultipleChoicesTest extends TestCase
         $keyPair = $kpClass::generate();
         $election->public_key = $keyPair->pk;
         $election->private_key = $keyPair->sk;
-        $election->save();
-
-        $nQuestions = 3; //rand(1, 3);
-        $nAnswers = 3; //rand(1, 3);
-
-        for ($i = 0; $i < $nQuestions; $i++) {
-            $question = Question::factory()->make();
-            $question->election_id = $election->id;
-            $question->save();
-            for ($k = 0; $k < $nAnswers; $k++) {
-                $answer = Answer::factory()->make();
-                $answer->local_id = $k + 1;
-                $answer->question_id = $question->id;
-                $answer->save();
-            }
-        }
-
-        $election->setupOutputTables();
-        $conn = $election->getOutputConnection();
+        self::createElectionQuestions($election);
+        $election->actualFreeze();
 
         $votePlain = [
             [1], // first answer of first question
@@ -58,15 +39,15 @@ class MultipleChoicesTest extends TestCase
         $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
         $cipher = $keyPair->pk->encrypt($plaintext);
 
-//        $conn->table($election->getOutputTableName())->truncate();
-        self::assertTrue(MixNode::insertBallot($election, $conn, $cipher));
+        $plainVote = ASCII_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
 
-        self::assertEquals(1, $conn->table($election->getOutputTableName())->count());
+        $tallyDatabase = $election->getTallyDatabase();
+        self::assertTrue($tallyDatabase->insertBallot($plainVote));
+
+        self::assertEquals(1, $tallyDatabase->getRecordCount());
 
         $election->tally();
-
         $election = $election->fresh();
-
         self::assertNotNull($election->tallying_started_at);
         self::assertNotNull($election->tallying_finished_at);
 
@@ -75,9 +56,9 @@ class MultipleChoicesTest extends TestCase
             static::assertNotEquals(false, $question->tally_result);
         }
 
-        self::assertTrue(file_exists($election->getOutputDatabaseStorageFilePath()));
-        unlink($election->getOutputDatabaseStorageFilePath());
-        self::assertFalse(file_exists($election->getOutputDatabaseStorageFilePath()));
+        self::assertTrue($tallyDatabase->file_exists());
+        $tallyDatabase->delete();
+        self::assertFalse($tallyDatabase->file_exists());
 
     }
 
@@ -96,22 +77,9 @@ class MultipleChoicesTest extends TestCase
         $election->private_key = $keyPair->sk;
         $election->save();
 
-        $nQuestions = 3; //rand(1, 3);
-        $nAnswers = 3; //rand(1, 3);
-        for ($i = 0; $i < $nQuestions; $i++) {
-            $question = Question::factory()->make();
-            $question->election_id = $election->id;
-            $question->save();
-            for ($k = 0; $k < $nAnswers; $k++) {
-                $answer = Answer::factory()->make();
-                $answer->local_id = $k + 1;
-                $answer->question_id = $question->id;
-                $answer->save();
-            }
-        }
+        self::createElectionQuestions($election);
 
-        $election->setupOutputTables();
-        $conn = $election->getOutputConnection();
+        $election->actualFreeze();
 
         $votePlain = [
             [],
@@ -120,10 +88,13 @@ class MultipleChoicesTest extends TestCase
         ];
         $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
         $cipher = $keyPair->pk->encrypt($plaintext);
-//        $conn->table($election->getOutputTableName())->truncate();
-        self::assertTrue(MixNode::insertBallot($election, $conn, $cipher));
 
-        unlink($election->getOutputDatabaseStorageFilePath());
+        $plainVote = ASCII_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
+        $tallyDatabase = $election->getTallyDatabase();
+        self::assertTrue($tallyDatabase->insertBallot($plainVote));
+        $tallyDatabase->tally();
+
+        $tallyDatabase->delete();
     }
 
     /**
@@ -140,34 +111,23 @@ class MultipleChoicesTest extends TestCase
         $election->private_key = $keyPair->sk;
         $election->save();
 
-        $nQuestions = 3; //rand(1, 3);
-        $nAnswers = 3; //rand(1, 3);
-        for ($i = 0; $i < $nQuestions; $i++) {
-            $question = Question::factory()->make();
-            $question->election_id = $election->id;
-            $question->save();
-            for ($k = 0; $k < $nAnswers; $k++) {
-                $answer = Answer::factory()->make();
-                $answer->local_id = $k + 1;
-                $answer->question_id = $question->id;
-                $answer->save();
-            }
-        }
+        self::createElectionQuestions($election); //rand(1, 3), rand(1, 3)
 
         $election->setupOutputTables();
-        $conn = $election->getOutputConnection();
+        $tallyDatabase = $election->getTallyDatabase();
 
         $votePlain = [
-            [5], // fifth answer of first question
+            [5], // fifth answer of first question (invalid)
             [2], // second answer of second question
             [3] // third answer of third question
         ];
         $plaintext = (ASCII_JSONBallotEncoding::encode($votePlain, EGPlaintext::class))[0];
         $cipher = $keyPair->pk->encrypt($plaintext);
-//        $conn->table($election->getOutputTableName())->truncate();
-        self::assertFalse(MixNode::insertBallot($election, $conn, $cipher));
 
-        unlink($election->getOutputDatabaseStorageFilePath());
+        $plainVote = ASCII_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
+        self::assertFalse($tallyDatabase->insertBallot($plainVote));
+
+        $tallyDatabase->delete();
 
     }
 

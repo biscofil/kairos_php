@@ -11,9 +11,9 @@ use App\Models\Cast\PublicKeyCaster;
 use App\Models\Cast\SecretKeyCaster;
 use App\P2P\Messages\Freeze\Freeze1IAmFreezingElection\Freeze1IAmFreezingElectionRequest;
 use App\P2P\Messages\WillYouBeAElectionTrusteeForMyElection\WillYouBeAElectionTrusteeForMyElectionRequest;
+use App\Voting\AnonymizationMethods\MixNets\TallyDatabase;
 use App\Voting\CryptoSystems\PublicKey;
 use App\Voting\CryptoSystems\SecretKey;
-use App\Voting\QuestionTypes\MultipleChoice;
 use Carbon\Carbon;
 use Database\Factories\ElectionFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,14 +22,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\SQLiteConnection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use PDO;
 use Webpatser\Uuid\Uuid;
 
 /**
@@ -926,28 +922,11 @@ class Election extends Model
     }
 
     /**
-     * Returns the connections to use for storing plantext ballots
-     * @return \Illuminate\Database\SQLiteConnection
+     * @return \App\Voting\AnonymizationMethods\MixNets\TallyDatabase
      */
-    public function getOutputConnection(): SQLiteConnection
+    public function getTallyDatabase(): TallyDatabase
     {
-        $pathname = $this->getOutputDatabaseStorageFilePath();
-        $pdo = new PDO('sqlite:' . $pathname);
-        $conn = new SQLiteConnection($pdo);
-        $conn->setTablePrefix('');
-        $conn->setDatabaseName('');
-        return $conn;
-//        $builder = new \Illuminate\Database\Query\Builder($connection);
-    }
-
-    /**
-     * Returns the name of the table to use in
-     * @return string
-     * @see \App\Models\Election::getOutputConnection()
-     */
-    public function getOutputTableName(): string
-    {
-        return 'e_' . $this->id;
+        return new TallyDatabase($this);
     }
 
     /**
@@ -955,54 +934,7 @@ class Election extends Model
      */
     public function setupOutputTables()
     {
-        Log::debug('setupOutputTables > ' . $this->getOutputDatabaseStorageFilePath());
-        $connection = $this->getOutputConnection();
-
-        // create a table for each question
-        foreach ($this->questions as $idx => $question) {
-            $q = $idx + 1;
-            $question_answers_table_name = "e_{$this->id}_q_{$q}_a";
-            $connection->getSchemaBuilder()->dropIfExists($question_answers_table_name);
-
-            $connection->getSchemaBuilder()->create($question_answers_table_name, function (Blueprint $table) {
-                $table->increments('id');
-
-                $table->string('answer');
-            });
-
-            $question->answers->each(function (Answer $answer) use ($question_answers_table_name, $connection) {
-                $qID = $connection->table($question_answers_table_name)->insertGetId([
-                    'answer' => $answer->answer
-                ]);
-            });
-
-        }
-
-        // create a table for all ballots
-        $output_table_name = $this->getOutputTableName();
-
-        $connection->getSchemaBuilder()->dropIfExists($output_table_name);
-        $connection->getSchemaBuilder()->create($output_table_name, function (Blueprint $table) {
-
-            $table->increments('id');
-
-            foreach ($this->questions as $idx => $question) {
-                $q = $idx + 1;
-                $question_answers_table_name = "e_{$this->id}_q_{$q}_a";
-                foreach ($question->getAnswerColumnNames($q) as $cName) {
-                    $table->unsignedInteger($cName)->nullable();
-                    $table->foreign($cName)->references('id')->on($question_answers_table_name);
-                }
-            }
-
-        });
-
-        // create views with queries from questions
-        foreach ($this->questions as $idx => $question) {
-            $qID = $idx + 1;
-            $connection->statement("CREATE VIEW tally_q_$qID AS " . $question->question_type->getClass()::getTallyQuery($question, $qID));
-        }
-
+        $this->getTallyDatabase()->setupOutputTables();
     }
 
     /**
@@ -1010,27 +942,7 @@ class Election extends Model
      */
     public function tally(): void
     {
-        Log::info("Running tally of election $this->id");
-
-        $this->tallying_started_at = Carbon::now();
-
-        $conn = $this->getOutputConnection();
-
-        foreach ($this->questions as $idx => $question) {
-            $query = MultipleChoice::getTallyQuery($question, $idx + 1);
-            $results = $conn->select(DB::raw($query));
-
-            $question->tally_result = $results;
-            $question->save();
-        }
-
-        $this->tallying_finished_at = Carbon::now();
-        $this->tallying_combined_at = Carbon::now();
-        $this->results_released_at = Carbon::now();
-        $this->save();
-
-        Log::info('Ballots tallied');
-
+        $this->getTallyDatabase()->tally();
     }
 
 }

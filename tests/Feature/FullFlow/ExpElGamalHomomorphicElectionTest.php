@@ -6,13 +6,10 @@ namespace Tests\Feature\FullFlow;
 
 use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
-use App\Models\Answer;
 use App\Models\Election;
-use App\Models\Question;
 use App\Models\User;
 use App\Models\Voter;
 use App\Voting\CryptoSystems\ExpElGamal\ExpEGPlaintext;
-use Carbon\Carbon;
 use Tests\TestCase;
 
 /**
@@ -44,14 +41,7 @@ class ExpElGamalHomomorphicElectionTest extends TestCase
 
         $election->actualFreeze();
 
-        $q = Question::factory()->make();
-        $q->election_id = $election->id;
-        $q->save();
-
-        $a = Answer::factory()->make();
-        $a->local_id = 1;
-        $a->question_id = $q->id;
-        $a->save();
+        self::createElectionQuestions($election, 1, 1);
 
         // cast votes
         for ($i = 0; $i < 5; $i++) {
@@ -67,7 +57,7 @@ class ExpElGamalHomomorphicElectionTest extends TestCase
             $cipher = $keyPair->pk->encrypt($plaintext);
 
             $v = $cipher->toArray(true);
-            $v['answer_id'] = $a->id;
+            $v['answer_id'] = $election->questions()->first()->answers()->first()->id; // first
             $data = [
                 'votes' => [
                     $v

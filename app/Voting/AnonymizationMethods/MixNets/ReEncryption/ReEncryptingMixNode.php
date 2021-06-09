@@ -136,6 +136,29 @@ class ReEncryptingMixNode extends MixNode
      */
     public static function onAllSecretKeysReceived(Election $election, array $mixChainTrusteeIDs)
     {
+
+        self::combineTrusteePrivateKeys($election, $mixChainTrusteeIDs);
+
+        Log::debug('Decrypting votes...');
+
+        /** @var \App\Models\Mix $lastMix */
+        $lastMix = $election->mixes()->latest()->firstOrFail(); // TODO check!!!
+
+        $cipherTexts = $lastMix->getMixWithShadowMixes()->primaryMix->ciphertexts;
+
+        $election->getTallyDatabase()->insertBallots($cipherTexts);
+
+        $election->tally();
+
+    }
+
+    /**
+     * @param \App\Models\Election $election
+     * @param array $mixChainTrusteeIDs
+     * @return bool
+     */
+    private static function combineTrusteePrivateKeys(Election &$election, array $mixChainTrusteeIDs): bool
+    {
         Log::debug('Setting private key of the election...');
         // if this is the last one, trigger mixnet decryption
 
@@ -147,31 +170,11 @@ class ReEncryptingMixNode extends MixNode
             }
             return $trustee->private_key->combine($carry); // TODO check polymorphism
         });
-        $election->save();
 
-        Log::debug('Decrypting votes...');
-
-        /** @var \App\Models\Mix $lastMix */
-        $lastMix = $election->mixes()->latest()->firstOrFail(); // TODO check!!!
-
-        $connection = $election->getOutputConnection();
-
-        // remove existing records
-        $connection->table($election->getOutputTableName())->truncate();
-
-        $successCount = 0;
-        $cipherTexts = $lastMix->getMixWithShadowMixes()->primaryMix->ciphertexts;
-        foreach ($cipherTexts as $cipherText) {
-            if (self::insertBallot($election, $connection, $cipherText)) {
-                $successCount++;
-            }
-        }
-        $failCount = count($cipherTexts) - $successCount;
-
-        Log::info("DONE! $successCount succesful insertions, $failCount failed insertions");
-
-        $election->tally();
-
+        return $election->save();
     }
+
+
+//    private static function
 
 }

@@ -16,10 +16,9 @@ class MultipleChoice extends QuestionType
 
     /**
      * @param \App\Models\Question $question
-     * @param int $questionId
      * @return string
      */
-    public static function getTallyQuery(Question $question, int $questionId): string
+    public static function getTallyQuery(Question $question): string
     {
 
         /**
@@ -32,9 +31,12 @@ class MultipleChoice extends QuestionType
          * ) GROUP BY id HAVING id NOT NULL
          */
 
-        $questionAnswerCols = $question->getAnswerColumnNames($questionId);
+        $tallyDatabase = $question->election->getTallyDatabase();
 
-        $question_answers_table_name = $question->election->getOutputTableName();
+        $questionAnswerCols = $tallyDatabase->getAnswerColumnNames($question);
+
+        $question_answers_table_name = $tallyDatabase->getOutputTableName();
+
         $query = 'SELECT id, sum(c) as count FROM (';
         $first = true;
         foreach ($questionAnswerCols as $questionAnswerCol) {

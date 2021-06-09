@@ -54,12 +54,7 @@ class ElectionControllerTest extends TestCase
         $election = Election::factory()->create();
 
         $nQuestions = rand(0, 3);
-        for ($i = 0; $i < $nQuestions; $i++) {
-            $q = Question::factory()->make();
-            $q->election_id = $election->id;
-            $q->save();
-        }
-
+        self::createElectionQuestions($election, $nQuestions);
         self::assertEquals($nQuestions, $election->questions()->count());
 
         $user = User::factory()->create();

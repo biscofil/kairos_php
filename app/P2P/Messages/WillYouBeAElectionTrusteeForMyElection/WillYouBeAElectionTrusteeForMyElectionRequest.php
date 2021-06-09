@@ -91,7 +91,7 @@ class WillYouBeAElectionTrusteeForMyElectionRequest extends P2PMessageRequest
             throw new Exception('Peer server is unknown');
         }
 
-        return new WillYouBeAElectionTrusteeForMyElectionRequest(
+        return new static(
             $sender,
             [getCurrentServer()],
             $election

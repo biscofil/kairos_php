@@ -7,11 +7,13 @@ namespace App\Voting\QuestionTypes;
 use App\Models\Question;
 use Illuminate\Support\Facades\Validator;
 
+/**
+ * Class QuestionType
+ * @package App\Voting\QuestionTypes
+ * @property \App\Models\Question question
+ */
 abstract class QuestionType
 {
-    /**
-     * @var \App\Models\Question
-     */
     public Question $question;
 
     /**
@@ -25,10 +27,9 @@ abstract class QuestionType
 
     /**
      * @param \App\Models\Question $question
-     * @param int $questionId
      * @return string
      */
-    abstract public static function getTallyQuery(Question $question, int $questionId): string;
+    abstract public static function getTallyQuery(Question $question): string;
 
     /**
      * @throws \Illuminate\Validation\ValidationException

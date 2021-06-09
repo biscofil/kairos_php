@@ -84,26 +84,12 @@ class Question extends Model
     // #############################################
 
     /**
-     * @param int $q
-     * @return array
-     */
-    public function getAnswerColumnNames(int $q): array
-    {
-        $names = [];
-        for ($aIdx = 0; $aIdx < $this->max; $aIdx++) {
-            $a = $aIdx + 1;
-            $names[] = "q_{$q}_a_{$a}";
-        }
-        return $names;
-    }
-
-    /**
      * @noinspection PhpUnused
      */
     public function getTallyQueryAttribute(): ?string
     {
         if ($this->election_id) {
-            return $this->question_type->getClass()::getTallyQuery($this, 1); // TODO question ID
+            return $this->question_type->getClass()::getTallyQuery($this);
         }
         return null;
     }
