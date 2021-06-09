@@ -4,11 +4,12 @@
 namespace App\P2P;
 
 
-use App\Exceptions\SendingMessageToSelf;
 use App\Models\PeerServer;
 use App\P2P\Messages\P2PMessageRequest;
 use App\P2P\Messages\P2PMessageResponse;
+use Carbon\Carbon;
 use Exception;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -19,8 +20,13 @@ use Illuminate\Validation\ValidationException;
  * Class P2PHttp
  * @package App\P2P
  */
-class P2PHttp
+class P2PHttp extends P2PTransport
 {
+
+    public static function loop(): void
+    {
+        //do nothing, loop is handled by web server
+    }
 
     /**
      * @throws \App\Exceptions\SendingMessageToSelf
@@ -45,6 +51,9 @@ class P2PHttp
 
         $serializedRequest = $requestMessage->serialize($destPeerServer);
 
+        // append a unique UUID of the message
+        // TODO $serializedRequest[self::MessageUUIDKey] = Str::uuid()->toString();
+
         try {
 
             $httpJsonResponse = Http::withOptions(
@@ -53,7 +62,9 @@ class P2PHttp
                 ->withToken($destPeerServer->token ?? '')
                 ->post($url, $serializedRequest);
 
-            if (!$httpJsonResponse->ok()) {
+            if ($httpJsonResponse->ok()) {
+//                Log::debug($httpJsonResponse->json(self::RequestSignature));
+            } else {
                 Log::error($httpJsonResponse->json());
 //                throw new \Exception('Expecting 200 response');
             }
@@ -71,7 +82,6 @@ class P2PHttp
             Log::error("Error sending  $e-> : " . $e->getMessage());
             Log::debug($e->getFile() . ' @ line ' . $e->getLine());
             Log::debug($e->getTraceAsString());
-
             throw $e;
 
         }
@@ -79,11 +89,24 @@ class P2PHttp
     }
 
     /**
+     * @param Request $request
+     * @return mixed
+     * @throws \Illuminate\Auth\AuthenticationException
+     */
+    public static function getClientPeer($request)
+    {
+        if (!auth('peer_api')->check()) {
+            throw new AuthenticationException('Unauthenticated.');
+        }
+        return $request->user('peer_api'); // todo check
+    }
+
+    /**
      * @param \Illuminate\Http\Request $request
      * @param string $messageName
      * @return \Illuminate\Http\JsonResponse
      */
-    public static function onRequestReceived(Request $request, string $messageName): JsonResponse
+    public static function onRequestReceived($request, string $messageName): JsonResponse
     {
 
         $requestSigned = null;
@@ -117,6 +140,9 @@ class P2PHttp
 
             // call onRequestReceived method
             $out = $messageObj->onRequestReceived()->serialize();
+
+            // add receipt
+            $requestSigned[self::RequestSignature] = $requestSigned;
 
             websocketLog("responding to $messageName", $senderPeer);
 

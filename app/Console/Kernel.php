@@ -6,6 +6,7 @@ use App\Console\Commands\AddPeer;
 use App\Console\Commands\CloseElectionPhase;
 use App\Console\Commands\HeartBeat;
 use App\Console\Commands\OpenElectionPhase;
+use App\Console\Commands\RunWebSocketClientLoop;
 use App\Console\Commands\SendReceivedVotes;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -18,11 +19,15 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        HeartBeat::class,
-        SendReceivedVotes::class,
+        RunWebSocketClientLoop::class,
+        //
         AddPeer::class,
+        HeartBeat::class,
+        //
         OpenElectionPhase::class,
         CloseElectionPhase::class,
+        //
+        SendReceivedVotes::class,
     ];
 
     /**
