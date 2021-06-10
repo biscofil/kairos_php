@@ -68,6 +68,7 @@ class CastVote extends Model
      * Only keep last vote of each voter
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @return \Illuminate\Database\Eloquent\Builder
+     * @noinspection PhpUnused
      */
     public function scopeOnlyLastOfVoters(Builder $query): Builder
     {
