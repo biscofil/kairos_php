@@ -139,7 +139,7 @@ class Mix extends Model
             // first mix, extract ciphertext from bulletin board
 
             /** @var Collection|\App\Voting\CryptoSystems\CipherText[] $cipherTexts */
-            $cipherTexts = $election->votes()->get()->map(function (CastVote $castVote) {
+            $cipherTexts = $election->votes()->onlyLastOfVoters()->get()->map(function (CastVote $castVote) {
                 return $castVote->vote;
             })->toArray();
         } else {

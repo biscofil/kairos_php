@@ -6,6 +6,7 @@ use App\Models\Cast\CiphertextCaster;
 use App\Models\Cast\ModelWithFieldsWithParameterSets;
 use App\Voting\CryptoSystems\CipherText;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,6 +33,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @property Carbon|null created_at
  * @property Carbon|null updated_at
+ * @method Builder onlyLastOfVoters()
  */
 class CastVote extends Model
 {
@@ -39,6 +41,7 @@ class CastVote extends Model
     use ModelWithFieldsWithParameterSets;
 
     protected $fillable = [
+        'voter_id',
         'vote',
         'ip',
         'hash',
@@ -60,6 +63,17 @@ class CastVote extends Model
     protected $casts = [
         'vote' => CiphertextCaster::class,
     ];
+
+    /**
+     * Only keep last vote of each voter
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOnlyLastOfVoters(Builder $query): Builder
+    {
+        $inQuery = $query->clone()->selectRaw('MAX(id)')->groupBy('voter_id');
+        return $query->whereIn('id', $inQuery);
+    }
 
     // ############################################# RELATIONS
 
