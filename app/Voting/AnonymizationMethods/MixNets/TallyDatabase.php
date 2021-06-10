@@ -148,8 +148,10 @@ class TallyDatabase
         // create views with queries from questions
         Log::debug('Creating tally view');
         foreach ($this->election->questions as $question) {
-            $query = "CREATE VIEW tally_q_{$question->local_id} AS " . $question->question_type->getClass()::getTallyQuery($question);
+            $viewName = "tally_q_{$question->local_id}";
+            $query = "CREATE VIEW $viewName AS " . $question->question_type->getClass()::getTallyQuery($question);
             try {
+                $this->connection->statement("DROP VIEW IF EXISTS $viewName;");
                 $this->connection->statement($query);
             } catch (\Throwable $e) {
                 Log::error('Error during view creation');
