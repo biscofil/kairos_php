@@ -582,10 +582,20 @@ class Election extends Model
     // ############################################ Freeze
 
     /**
+     *
+     */
+    public function pre_freeze(): bool
+    {
+        return $this->setupOutputTables(); // TODO only for mixnets
+    }
+
+    /**
      * @throws \Exception
      */
     public function freeze()
     {
+
+        $this->pre_freeze();
 
         # generate voters hash
         // TODO $this->voter_hash = $this->generateVotersHash();
@@ -696,8 +706,6 @@ class Election extends Model
         $this->save();
 
         $this->clearFreezingStatus();
-
-        $this->setupOutputTables();
     }
 
     /**
@@ -934,9 +942,9 @@ class Election extends Model
     /**
      * Creates a sqlite database with plaintexts ballots
      */
-    public function setupOutputTables()
+    public function setupOutputTables(): bool
     {
-        $this->getTallyDatabase()->setupOutputTables();
+        return $this->getTallyDatabase()->setupOutputTables();
     }
 
     /**

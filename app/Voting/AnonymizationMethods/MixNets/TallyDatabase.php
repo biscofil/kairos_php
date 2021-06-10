@@ -94,7 +94,7 @@ class TallyDatabase
     /**
      * Creates a sqlite database with plaintexts ballots
      */
-    public function setupOutputTables(): void
+    public function setupOutputTables(): bool
     {
         Log::debug('setupOutputTables > ' . $this->election->getOutputDatabaseStorageFilePath());
 
@@ -104,19 +104,25 @@ class TallyDatabase
             $question_answers_table_name = $this->getQuestionAnswersTableName($question);
             $this->connection->getSchemaBuilder()->dropIfExists($question_answers_table_name);
 
-            $this->connection->getSchemaBuilder()->create($question_answers_table_name, function (Blueprint $table) {
-                $table->unsignedInteger('id')->primary();
-                $table->string('answer');
-                $table->string('url');
-            });
+            try {
+                $this->connection->getSchemaBuilder()->create($question_answers_table_name, function (Blueprint $table) {
+                    $table->unsignedInteger('id')->primary();
+                    $table->string('answer');
+                    $table->string('url');
+                });
 
-            $question->answers->each(function (Answer $answer) use ($question_answers_table_name) {
-                $this->connection->table($question_answers_table_name)->insert([
-                    'id' => $answer->local_id,
-                    'answer' => $answer->answer,
-                    'url' => $answer->url
-                ]);
-            });
+                $question->answers->each(function (Answer $answer) use ($question_answers_table_name) {
+                    $this->connection->table($question_answers_table_name)->insert([
+                        'id' => $answer->local_id,
+                        'answer' => $answer->answer,
+                        'url' => $answer->url
+                    ]);
+                });
+            } catch (\Throwable $e) {
+                Log::error('Error during question answers table creation');
+                Log::debug($question_answers_table_name);
+                return false;
+            }
 
         }
 
@@ -139,7 +145,6 @@ class TallyDatabase
 
         });
 
-
         // create views with queries from questions
         Log::debug('Creating tally view');
         foreach ($this->election->questions as $question) {
@@ -149,8 +154,11 @@ class TallyDatabase
             } catch (\Throwable $e) {
                 Log::error('Error during view creation');
                 Log::debug($query);
+                return false;
             }
         }
+
+        return true;
 
     }
 
