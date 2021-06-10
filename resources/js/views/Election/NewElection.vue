@@ -1,7 +1,7 @@
 <template>
     <div>
         <h2 class="title">Create a New Election</h2>
-        <ElectionEditor/>
+        <ElectionEditor :election="null"/>
     </div>
 </template>
 

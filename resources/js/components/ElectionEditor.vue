@@ -41,10 +41,11 @@
             <!--                </option>-->
             <!--            </select>-->
 
-            <div class="form-group row" v-if="election == null">
+            <div class="form-group row">
                 <label for="cryptosystem" class="col-sm-12 col-lg-2">Cryptosystem</label>
                 <div class="col-sm-12 col-lg-10">
-                    <select v-model="chosen_cryptosystem" class="form-control" id="cryptosystem">
+                    <select v-model="chosen_cryptosystem" class="form-control" id="cryptosystem"
+                            :disabled="election !== null">
                         <option :value="cryptosystem" v-for="cryptosystem in cryptosystems">
                             {{ cryptosystem.name }}
                         </option>
@@ -52,11 +53,11 @@
                 </div>
             </div>
 
-            <div class="form-group row" v-if="election == null && chosen_cryptosystem">
+            <div class="form-group row" v-if="chosen_cryptosystem">
                 <label for="anonymization_method" class="col-sm-12 col-lg-2">Anonymization method</label>
                 <div class="col-sm-12 col-lg-10">
                     <select v-model="chosen_anonymization_method" class="form-control"
-                            id="anonymization_method">
+                            id="anonymization_method" :disabled="election !== null">
                         <option :value="anonymization_method"
                                 v-for="anonymization_method in chosen_cryptosystem.anonymization_methods">
                             {{ anonymization_method.name }}
@@ -175,10 +176,28 @@ export default {
 
     watch: {
         chosen_cryptosystem() {
-            this.post.cryptosystem = this.chosen_cryptosystem.id;
+            if (this.chosen_cryptosystem) {
+                this.post.cryptosystem = this.chosen_cryptosystem.id;
+                if (this.election !== null) {
+                    console.log(this.chosen_anonymization_method);
+                    this.chosen_anonymization_method = this.chosen_cryptosystem.anonymization_methods.find(am => {
+                        return am.id === this.election.anonymization_method;
+                    });
+                    console.log(this.chosen_anonymization_method);
+                }
+            }
         },
         chosen_anonymization_method() {
-            this.post.anonymization_method = this.chosen_anonymization_method.id;
+            if (this.chosen_anonymization_method) {
+                this.post.anonymization_method = this.chosen_anonymization_method.id;
+            }
+        },
+        cryptosystems() {
+            if (this.election !== null) {
+                this.chosen_cryptosystem = this.cryptosystems.find(cs => {
+                    return cs.id === this.election.cryptosystem;
+                });
+            }
         }
     },
 
