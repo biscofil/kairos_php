@@ -88,7 +88,6 @@ class ElGamal implements CryptoSystem, SupportsTLThresholdEncryption
      */
     public static function onElectionFreeze(Election &$election): void
     {
-        // TODO only if no threshold
         self::generateCombinedPublicKey($election);
     }
 
@@ -105,7 +104,8 @@ class ElGamal implements CryptoSystem, SupportsTLThresholdEncryption
      * @param \App\Models\Election $election
      * @return mixed
      */
-    public static function tally(Election &$election){
+    public static function tally(Election &$election)
+    {
         // TODO
     }
 
@@ -115,10 +115,14 @@ class ElGamal implements CryptoSystem, SupportsTLThresholdEncryption
      * Returns a public key which is the combination (product) of the public keys of the trustees
      * @param Election $election
      * @return void
+     * @throws \Exception
      */
     public static function generateCombinedPublicKey(Election &$election): void
     {
         $election->public_key = $election->trustees()->get()->reduce(function (?EGPublicKey $carry, Trustee $trustee): EGPublicKey {
+            if (is_null($trustee->public_key)) {
+                throw new \Exception("Public key of trustee $trustee->id is null!");
+            }
             return $trustee->public_key->combine($carry);
         });
     }
@@ -126,11 +130,14 @@ class ElGamal implements CryptoSystem, SupportsTLThresholdEncryption
     /**
      * @param Election $election
      * @return void
+     * @throws \Exception
      */
     public static function generateCombinedPrivateKey(Election &$election): void
     {
-        /** @var EGSecretKey $out */
         $election->private_key = $election->trustees()->get()->reduce(function (?EGSecretKey $carry, Trustee $trustee): EGSecretKey {
+            if (is_null($trustee->private_key)) {
+                throw new \Exception("Private key of trustee $trustee->id is null!");
+            }
             return $trustee->private_key->combine($carry);
         });
     }
