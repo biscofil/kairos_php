@@ -203,4 +203,16 @@ class EGCiphertext implements CipherText
         return $this->alpha->equals($b->alpha) && $this->beta->equals($b->beta);
     }
 
+    // ##################################################################################
+
+    /**
+     * When using Decryption-Re-Encryption mixnets, the last stage requires to extract
+     * the plaintext from beta
+     */
+    public function extractPlainTextFromBeta(): EGPlaintext
+    {
+        $_beta = $this->pk->parameterSet->extractMessageFromSubgroup($this->beta);
+        return new EGPlaintext($_beta);
+    }
+
 }

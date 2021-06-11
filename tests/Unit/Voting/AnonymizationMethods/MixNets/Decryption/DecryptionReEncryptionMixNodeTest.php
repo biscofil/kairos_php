@@ -49,8 +49,7 @@ class DecryptionReEncryptionMixNodeTest extends TestCase
 
         $proof = EGDLogProof::generate($kp1->sk, $cipher, [EGDLogProof::class, 'DLogChallengeGenerator']);
 
-        $unReEncryptedCipher->beta = $kp1->pk->parameterSet->extractMessageFromSubgroup($unReEncryptedCipher->beta);
-        $proofPlain = new EGPlaintext($unReEncryptedCipher->beta);
+        $proofPlain = $unReEncryptedCipher->extractPlainTextFromBeta();
 
         static::assertTrue($proof->verify($kp1->pk, $cipher, $proofPlain, [EGDLogProof::class, 'DLogChallengeGenerator']));
 
