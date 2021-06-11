@@ -81,12 +81,4 @@ class RSA implements CryptoSystem
         // TODO self::generateCombinedPublicKey($election);
     }
 
-    /**
-     * @param \App\Models\Election $election
-     * @return mixed
-     */
-    public static function tally(Election &$election){
-        // TODO
-    }
-
 }

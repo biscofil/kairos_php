@@ -95,27 +95,4 @@ class ExpElGamal implements CryptoSystem, SupportsTLThresholdEncryption
         // TODO: Implement onElectionFreeze() method.
     }
 
-    /**
-     * TODO complete
-     * @param \App\Models\Election $election
-     */
-    public static function tally(Election &$election)
-    {
-
-        /** @var ExpEGCiphertext $out */
-        $out = $election->votes->reduce(function (?ExpEGCiphertext $carry, CastVote $vote) {
-            /** @var ExpEGCiphertext $voteCiphertext */
-            $voteCiphertext = $vote->vote;
-            if (is_null($carry)) {
-                return $voteCiphertext;
-            }
-            return $voteCiphertext->homomorphicSum($carry);
-        }, null);
-
-        $result = $election->private_key->decrypt($out);
-
-//        dump($result->toString());
-
-        // TODO store? pubblish?
-    }
 }

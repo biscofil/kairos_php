@@ -89,6 +89,35 @@ abstract class MixNode implements AnonymizationMethod
 
     /**
      * @param \App\Models\Election $election
+     * @param \App\Voting\CryptoSystems\Plaintext[] $plainTexts
+     * @return bool
+     */
+    public static function storePlainTextBallots(Election &$election, array $plainTexts): bool
+    {
+        return $election->getTallyDatabase()->insertPlainTextBallots($plainTexts);
+    }
+
+    /**
+     * @param \App\Models\Election $election
+     * @return void
+     */
+    public static function tally(Election &$election){
+        $election->getTallyDatabase()->tally(); // only for mixnets
+    }
+
+    /**
+     * @param \App\Models\Election $election
+     * @throws \Exception
+     */
+    public static function runTally(Election &$election)
+    {
+        $election->tally();
+    }
+
+    // ########################################################################
+
+    /**
+     * @param \App\Models\Election $election
      * @return array
      */
     public static function getProofs(Election &$election): array

@@ -4,7 +4,11 @@
 namespace App\Voting\AnonymizationMethods;
 
 
+use App\Models\Answer;
+use App\Models\CastVote;
 use App\Models\Election;
+use App\Models\Question;
+use App\Voting\CryptoSystems\ExpElGamal\ExpEGCiphertext;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -19,10 +23,42 @@ class HomomorphicAnonymizationMethod implements AnonymizationMethod
      */
     public static function afterVotingPhaseEnds(Election &$election)
     {
-        Log::debug('Homomorphic afterVotingPhaseEnds > do nothing');
+        Log::debug('Homomorphic afterVotingPhaseEnds > proceed to tally');
 
-        // proceed to tally
-        $election->cryptosystem->getClass()::tally($election);
+        $election->tally();
+
+    }
+
+    /**
+     * @param \App\Models\Election $election
+     */
+    public static function tally(Election &$election)
+    {
+
+        $election->questions->each(function (Question $question) use ($election) {
+
+            $question->tally_result = $question->answers->map(function (Answer $answer) use ($election) {
+
+                /** @var ExpEGCiphertext $encryptedAnserVoteCount */
+                $encryptedAnserVoteCount = $answer->votes->reduce(function (?ExpEGCiphertext $carry, CastVote $vote) {
+                    /** @var ExpEGCiphertext $voteCiphertext */
+                    $voteCiphertext = $vote->vote;
+                    if (is_null($carry)) {
+                        return $voteCiphertext;
+                    }
+                    return $voteCiphertext->homomorphicSum($carry);
+                }, null);
+
+                $count = $election->private_key->decrypt($encryptedAnserVoteCount); // int
+
+                // TODO DLOG?!!!!!
+
+                return ['answer_id' => $answer->id, 'count' => $count];
+            });
+
+            $question->save();
+
+        });
 
     }
 

@@ -907,6 +907,7 @@ class Election extends Model
     // #######################################################################################
 
     /**
+     * TODO only for mixnets
      * @return string
      */
     public function getOutputDatabaseFilename(): string
@@ -915,6 +916,7 @@ class Election extends Model
     }
 
     /**
+     * TODO only for mixnets
      * @return string
      * @noinspection PhpUnused
      */
@@ -924,6 +926,7 @@ class Election extends Model
     }
 
     /**
+     * TODO only for mixnets
      * @return string
      */
     public function getOutputDatabaseStorageFilePath(): string
@@ -932,6 +935,7 @@ class Election extends Model
     }
 
     /**
+     * TODO only for mixnets
      * @return \App\Voting\AnonymizationMethods\MixNets\TallyDatabase
      */
     public function getTallyDatabase(): TallyDatabase
@@ -940,6 +944,7 @@ class Election extends Model
     }
 
     /**
+     * TODO only for mixnets
      * Creates a sqlite database with plaintexts ballots
      */
     public function setupOutputTables(): bool
@@ -952,7 +957,21 @@ class Election extends Model
      */
     public function tally(): void
     {
-        $this->getTallyDatabase()->tally();
+        Log::info("Running tally of election {$this->id}");
+        $this->tallying_started_at = Carbon::now();
+        $this->save();
+
+        // set "tally_result" field of each question
+
+        // proceed to tally
+        $this->anonymization_method->getClass()::tally($this);
+
+        $this->tallying_finished_at = Carbon::now();
+        $this->tallying_combined_at = Carbon::now();
+        $this->results_released_at = Carbon::now();
+        $this->save();
+
+        Log::info('Ballots tallied');
     }
 
 }

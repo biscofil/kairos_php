@@ -24,4 +24,10 @@ interface AnonymizationMethod
      */
     public static function getProofs(Election &$election) : array;
 
+    /**
+     * @param \App\Models\Election $election
+     * @return mixed
+     */
+    public static function tally(Election &$election);
+
 }
