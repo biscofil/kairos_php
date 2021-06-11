@@ -63,7 +63,7 @@ class ReEncryptionMixNodeTest extends TestCase
         $election->cryptosystem = CryptoSystemEnum::ElGamal(); // TODO remove
         $election->save();
 
-        $election->createPeerServerTrustee(getCurrentServer());
+        $trustee = $election->createPeerServerTrustee(getCurrentServer());
 
         $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
         $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
@@ -92,7 +92,7 @@ class ReEncryptionMixNodeTest extends TestCase
         $primaryShadowMixes->setChallengeBits($challengeBits);
 
         // generate proof
-        $primaryShadowMixes->generateProofs();
+        $primaryShadowMixes->generateProofs($trustee);
 
         // check parameter sets have been removed
         foreach ($primaryShadowMixes->shadowMixes as $shadowMix) {
@@ -101,7 +101,7 @@ class ReEncryptionMixNodeTest extends TestCase
         static::assertNull($primaryShadowMixes->primaryMix->parameterSet);
 
         // check proof
-        static::assertTrue($primaryShadowMixes->isProofValid());
+        static::assertTrue($primaryShadowMixes->isProofValid($trustee));
 
     }
 
@@ -116,7 +116,7 @@ class ReEncryptionMixNodeTest extends TestCase
         $election->cryptosystem = CryptoSystemEnum::ElGamal();
         $election->save();
 
-        $election->createPeerServerTrustee(getCurrentServer());
+        $trustee = $election->createPeerServerTrustee(getCurrentServer());
 
         $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
         $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
@@ -133,8 +133,8 @@ class ReEncryptionMixNodeTest extends TestCase
 
         $shadowMixCount = rand(2, 3);
         $primaryShadowMixes = ReEncryptingMixNode::generate($election, $ciphertexts, $shadowMixCount);
-        $primaryShadowMixes->challengeBits = $primaryShadowMixes->getFiatShamirChallengeBits();
-        $primaryShadowMixes->generateProofs();
+        $primaryShadowMixes->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits());
+        $primaryShadowMixes->generateProofs($trustee);
 
         $file1 = 'test_without_pk.json';
         $primaryShadowMixes->store($file1);
@@ -142,12 +142,12 @@ class ReEncryptionMixNodeTest extends TestCase
         $file2 = 'test_with_pk.json';
         $primaryShadowMixes->store($file2, true);
 
-        $primaryShadowMixes = ReEncryptionMixWithShadowMixes::load('test_without_pk.json');
+        $primaryShadowMixes = ReEncryptionMixWithShadowMixes::load($file1);
 
-        Storage::delete(['test_without_pk.json', 'test_with_pk.json']);
+        Storage::delete([$file1, $file2]);
 
         // check proof
-        static::assertTrue($primaryShadowMixes->isProofValid());
+        static::assertTrue($primaryShadowMixes->isProofValid($trustee));
 
         $primaryShadowMixes->deleteFile($file1);
         $primaryShadowMixes->deleteFile($file2);

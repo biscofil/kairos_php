@@ -4,8 +4,11 @@
 namespace App\Voting\AnonymizationMethods\MixNets;
 
 use App\Models\Election;
+use App\Models\Trustee;
 use App\Voting\AnonymizationMethods\BelongsToAnonymizationMethod;
 use App\Voting\CryptoSystems\CipherText;
+use App\Voting\CryptoSystems\ElGamal\EGDLogProof;
+use Exception;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -25,7 +28,7 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
     public Mix $primaryMix;
     public array $shadowMixes;
     public array $originalCiphertexts;
-    public string $challengeBits = '';
+    protected string $challengeBits = '';
     public Election $election;
     //
     public array $proofs = [];
@@ -73,35 +76,48 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
 
     /**
      * @param string $bits
+     * @ throws \Exception
      */
     public function setChallengeBits(string $bits): void
     {
+//        if (!(str_contains($bits, '1') && str_contains($bits, '0'))) {
+//            throw new Exception('The challenge bit string must contain each bit at leats once');
+//        }
         $this->challengeBits = $bits;
     }
 
     /**
+     * @param \App\Models\Trustee $claimer
      * @throws \Exception
      */
-    public function generateProofs(): void
+    public function generateProofs(Trustee $claimer): void
     {
         $parameterSets = [];
         $proofs = [];
 
+        if (strlen($this->challengeBits) === 0) {
+            throw new Exception("Challenge bit string can't be empty");
+        }
+
         // TODO clean parameter sets of opposite side
 
         for ($i = 0; $i < strlen($this->challengeBits); $i++) {
+            if (!array_key_exists($i, $this->shadowMixes)) {
+                throw new Exception(strlen($this->challengeBits) . ' challenge bits and '
+                    . count($this->shadowMixes) . ' shadow mixes');
+            }
 
             $bit = $this->challengeBits[$i];
             $mix = $this->shadowMixes[$i];
 
             if ($bit === '0') { // left
                 $parameterSets[] = $this->getLeftEquivalenceParameterSet($mix);
-                $proofs[] = $this->getLeftProof($mix);
+                $proofs[] = $this->getLeftProofs($mix, $claimer);
             } elseif ($bit === '1') { // right
                 $parameterSets[] = $this->getRightEquivalenceParameterSet($mix);
-                $proofs[] = $this->getRightProof($mix);
+                $proofs[] = $this->getRightProofs($mix);
             } else {
-                throw new \Exception("Bit must be either 1 or 0, '$bit' given");
+                throw new Exception("Bit must be either 1 or 0, '$bit' given");
             }
 
             $this->shadowMixes[$i]->parameterSet = null; // forget parameter set of shadow mix
@@ -127,21 +143,23 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
+     * @param \App\Models\Trustee $claimer
      */
-    abstract public function getLeftProof(Mix $shadow);
+    abstract public function getLeftProofs(Mix $shadow, Trustee $claimer): ?array;
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
      */
-    abstract public function getRightProof(Mix $shadow);
+    abstract public function getRightProofs(Mix $shadow): ?array;
 
     // ########################################################################
 
     /**
+     * @param \App\Models\Trustee $claimer
      * @return bool
      * @throws \Exception
      */
-    public function isProofValid(): bool
+    public function isProofValid(Trustee $claimer): bool
     {
 
         if ($this->challengeBits !== $this->getFiatShamirChallengeBits()) {
@@ -155,15 +173,15 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
             $proof = $this->proofs[$idx];
 
             if ($bit === '0') { // left
-                if (!$this->checkLeftProof($shadowMix, $parameterSet, $proof)) {
+                if (!$this->checkLeftProof($shadowMix, $parameterSet, $proof, $claimer)) {
                     return false;
                 }
             } elseif ($bit === '1') { // right
-                if (!$this->checkRightProof($shadowMix, $parameterSet, $proof)) {
+                if (!$this->checkRightProof($shadowMix, $parameterSet, $proof, $claimer)) {
                     return false;
                 }
             } else {
-                throw new \Exception("Bit must be either 1 or 0, '$bit' given");
+                throw new Exception("Bit must be either 1 or 0, '$bit' given");
             }
 
         }
@@ -176,17 +194,19 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
      * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
      * @param $proof
+     * @param \App\Models\Trustee $claimer
      * @return bool
      */
-    abstract public function checkLeftProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof): bool;
+    abstract public function checkLeftProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof, Trustee $claimer): bool;
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
      * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
      * @param $proof
+     * @param \App\Models\Trustee $claimer
      * @return bool
      */
-    abstract public function checkRightProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof): bool;
+    abstract public function checkRightProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof, Trustee $claimer): bool;
 
     // ########################################################################
 
@@ -218,7 +238,7 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
     public static function load(string $fileName): self
     {
         $data = json_decode(Storage::get($fileName), true);
-        return self::fromArray($data);
+        return static::fromArray($data);
     }
 
     // ########################################################################
@@ -263,7 +283,11 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
         $out = new static($originalCiphertexts, $primaryMix, $shadowMixes, $election);
         $out->challengeBits = $challengeBits;
         $out->parameterSets = $parameterSets;
-        $out->proofs = $proofs;
+        $out->proofs = array_map(function (?array $shadowMixProof) {
+            return is_null($shadowMixProof) ? null : array_map(function (?array $proofArray) { // TODO generalize
+                return is_null($proofArray) ? null : EGDLogProof::fromArray($proofArray);
+            }, $shadowMixProof);
+        }, $proofs);
         return $out;
     }
 
@@ -288,7 +312,11 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
             'parameter_sets' => array_map(function (MixNodeParameterSet $parameterSet) use ($storePrivateValues) {
                 return $parameterSet->toArray();
             }, $this->parameterSets),
-            'proofs' => $this->proofs
+            'proofs' => array_map(function (?array $shadowMixProof) {
+                return is_null($shadowMixProof) ? null : array_map(function (?EGDLogProof $proof) { // TODO generalize
+                    return is_null($proof) ? null : $proof->toArray();
+                }, $shadowMixProof);
+            }, $this->proofs)
         ];
     }
 

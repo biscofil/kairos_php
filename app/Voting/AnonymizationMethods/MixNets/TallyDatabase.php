@@ -8,7 +8,6 @@ use App\Models\Answer;
 use App\Models\Election;
 use App\Models\Question;
 use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
-use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\SQLiteConnection;
 use Illuminate\Support\Facades\DB;

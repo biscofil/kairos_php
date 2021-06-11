@@ -37,7 +37,7 @@ class MultipleChoicesTest extends TestCase
             [2], // second answer of second question
             [3]  // third answer of third question
         ];
-        $plaintext =Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
+        $plaintext = Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
         $cipher = $keyPair->pk->encrypt($plaintext);
 
         $plainVote = Small_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
@@ -88,7 +88,7 @@ class MultipleChoicesTest extends TestCase
             [],
             []
         ];
-        $plaintext =Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
+        $plaintext = Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
         $cipher = $keyPair->pk->encrypt($plaintext);
 
         $plainVote = Small_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
@@ -115,18 +115,19 @@ class MultipleChoicesTest extends TestCase
 
         self::createElectionQuestions($election); //rand(1, 3), rand(1, 3)
 
-        $election->setupOutputTables();
-        $tallyDatabase = $election->getTallyDatabase();
+        $election->preFreeze();
+        $election->actualFreeze();
 
         $votePlain = [
             [5], // fifth answer of first question (invalid)
             [2], // second answer of second question
             [3] // third answer of third question
         ];
-        $plaintext =Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
+        $plaintext = Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
         $cipher = $keyPair->pk->encrypt($plaintext);
 
         $plainVote = Small_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
+        $tallyDatabase = $election->getTallyDatabase();
         self::assertFalse($tallyDatabase->insertBallot($plainVote));
 
         $tallyDatabase->delete();

@@ -156,11 +156,11 @@ class Mix extends Model
         // generate shadow mixes
         $primaryShadowMixes = $mixClass::generate($election, $cipherTexts, 80);
 
-        // generate challenge bits & proofs
-        $primaryShadowMixes->challengeBits = $primaryShadowMixes->getFiatShamirChallengeBits();
-        $primaryShadowMixes->generateProofs();
-
         $meTrustee = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
+
+        // generate challenge bits & proofs
+        $primaryShadowMixes->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits());
+        $primaryShadowMixes->generateProofs($meTrustee);
 
         $mixModel = new static();
         $mixModel->round = is_null($previousMix) ? 1 : $previousMix->round + 1;
@@ -250,7 +250,7 @@ class Mix extends Model
 
             // TODO check t-l-threshold encryption
 
-            if ($primaryShadowMixes->isProofValid()) {
+            if ($primaryShadowMixes->isProofValid($this->trustee)) {
                 $this->setAsValid();
                 Log::info('Mix proof is valid!');
 

@@ -22,7 +22,6 @@ class MixTest extends TestCase
      */
     public function to_from_array()
     {
-        /** @var Election $election */
         $election = Election::factory()->create();
 
         $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();

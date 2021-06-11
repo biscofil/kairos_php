@@ -81,6 +81,16 @@ abstract class MixNode implements AnonymizationMethod
 
     /**
      * @param \App\Models\Election $election
+     * @return bool
+     */
+    public static function preFreeze(Election &$election): bool
+    {
+        // Create a sqlite database with plaintexts ballots
+        return $election->getTallyDatabase()->setupOutputTables();
+    }
+
+    /**
+     * @param \App\Models\Election $election
      */
     public static function afterSuccessfulMixProcess(Election &$election): void
     {
@@ -101,7 +111,8 @@ abstract class MixNode implements AnonymizationMethod
      * @param \App\Models\Election $election
      * @return void
      */
-    public static function tally(Election &$election){
+    public static function tally(Election &$election)
+    {
         $election->getTallyDatabase()->tally(); // only for mixnets
     }
 

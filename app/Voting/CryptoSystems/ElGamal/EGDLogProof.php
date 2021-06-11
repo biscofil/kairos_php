@@ -142,4 +142,17 @@ class EGDLogProof
         ];
     }
 
+    /**
+     * @param array $data
+     * @return static
+     */
+    public static function fromArray(array $data): self
+    {
+        return new static(
+            EGDLogCommitment::fromArray($data['commitment']),
+            BI($data['challenge'], 16),
+            BI($data['response'], 16)
+        );
+    }
+
 }

@@ -21,9 +21,10 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
      * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
      * @param $proof
+     * @param \App\Models\Trustee $claimer
      * @return bool
      */
-    public function checkLeftProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof): bool
+    public function checkLeftProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof, \App\Models\Trustee $claimer): bool
     {
         return false;
         // TODO: Implement checkLeftProof() method.
@@ -33,9 +34,10 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
      * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
      * @param $proof
+     * @param \App\Models\Trustee $claimer
      * @return bool
      */
-    public function checkRightProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof): bool
+    public function checkRightProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof, \App\Models\Trustee $claimer): bool
     {
         return false;
         // TODO: Implement checkRightProof() method.
@@ -61,8 +63,9 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
+     * @param \App\Models\Trustee $claimer
      */
-    public function getLeftProof(Mix $shadow)
+    public function getLeftProofs(Mix $shadow, \App\Models\Trustee $claimer): ?array
     {
 //        foreach ($shadow->ciphertexts as $cipherText){
 //
@@ -73,7 +76,7 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
      */
-    public function getRightProof(Mix $shadow)
+    public function getRightProofs(Mix $shadow): ?array
     {
         return null; // TODO DLOG proof
     }

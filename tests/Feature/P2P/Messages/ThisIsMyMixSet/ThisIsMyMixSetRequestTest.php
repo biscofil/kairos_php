@@ -45,8 +45,8 @@ class ThisIsMyMixSetRequestTest extends TestCase
         $primaryShadowMixes = ReEncryptingMixNode::generate($election, [
             $election->public_key->encrypt(new EGPlaintext(BI(3)))
         ], 2);
-        $primaryShadowMixes->challengeBits = $primaryShadowMixes->getFiatShamirChallengeBits();
-        $primaryShadowMixes->generateProofs();
+        $primaryShadowMixes->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits());
+        $primaryShadowMixes->generateProofs($trustee);
 
         $mixModel = new Mix();
         $mixModel->trustee_id = $election->getTrusteeFromPeerServer($me, true)->id;

@@ -33,4 +33,16 @@ class EGDLogCommitment
         ];
     }
 
+    /**
+     * @param array $data
+     * @return static
+     */
+    public static function fromArray(array $data): self
+    {
+        return new static(
+            BI($data['a'], 16),
+            BI($data['b'], 16)
+        );
+    }
+
 }

@@ -30,4 +30,10 @@ interface AnonymizationMethod
      */
     public static function tally(Election &$election);
 
+    /**
+     * @param \App\Models\Election $election
+     * @return bool
+     */
+    public static function preFreeze(Election &$election) : bool;
+
 }

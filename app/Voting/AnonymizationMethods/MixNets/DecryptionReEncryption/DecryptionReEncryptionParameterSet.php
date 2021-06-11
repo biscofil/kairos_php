@@ -43,10 +43,8 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
 
         $reEncryptionFactors = [];
         for ($i = 0; $i < $count; $i++) {
-
 //            $kpClass = $pk->getCryptosystem()::getKeyPairClass();
 //            $keyPair = $kpClass::generate();
-
             $reEncryptionFactors[] = randomBIgt($pk->parameterSet->q); // TODO check
         }
 

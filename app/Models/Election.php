@@ -596,7 +596,7 @@ class Election extends Model
      */
     public function preFreeze(): bool
     {
-        return $this->setupOutputTables(); // TODO only for mixnets
+        return $this->anonymization_method->getClass()::preFreeze($this);
     }
 
     /**
@@ -954,15 +954,6 @@ class Election extends Model
     }
 
     /**
-     * TODO only for mixnets
-     * Creates a sqlite database with plaintexts ballots
-     */
-    public function setupOutputTables(): bool
-    {
-        return $this->getTallyDatabase()->setupOutputTables();
-    }
-
-    /**
      *
      */
     public function tally(): void
@@ -971,9 +962,7 @@ class Election extends Model
         $this->tallying_started_at = Carbon::now();
         $this->save();
 
-        // set "tally_result" field of each question
-
-        // proceed to tally
+        // proceed to tally, set "tally_result" field of each question
         $this->anonymization_method->getClass()::tally($this);
 
         $this->tallying_finished_at = Carbon::now();

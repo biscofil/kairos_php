@@ -20,6 +20,16 @@ class HomomorphicAnonymizationMethod implements AnonymizationMethod
 
     /**
      * @param \App\Models\Election $election
+     * @return bool
+     */
+    public static function preFreeze(Election &$election) : bool
+    {
+        // do nothing
+        return true;
+    }
+
+    /**
+     * @param \App\Models\Election $election
      */
     public static function afterVotingPhaseEnds(Election &$election)
     {

@@ -30,21 +30,18 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
         $election->anonymization_method = AnonymizationMethodEnum::DecReEncMixNet();
         $election->save();
 
+        self::createElectionQuestions($election);
+
+//        $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
+//        $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
+
         $trustee = $election->createPeerServerTrustee(getCurrentServer());
-
-        $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
-        $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
-
-        $keyPair = $kpClass::generate();
-        $election->public_key = $keyPair->pk;
-        $election->private_key = $keyPair->sk;
+        $election->min_peer_count_t = 1;
         $election->save();
 
         $election->preFreeze();
         $election->actualFreeze();
         $election->save();
-
-        self::createElectionQuestions($election);
 
         // cast votes
         for ($i = 0; $i < 5; $i++) {
@@ -60,7 +57,7 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
             $votePlain = [[1], [3], [2]];
 
             $plaintext = Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
-            $cipher = $keyPair->pk->encrypt($plaintext);
+            $cipher = $election->public_key->encrypt($plaintext);
 
             $data = ['vote' => $cipher->toArray(true)];
 
@@ -79,6 +76,11 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
         $election->anonymization_method->getClass()::afterSuccessfulMixProcess($election);
 
         self::assertNotNull($election->tallying_finished_at);
+
+        /** @var \App\Models\Mix $lastMix */
+        $lastMix = $election->mixes()->latest()->firstOrFail();
+        $lastMix->verify();
+        self::assertTrue($lastMix->is_valid);
 
     }
 

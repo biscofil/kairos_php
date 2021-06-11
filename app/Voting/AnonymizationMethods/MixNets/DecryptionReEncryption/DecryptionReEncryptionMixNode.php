@@ -40,25 +40,23 @@ class DecryptionReEncryptionMixNode extends MixNode
         /** @var \App\Voting\CryptoSystems\PartialDecryptionSecretKey $sk */
         $sk = $mePeer->private_key;
 
-        // do partial decryption
-        $ciphertexts = array_map(function (CipherText $cipherText) use ($sk) {
-            return $sk->partiallyDecrypt($cipherText);
-        }, $ciphertexts);
-
-        // do re-encryption
-        $reEncryptedCiphertexts = [];
-        foreach ($ciphertexts as $idx => $ciphertext) {
-            // todo only combine secret keys of next peers
+        // apply re-encryption on original ciphertexts
+        $ciphertexts = array_map(function (CipherText $ciphertext, int $idx) use ($parameterSet, $sk) {
             $r = $parameterSet->reEncryptionFactors[$idx];
-            $reEncryptedCiphertexts[] = $ciphertext->reEncryptWithRandomness($r);
-        }
+            return $ciphertext->reEncryptWithRandomness($r);
+        }, $ciphertexts, range(0, count($ciphertexts) - 1));
 
-        // shuffle
-        $reEncryptedCiphertexts = $parameterSet->permuteArray($reEncryptedCiphertexts);
+        // do partial decryption on re-encrypted ciphertexts
+        $ciphertexts = array_map(function (CipherText $cipherText, int $idx) use ($sk) {
+            return $sk->partiallyDecrypt($cipherText);
+        }, $ciphertexts, range(0, count($ciphertexts) - 1));
+
+        // shuffle partially decryption and re-encrypted ciphertexts
+        $ciphertexts = $parameterSet->permuteArray($ciphertexts);
 
         return new DecryptionReEncryptionMix(
             $election,
-            $reEncryptedCiphertexts,
+            $ciphertexts,
             $parameterSet
         );
     }
