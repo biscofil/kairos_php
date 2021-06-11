@@ -23,7 +23,7 @@ class TrusteeControllerTest extends TestCase
 
         $response = $this->actingAs($trustee_user)
             ->json('GET', 'api/elections/' . $election->slug . '/trustee/home');
-        $this->assertResponseStatusCode(200, $response);
+        self::assertResponseStatusCode(200, $response);
 
     }
 

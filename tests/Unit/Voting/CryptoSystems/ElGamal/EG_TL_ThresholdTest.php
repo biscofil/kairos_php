@@ -55,7 +55,7 @@ class EG_TL_ThresholdTest extends TestCase
 
         // broadcast and send shares
         foreach ($peers as $peer_i) {
-            $this->assertValidEGKeyPair($peer_i->pk, $peer_i->sk);
+            self::assertValidEGKeyPair($peer_i->pk, $peer_i->sk);
             $Aik = $peer_i->getBroadcast();
 
             foreach ($peers as $peer_j) {
@@ -109,7 +109,7 @@ class EG_TL_ThresholdTest extends TestCase
         }
         $virtual_secret_x->x = $virtual_secret_x->x->modPow(BI1(), $parameterSet->q);
 //        dump('################### virtual_secret_x : ' . $virtual_secret_x->x->toString());
-        $this->assertValidEGKeyPair($pk, $virtual_secret_x);
+        self::assertValidEGKeyPair($pk, $virtual_secret_x);
 
 
         // ########################## share private key

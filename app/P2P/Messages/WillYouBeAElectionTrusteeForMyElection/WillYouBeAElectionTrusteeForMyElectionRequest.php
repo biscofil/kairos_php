@@ -57,8 +57,6 @@ class WillYouBeAElectionTrusteeForMyElectionRequest extends P2PMessageRequest
      */
     public function serialize(PeerServer $to): array
     {
-        Log::debug("sending WillYouBeAElectionTrusteeForMyElection message to {$to->domain}");
-
         return [
             'election' => $this->election->toArray(),
         ];

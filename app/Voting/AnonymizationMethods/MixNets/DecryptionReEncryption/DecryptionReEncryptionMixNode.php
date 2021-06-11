@@ -5,11 +5,12 @@ namespace App\Voting\AnonymizationMethods\MixNets\DecryptionReEncryption;
 
 
 use App\Models\Election;
-use App\Models\PeerServer;
 use App\Voting\AnonymizationMethods\MixNets\Mix;
 use App\Voting\AnonymizationMethods\MixNets\MixNode;
 use App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet;
 use App\Voting\CryptoSystems\CipherText;
+use App\Voting\CryptoSystems\ElGamal\EGCiphertext;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class DecryptionReEncryptionMixNode
@@ -84,6 +85,43 @@ class DecryptionReEncryptionMixNode extends MixNode
     public static function getParameterSetClass(): string
     {
         return DecryptionReEncryptionParameterSet::class;
+    }
+
+    /**
+     * This is executed by the bulletin board after the mix procedure
+     * @param \App\Models\Election $election
+     * @noinspection PhpMissingParentCallCommonInspection
+     * @throws \Exception
+     */
+    public static function afterSuccessfulMixProcess(Election &$election): void
+    {
+        Log::debug('DecryptionReEncryptionMixNode afterSuccessfulMixProcess > tally');
+
+        $plainTexts = self::extractVotes($election);
+
+        if (!self::storePlainTextBallots($election, $plainTexts)) {
+            Log::error('storePlainTextBallots failed, no tally');
+            return;
+        }
+
+        self::runTally($election);
+    }
+
+    /**
+     * @param \App\Models\Election $election
+     * @return \App\Voting\CryptoSystems\Plaintext[]
+     * @throws \Exception
+     */
+    public static function extractVotes(Election &$election): array
+    {
+        /** @var \App\Models\Mix $lastMix */
+        $lastMix = $election->mixes()->latest()->firstOrFail();
+
+        $cipherTexts = $lastMix->getMixWithShadowMixes()->primaryMix->ciphertexts;
+
+        return array_map(function (EGCiphertext $cipherText) use ($election) {
+            return $cipherText->extractPlainTextFromBeta();
+        }, $cipherTexts);
     }
 
 }

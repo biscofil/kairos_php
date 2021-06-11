@@ -22,7 +22,7 @@ abstract class TestCase extends BaseTestCase
      * @param int $expectedCode
      * @param TestResponse|JsonResponse $response
      */
-    public function assertResponseStatusCode(int $expectedCode, $response): void
+    public static function assertResponseStatusCode(int $expectedCode, $response): void
     {
         if (env('TESTING_DUMP_RESPONSE', false)) {
             if ($response->getStatusCode() !== $expectedCode) {
@@ -40,7 +40,7 @@ abstract class TestCase extends BaseTestCase
      * @param \App\Voting\CryptoSystems\ElGamal\EGPublicKey $pk
      * @param \App\Voting\CryptoSystems\ElGamal\EGSecretKey $sk
      */
-    public function assertValidEGKeyPair(EGPublicKey $pk, EGSecretKey $sk)
+    public static function assertValidEGKeyPair(EGPublicKey $pk, EGSecretKey $sk)
     {
         $p = new EGPlaintext(randomBIgt($pk->parameterSet->p));
         $c = $pk->encrypt($p);

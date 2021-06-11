@@ -73,7 +73,7 @@ class DecryptionReEncryptionMixWithShadowMixes extends MixWithShadowMixes
     public function checkRightProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof): bool
     {
         foreach ($shadowMix->ciphertexts as $cipherText) {
-            //TODO
+            // TODO
         }
         return true;
     }
@@ -84,7 +84,7 @@ class DecryptionReEncryptionMixWithShadowMixes extends MixWithShadowMixes
      */
     public function getLeftEquivalenceParameterSet(Mix $shadow): DecryptionReEncryptionParameterSet
     {
-        // TODO: Implement getLeftEquivalenceParameterSet() method.
+        return $shadow->parameterSet;
     }
 
     /**
@@ -98,17 +98,20 @@ class DecryptionReEncryptionMixWithShadowMixes extends MixWithShadowMixes
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
+     * @return null
      */
     public function getLeftProof(Mix $shadow)
     {
-        // TODO: Implement getLeftProof() method.
+        // TODO DLOG
+        return null;
     }
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
+     * @return null
      */
     public function getRightProof(Mix $shadow)
     {
-        // TODO: Implement getRightProof() method.
+        return null;
     }
 }

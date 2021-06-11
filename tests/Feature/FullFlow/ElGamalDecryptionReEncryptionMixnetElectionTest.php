@@ -14,10 +14,10 @@ use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use Tests\TestCase;
 
 /**
- * Class ElGamalDecryptionMixnetElectionTest
+ * Class ElGamalDecryptionReEncryptionMixnetElectionTest
  * @package Tests\Feature\FullFlow
  */
-class ElGamalDecryptionMixnetElectionTest extends TestCase
+class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
 {
 
     /**
@@ -27,7 +27,7 @@ class ElGamalDecryptionMixnetElectionTest extends TestCase
     {
         $election = Election::factory()->create();
         $election->cryptosystem = CryptoSystemEnum::ElGamal();
-        $election->anonymization_method = AnonymizationMethodEnum::DecMixNet();
+        $election->anonymization_method = AnonymizationMethodEnum::DecReEncMixNet();
         $election->save();
 
         $trustee = $election->createPeerServerTrustee(getCurrentServer());
@@ -40,6 +40,7 @@ class ElGamalDecryptionMixnetElectionTest extends TestCase
         $election->private_key = $keyPair->sk;
         $election->save();
 
+        $election->preFreeze();
         $election->actualFreeze();
         $election->save();
 
@@ -70,12 +71,14 @@ class ElGamalDecryptionMixnetElectionTest extends TestCase
             $response = $this->withHeaders(['Authorization' => "Bearer $token"])
                 ->json('POST', "api/elections/$election->slug/cast", $data);
 
-            $this->assertResponseStatusCode(200, $response);
+            self::assertResponseStatusCode(200, $response);
         }
 
         $election->anonymization_method->getClass()::afterVotingPhaseEnds($election);
 
         $election->anonymization_method->getClass()::afterSuccessfulMixProcess($election);
+
+        self::assertNotNull($election->tallying_finished_at);
 
     }
 

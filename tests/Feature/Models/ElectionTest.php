@@ -36,7 +36,7 @@ class ElectionTest extends TestCase
         $data->cryptosystem = CryptoSystemEnum::RSA();
         $response = $this->actingAs($user)
             ->json('POST', 'api/elections', $data->toArray());
-        $this->assertResponseStatusCode(201, $response);
+        self::assertResponseStatusCode(201, $response);
 
         $election = Election::findOrFail($response->json('id'));
 
@@ -106,7 +106,7 @@ class ElectionTest extends TestCase
         $election->cryptosystem = CryptoSystemEnum::ElGamal();
         $response = $this->actingAs($user)
             ->json('POST', 'api/elections', $election->toArray());
-        $this->assertResponseStatusCode(201, $response);
+        self::assertResponseStatusCode(201, $response);
 
         $election = Election::findOrFail($response->json('id'));
         self::createElectionQuestions($election);
@@ -181,7 +181,7 @@ class ElectionTest extends TestCase
 //        dd($data->toArray());
         $response = $this->actingAs($user)
             ->json('POST', 'api/elections', $data->toArray());
-        $this->assertResponseStatusCode(201, $response);
+        self::assertResponseStatusCode(201, $response);
 
         $keypair = EGKeyPair::generate(); // TODO check!!
 
@@ -214,7 +214,7 @@ class ElectionTest extends TestCase
             $token = $user->getNewJwtToken();
             $response = $this->withHeaders(['Authorization' => "Bearer $token"])
                 ->json('POST', "api/elections/$election->slug/cast", $data);
-            $this->assertResponseStatusCode(200, $response);
+            self::assertResponseStatusCode(200, $response);
 
         }
 

@@ -71,7 +71,7 @@ class ExpElGamalHomomorphicElectionTest extends TestCase
             $response = $this->withHeaders(['Authorization' => "Bearer $token"])
                 ->json('POST', "api/elections/$election->slug/cast", $data);
 
-            $this->assertResponseStatusCode(200, $response);
+            self::assertResponseStatusCode(200, $response);
         }
 
         // TODO secret key combination
@@ -79,6 +79,8 @@ class ExpElGamalHomomorphicElectionTest extends TestCase
         $election->anonymization_method->getClass()::afterVotingPhaseEnds($election);
 
         // TODO brute force
+
+        self::assertNotNull($election->tallying_finished_at);
     }
 
 }

@@ -255,7 +255,7 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
         }, $data['shadow_mixes']);
 
         $parameterSets = array_map(function (array $originalCiphertext) use ($parameterSetClass) {
-            return $parameterSetClass::fromArray($originalCiphertext);
+            return $parameterSetClass::fromArray($originalCiphertext); // TODO check
         }, $data['parameter_sets']);
 
         $proofs = $data['proofs']; // TODO check, null for now, no custom type

@@ -21,7 +21,7 @@ class ElectionControllerTest extends TestCase
         $user = User::factory()->create();
         $data = Election::factory()->make()->toArray();
         $response = $this->actingAs($user)->json('POST', 'api/elections', $data);
-        $this->assertResponseStatusCode(201, $response);
+        self::assertResponseStatusCode(201, $response);
     }
 
     /**
@@ -35,7 +35,7 @@ class ElectionControllerTest extends TestCase
         $data = Election::factory()->make()->toArray();
         $response = $this->actingAs($user)
             ->json('POST', 'api/elections', $data);
-        $this->assertResponseStatusCode(201, $response);
+        self::assertResponseStatusCode(201, $response);
 
         // edit
         $election = Election::findOrFail($response->json('id'));
@@ -43,7 +43,7 @@ class ElectionControllerTest extends TestCase
         $data = $election->toArray();
 
         $response = $this->actingAs($user)->json('PUT', 'api/elections/' . $election->slug, $data);
-        $this->assertResponseStatusCode(200, $response);
+        self::assertResponseStatusCode(200, $response);
     }
 
     /**
@@ -60,7 +60,7 @@ class ElectionControllerTest extends TestCase
         $user = User::factory()->create();
         $response = $this->actingAs($user)
             ->json('POST', 'api/elections/' . $election->slug . '/copy');
-        $this->assertResponseStatusCode(201, $response);
+        self::assertResponseStatusCode(201, $response);
 
         $newElection = Election::findOrFail($response->json('id'));
 
@@ -83,7 +83,7 @@ class ElectionControllerTest extends TestCase
 
         $response = $this->actingAs($user)
             ->json('POST', 'api/elections', $election->toArray());
-        $this->assertResponseStatusCode(201, $response);
+        self::assertResponseStatusCode(201, $response);
 
         // edit
         $election = Election::findOrFail($response->json('id'));
@@ -99,7 +99,7 @@ class ElectionControllerTest extends TestCase
             $data['questions'][] = $q;
         }
         $response = $this->actingAs($user)->json('PUT', 'api/elections/' . $election->slug . '/questions', $data);
-        $this->assertResponseStatusCode(200, $response);
+        self::assertResponseStatusCode(200, $response);
 
     }
 

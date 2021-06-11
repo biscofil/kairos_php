@@ -31,7 +31,7 @@ class MultipleChoice extends QuestionType
          * ) GROUP BY id HAVING id NOT NULL
          */
 
-        $tallyDatabase = $question->election->getTallyDatabase();
+        $tallyDatabase = $question->election->getTallyDatabase(); // TODO only for mixnets
 
         $questionAnswerCols = $tallyDatabase->getAnswerColumnNames($question);
 

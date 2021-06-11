@@ -10,6 +10,7 @@ use App\Models\Trustee;
 use App\P2P\Messages\ThisIsMySecretKey\ThisIsMySecretKeyRequest;
 use App\Voting\AnonymizationMethods\MixNets\Mix;
 use App\Voting\AnonymizationMethods\MixNets\MixNode;
+use App\Voting\CryptoSystems\CipherText;
 use App\Voting\CryptoSystems\SecretKey;
 use Illuminate\Support\Facades\Log;
 
@@ -130,6 +131,7 @@ class ReEncryptingMixNode extends MixNode
     }
 
     /**
+     * This is executed by the bulletin board once all secret keys have been shared by the trustees after the mix procedure
      * @param \App\Models\Election $election
      * @param array $mixChainTrusteeIDs
      * @throws \Exception
@@ -139,16 +141,32 @@ class ReEncryptingMixNode extends MixNode
 
         self::combineTrusteePrivateKeys($election, $mixChainTrusteeIDs);
 
+        $plainTexts = self::decryptVotes($election);
+
+        self::storePlainTextBallots($election, $plainTexts);
+
+        self::runTally($election);
+
+    }
+
+    /**
+     * @param \App\Models\Election $election
+     * @return \App\Voting\CryptoSystems\Plaintext[]
+     * @throws \Exception
+     */
+    public static function decryptVotes(Election &$election): array
+    {
+
         Log::debug('Decrypting votes...');
 
         /** @var \App\Models\Mix $lastMix */
-        $lastMix = $election->mixes()->latest()->firstOrFail(); // TODO check!!!
+        $lastMix = $election->mixes()->latest()->firstOrFail();
 
         $cipherTexts = $lastMix->getMixWithShadowMixes()->primaryMix->ciphertexts;
 
-        $election->getTallyDatabase()->insertBallots($cipherTexts); // TODO check
-
-        $election->tally();
+        return array_map(function (CipherText $cipherText) use ($election) {
+            return $election->private_key->decrypt($cipherText);
+        }, $cipherTexts);
 
     }
 

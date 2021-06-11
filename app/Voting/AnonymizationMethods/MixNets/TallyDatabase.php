@@ -169,24 +169,12 @@ class TallyDatabase
      */
     public function tally(): void
     {
-        Log::info("Running tally of election {$this->election->id}");
-
-        $this->election->tallying_started_at = Carbon::now();
-
         foreach ($this->election->questions as $question) {
             $query = $question->question_type->getClass()::getTallyQuery($question);
             $results = $this->connection->select(DB::raw($query));
             $question->tally_result = $results;
             $question->save();
         }
-
-        $this->election->tallying_finished_at = Carbon::now();
-        $this->election->tallying_combined_at = Carbon::now();
-        $this->election->results_released_at = Carbon::now();
-        $this->election->save();
-
-        Log::info('Ballots tallied');
-
     }
 
     // ###############################################################################################
@@ -221,37 +209,41 @@ class TallyDatabase
     }
 
     /**
-     * @param array $cipherTexts
+     * @param \App\Voting\CryptoSystems\Plaintext[] $plainTextVotes
      * @return bool
      */
-    public function insertBallots(array $cipherTexts): bool
+    public function insertPlainTextBallots(array $plainTextVotes): bool
     {
 
         // remove existing records
-        $this->connection->table($this->getOutputTableName())->truncate();
+        try {
+            $this->connection->table($this->getOutputTableName())->truncate();
+        } catch (\Throwable $e) {
+            Log::error('insertPlainTextBallots > Error during table truncation');
+            Log::error($e->getMessage());
+            return false;
+        }
 
         $successCount = 0;
         $questionCount = $this->election->questions->count();
 
-        foreach ($cipherTexts as $cipherText) {
-            /** @var \App\Voting\CryptoSystems\Plaintext $plainVoteStr */
-            $plainVoteStr = null;
+        foreach ($plainTextVotes as $plainTextVote) {
             $plainVoteArray = null;
             try {
-                $plainVoteStr = $this->election->private_key->decrypt($cipherText);
-                $plainVoteArray = Small_JSONBallotEncoding::decode($plainVoteStr); // TODO generalize
+                $plainVoteArray = Small_JSONBallotEncoding::decode($plainTextVote); // TODO generalize
                 if ($this->insertBallot($plainVoteArray, $questionCount)) {
                     $successCount++;
                 }
             } catch (\Throwable $e) {
+                Log::error('insertPlainTextBallots > Error during plaintext decoding and insertion');
                 Log::error($e->getMessage());
-                Log::debug($plainVoteStr->toString());
+                Log::debug($plainTextVote->toString());
                 Log::debug($plainVoteArray);
             }
 
         }
 
-        $failCount = count($cipherTexts) - $successCount;
+        $failCount = count($plainTextVotes) - $successCount;
 
         Log::info("DONE! $successCount succesful insertions, $failCount failed insertions");
 

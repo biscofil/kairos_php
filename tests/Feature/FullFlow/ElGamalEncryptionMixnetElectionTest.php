@@ -41,6 +41,7 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
 //        $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
 
         $keyPair = $kpClass::generate();
+        $election->preFreeze();
         $election->actualFreeze();
 
         self::createElectionQuestions($election);
@@ -68,7 +69,7 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
             $response = $this->withHeaders(['Authorization' => "Bearer $token"])
                 ->json('POST', "api/elections/$election->slug/cast", $data);
 
-            $this->assertResponseStatusCode(200, $response);
+            self::assertResponseStatusCode(200, $response);
         }
 
         $election->anonymization_method->getClass()::afterVotingPhaseEnds($election);
@@ -80,6 +81,7 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
         $trustee->save();
         $election->anonymization_method->getClass()::onSecretKeyReceived($election, $trustee);
 
+        self::assertNotNull($election->tallying_finished_at);
     }
 
 }

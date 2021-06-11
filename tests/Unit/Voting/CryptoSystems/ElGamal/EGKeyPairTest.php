@@ -22,7 +22,7 @@ class EGKeyPairTest extends TestCase
 
         $ps = EGParameterSet::getDefault();
         $pair = EGKeyPair::generate($ps);
-        $this->assertValidEGKeyPair($pair->pk, $pair->sk);
+        self::assertValidEGKeyPair($pair->pk, $pair->sk);
 
 //        $obj = [
 //            Str::random(30) => Str::random(30),

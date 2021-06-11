@@ -29,6 +29,7 @@ class MultipleChoicesTest extends TestCase
         $election->public_key = $keyPair->pk;
         $election->private_key = $keyPair->sk;
         self::createElectionQuestions($election);
+        $election->preFreeze();
         $election->actualFreeze();
 
         $votePlain = [
@@ -79,6 +80,7 @@ class MultipleChoicesTest extends TestCase
 
         self::createElectionQuestions($election);
 
+        $election->preFreeze();
         $election->actualFreeze();
 
         $votePlain = [

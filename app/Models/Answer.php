@@ -5,6 +5,8 @@ namespace App\Models;
 use Database\Factories\AnswerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 /**
  * Class Answer
@@ -16,6 +18,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null url
  * @property array|null attributes
  * @property int question_id
+ *
+ * @property \App\Models\CastVote[]|Collection votes
  *
  * @method static AnswerFactory factory()
  */
@@ -42,5 +46,13 @@ class Answer extends Model
         'url',
         'attributes',
     ];
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany|\App\Models\CastVote
+     */
+    public function votes(): HasMany
+    {
+        return $this->hasMany(CastVote::class);
+    }
 
 }

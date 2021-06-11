@@ -41,7 +41,9 @@ use Webpatser\Uuid\Uuid;
  *
  * @property bool is_private
  * @property bool is_featured
+ *
  * @property \App\Models\Question[]|Collection questions
+ * @property \App\Models\Answer[]|Collection answers
  *
  * @property int peer_server_id ID of the server that created the election
  * @property PeerServer peerServerAuthor Server that created the election
@@ -410,6 +412,14 @@ class Election extends Model
     }
 
     /**
+     * @return HasManyThrough|\App\Models\Answer
+     */
+    public function answers(): HasManyThrough
+    {
+        return $this->hasManyThrough(Answer::class, Question::class);
+    }
+
+    /**
      * @return BelongsTo|User
      */
     public function admin(): BelongsTo
@@ -584,7 +594,7 @@ class Election extends Model
     /**
      *
      */
-    public function pre_freeze(): bool
+    public function preFreeze(): bool
     {
         return $this->setupOutputTables(); // TODO only for mixnets
     }
@@ -595,7 +605,7 @@ class Election extends Model
     public function freeze()
     {
 
-        $this->pre_freeze();
+        $this->preFreeze();
 
         # generate voters hash
         // TODO $this->voter_hash = $this->generateVotersHash();

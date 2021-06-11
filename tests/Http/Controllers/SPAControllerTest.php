@@ -19,7 +19,7 @@ class SPAControllerTest extends TestCase
     public function home()
     {
         $response = $this->get('/');
-        $this->assertResponseStatusCode(200, $response);
+        self::assertResponseStatusCode(200, $response);
     }
 
 
@@ -29,7 +29,7 @@ class SPAControllerTest extends TestCase
     public function home_404()
     {
         $response = $this->get('/' . Str::random(10));
-        $this->assertResponseStatusCode(404, $response);
+        self::assertResponseStatusCode(404, $response);
     }
 
 }

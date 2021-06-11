@@ -338,10 +338,8 @@ class Freeze1IAmFreezingElectionRequest extends P2PMessageRequest
         // wait for 5 seconds to allow everyone to receive the first phase message and generate its polynomial
         Bus::chain($jobs)->delay(5)->dispatch();
 
-
-        if (!$this->election->pre_freeze()) {
+        if (!$this->election->preFreeze()) {
             $freezeReady = false;
-
         }
 
         return new Freeze1IAmFreezingElectionResponse(
