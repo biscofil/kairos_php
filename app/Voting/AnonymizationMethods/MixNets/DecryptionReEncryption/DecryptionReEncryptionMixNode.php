@@ -11,6 +11,7 @@ use App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet;
 use App\Voting\CryptoSystems\CipherText;
 use App\Voting\CryptoSystems\ElGamal\EGCiphertext;
 use Illuminate\Support\Facades\Log;
+use phpseclib3\Math\BigInteger;
 
 /**
  * Class DecryptionReEncryptionMixNode
@@ -34,22 +35,25 @@ class DecryptionReEncryptionMixNode extends MixNode
             $parameterSet = DecryptionReEncryptionParameterSet::create($election->public_key, count($ciphertexts));
         }
 
-        /** @var \App\Models\Trustee $mePeer */
-        $mePeer = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
-
-        /** @var \App\Voting\CryptoSystems\PartialDecryptionSecretKey $sk */
-        $sk = $mePeer->private_key;
-
         // apply re-encryption on original ciphertexts
-        $ciphertexts = array_map(function (CipherText $ciphertext, int $idx) use ($parameterSet, $sk) {
-            $r = $parameterSet->reEncryptionFactors[$idx];
-            return $ciphertext->reEncryptWithRandomness($r);
-        }, $ciphertexts, range(0, count($ciphertexts) - 1));
 
-        // do partial decryption on re-encrypted ciphertexts
-        $ciphertexts = array_map(function (CipherText $cipherText, int $idx) use ($sk) {
-            return $sk->partiallyDecrypt($cipherText);
-        }, $ciphertexts, range(0, count($ciphertexts) - 1));
+        if (!$parameterSet->skipDecryption) {
+
+            $ciphertexts = array_map(function (CipherText $ciphertext, BigInteger $r) use ($parameterSet): CipherText {
+                return $ciphertext->reEncryptWithRandomness($r);
+            }, $ciphertexts, $parameterSet->reEncryptionFactors);
+
+            /** @var \App\Models\Trustee $mePeer */
+            $mePeer = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
+
+            /** @var \App\Voting\CryptoSystems\PartialDecryptionSecretKey $sk */
+            $sk = $mePeer->private_key;
+
+            // do partial decryption on re-encrypted ciphertexts
+            $ciphertexts = array_map(function (CipherText $cipherText) use ($sk): CipherText {
+                return $sk->partiallyDecrypt($cipherText);
+            }, $ciphertexts);
+        }
 
         // shuffle partially decryption and re-encrypted ciphertexts
         $ciphertexts = $parameterSet->permuteArray($ciphertexts);

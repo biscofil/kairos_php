@@ -118,16 +118,17 @@ class DecryptionReEncryptionMixWithShadowMixes extends MixWithShadowMixes
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
-     * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
+     * @param \App\Voting\AnonymizationMethods\MixNets\DecryptionReEncryption\DecryptionReEncryptionParameterSet $parameterSet
      * @param $proof
      * @param \App\Models\Trustee $claimer
      * @return bool
-     * Same as @throws \Exception
-     * @see \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMixWithShadowMixes::checkRightProof()
+     * @throws \Exception
      */
     public function checkRightProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof, Trustee $claimer): bool
     {
-        $mix = DecryptionReEncryptionMixNode::forward($this->election, $shadowMix->ciphertexts, $parameterSet);
+        $parameterSetCopy = clone $parameterSet;
+        $parameterSetCopy->skipDecryption = true;
+        $mix = DecryptionReEncryptionMixNode::forward($this->election, $shadowMix->ciphertexts, $parameterSetCopy);
         return $mix->equals($this->primaryMix);
     }
 }

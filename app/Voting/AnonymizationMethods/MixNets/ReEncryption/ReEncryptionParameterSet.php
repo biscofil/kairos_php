@@ -118,13 +118,14 @@ class ReEncryptionParameterSet extends MixNodeParameterSet
     public function combine(ReEncryptionParameterSet $primaryMixPS): self
     {
         // combine randomness
-        $perm = range(0, count($this->reEncryptionFactors) - 1);
-        $newReEncryptionFactor = [];
-        foreach ($perm as $i) {
-            $newReEncryptionFactor[] = $primaryMixPS->reEncryptionFactors[$i]
-                ->subtract($this->reEncryptionFactors[$i])
-                ->modPow(BI1(), $this->pk->parameterSet->q); // TODO generalize!!!
-        }
+        $newReEncryptionFactor = array_map(
+            function (BigInteger $primaryMixReEncryptionFactor, BigInteger $shadowMixReEncryptionFactor): BigInteger {
+                return $primaryMixReEncryptionFactor
+                    ->subtract($shadowMixReEncryptionFactor)
+                    ->modPow(BI1(), $this->pk->parameterSet->q); // TODO generalize!!!
+            },
+            $primaryMixPS->reEncryptionFactors,
+            $this->reEncryptionFactors);
 
         // permute $newReEncryptionFactor according to shadow mix permutation
         $newReEncryptionFactor = $this->permuteArray($newReEncryptionFactor);

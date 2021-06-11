@@ -13,6 +13,7 @@ use phpseclib3\Math\BigInteger;
  * Class DecryptionReEncryptionParameterSet
  * @package App\Voting\AnonymizationMethods\MixNets\DecryptionReEncryption
  * @property BigInteger[] reEncryptionFactors
+ * @property bool $skipDecryption
  */
 class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
 {
@@ -20,6 +21,7 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
     use BelongsToReEncryptionMixNode;
 
     public array $reEncryptionFactors;
+    public bool $skipDecryption = false;
 
     public function __construct(PublicKey $pk, array $reEncryptionFactors, array $permutation)
     {
@@ -102,25 +104,69 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
     // ##########################################################################
 
     /**
+     * TODO
      * @param self $primaryMixPS
      * @return self
      * @throws \Exception
      */
     public function combine(DecryptionReEncryptionParameterSet $primaryMixPS): self
     {
+
         // combine randomness
-        $newReEncryptionFactor = [];
-        for ($i = 0; $i < count($this->reEncryptionFactors); $i++) {
-            $newReEncryptionFactor[] = $primaryMixPS->reEncryptionFactors[$i]
-                ->subtract($this->reEncryptionFactors[$i])
-                ->modPow(BI1(), $this->pk->parameterSet->p); // TODO generalize
-        }
+        $newReEncryptionFactor = array_map(
+            function (BigInteger $primaryMixReEncryptionFactor, BigInteger $shadowMixReEncryptionFactor): BigInteger {
+                return $primaryMixReEncryptionFactor
+                    ->subtract($shadowMixReEncryptionFactor)
+                    ->modPow(BI1(), $this->pk->parameterSet->q); // TODO generalize!!!
+            },
+            $primaryMixPS->reEncryptionFactors,
+            $this->reEncryptionFactors);
+
+        // permute $newReEncryptionFactor according to shadow mix permutation
+        $newReEncryptionFactor = $this->permuteArray($newReEncryptionFactor);
 
         // undo shadow mix shuffling (this)
         // recover inverse mapping of shadow mix permutation
-        $out = $primaryMixPS->permuteArray($this->getShufflingOrderReversed());
+        $permutation = $primaryMixPS->permuteArray($this->getShufflingOrderReversed());
 
-        return new static($this->pk, $newReEncryptionFactor, $out);
+        return new static($this->pk, $newReEncryptionFactor, $permutation);
+
+
+
+
+        // combine randomness
+
+//        $perm = range(0, count($this->reEncryptionFactors) - 1);
+//        $newReEncryptionFactor = [];
+//        foreach ($perm as $i) {
+//            $newReEncryptionFactor[] = $primaryMixPS->reEncryptionFactors[$i]
+//                ->subtract($this->reEncryptionFactors[$i])
+//                ->modPow(BI1(), $this->pk->parameterSet->q); // TODO generalize!!!
+//        }
+
+        $solifiedShadowEncryptionFactors = $this->permuteArray($this->reEncryptionFactors);
+        $primaryAAA = $this->permuteArray($primaryMixPS->reEncryptionFactors);
+
+        $solifiedShadowEncryptionFactors = array_map(
+            function (BigInteger $shadowMixReEncryptionFactor, BigInteger $primaryMixReEncryptionFactor): BigInteger {
+                return $primaryMixReEncryptionFactor
+                    ->subtract($shadowMixReEncryptionFactor)
+                    ->modPow(BI1(), $this->pk->parameterSet->q); // TODO generalize!!!
+            },
+            $this->reEncryptionFactors,
+            $primaryMixPS->reEncryptionFactors);
+
+        // permute $newReEncryptionFactor according to shadow mix permutation
+//        /** @var BigInteger[] $newReEncryptionFactor */
+//        $newReEncryptionFactor = $this->permuteArray($newReEncryptionFactor);
+
+        // undo shadow mix shuffling (this)
+        // recover inverse mapping of shadow mix permutation
+        $permutation = $primaryMixPS->permuteArray($this->getShufflingOrderReversed());
+
+        $solifiedShadowEncryptionFactors = $this->permuteArray($solifiedShadowEncryptionFactors);
+
+        return new static($this->pk, $solifiedShadowEncryptionFactors, $permutation);
     }
 
 }

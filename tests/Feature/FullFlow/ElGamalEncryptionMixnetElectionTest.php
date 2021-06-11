@@ -38,9 +38,6 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
         $trustee->public_key = $trusteeKeyPair->pk;
         $trustee->save();
 
-//        $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
-
-        $keyPair = $kpClass::generate();
         $election->preFreeze();
         $election->actualFreeze();
 
@@ -82,6 +79,11 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
         $election->anonymization_method->getClass()::onSecretKeyReceived($election, $trustee);
 
         self::assertNotNull($election->tallying_finished_at);
+
+        /** @var \App\Models\Mix $lastMix */
+        $lastMix = $election->mixes()->latest()->firstOrFail();
+        $lastMix->verify();
+        self::assertTrue($lastMix->is_valid);
     }
 
 }

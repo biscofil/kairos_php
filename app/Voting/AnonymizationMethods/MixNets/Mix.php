@@ -49,30 +49,16 @@ abstract class Mix implements BelongsToAnonymizationMethod
     }
 
     /**
-     * TODO proof should not use the private key!!!!!
-     *   use dlog proof
      * @param Mix $b
      * @return bool
      * @throws \Exception
-     * @deprecated
      */
     public function equals(Mix $b): bool
     {
         for ($i = 0; $i < count($this->ciphertexts); $i++) {
-
             if (!$this->ciphertexts[$i]->equals($b->ciphertexts[$i])) {
-//                dump($this->ciphertexts[$i]->toArray());
-//                dump($b->ciphertexts[$i]->toArray());
                 return false;
             }
-
-            // private key check
-//            if (!$sk->decrypt($this->ciphertexts[$i])->m->equals($sk->decrypt($b->ciphertexts[$i])->m)) {
-//                return false;
-//            }
-
-            // todo dlog
-
         }
         return true;
     }

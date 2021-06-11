@@ -13,6 +13,7 @@ use App\Voting\AnonymizationMethods\MixNets\MixNode;
 use App\Voting\CryptoSystems\CipherText;
 use App\Voting\CryptoSystems\SecretKey;
 use Illuminate\Support\Facades\Log;
+use phpseclib3\Math\BigInteger;
 
 /**
  * Class ReEncryptingMixNode
@@ -36,20 +37,18 @@ class ReEncryptingMixNode extends MixNode
             $parameterSet = ReEncryptionParameterSet::create($election->public_key, count($ciphertexts));
         }
 
-        // re-encrypt
-        $reEncryptedCiphertexts = [];
-        foreach ($ciphertexts as $idx => $ciphertext) {
-            $r = $parameterSet->reEncryptionFactors[$idx];
-            /** @var \App\Voting\CryptoSystems\ElGamal\EGCiphertext $ciphertext */
-            $reEncryptedCiphertexts[] = $ciphertext->reEncryptWithRandomness($r); // TODO generalize
-        }
+        // apply re-encryption on original ciphertexts
+        $ciphertexts = array_map(function (CipherText $ciphertext, BigInteger $reEncryptionFactor) use ($parameterSet) : CipherText{
+            return $ciphertext->reEncryptWithRandomness($reEncryptionFactor);
+        }, $ciphertexts, $parameterSet->reEncryptionFactors);
+
 
         // shuffle
-        $reEncryptedCiphertexts = $parameterSet->permuteArray($reEncryptedCiphertexts);
+        $ciphertexts = $parameterSet->permuteArray($ciphertexts);
 
         return new ReEncryptionMix(
             $election,
-            $reEncryptedCiphertexts,
+            $ciphertexts,
             $parameterSet
         );
 

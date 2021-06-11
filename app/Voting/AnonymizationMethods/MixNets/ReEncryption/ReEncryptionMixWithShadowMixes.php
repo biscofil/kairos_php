@@ -78,7 +78,6 @@ class ReEncryptionMixWithShadowMixes extends MixWithShadowMixes
      * @param \App\Models\Trustee $claimer
      * @return bool
      * @throws \Exception
-     * Same as @see \App\Voting\AnonymizationMethods\MixNets\DecryptionReEncryption\DecryptionReEncryptionMixWithShadowMixes::checkRightProof()
      */
     public function checkRightProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof, Trustee $claimer): bool
     {

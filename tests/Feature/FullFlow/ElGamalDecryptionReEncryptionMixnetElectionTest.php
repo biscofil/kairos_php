@@ -20,6 +20,12 @@ use Tests\TestCase;
 class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
 {
 
+//    public function formula(){
+//        $kp = EGKeyPair::generate();
+//        $plainText = new EGPlaintext(randomBIgt(BI(999999)));
+//        $cipherText = $kp->pk->encrypt($plainText);
+//    }
+
     /**
      * @test
      */
@@ -54,7 +60,7 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
             $voter->save();
 
             // generate a JSON vote structure
-            $votePlain = [[1], [3], [2]];
+            $votePlain = [[rand(1, 3)], [rand(1, 3)], [rand(1, 3)]];
 
             $plaintext = Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
             $cipher = $election->public_key->encrypt($plaintext);
