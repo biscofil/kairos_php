@@ -59,6 +59,8 @@ abstract class TestCase extends BaseTestCase
             $question = Question::factory()->make();
             $question->local_id = $i + 1;
             $question->election_id = $election->id;
+            $question->min = 0;
+            $question->max = $nAnswers;
             $question->save();
             for ($k = 0; $k < $nAnswers; $k++) {
                 $answer = Answer::factory()->make();
