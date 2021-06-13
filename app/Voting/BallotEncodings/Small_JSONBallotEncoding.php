@@ -50,9 +50,9 @@ class Small_JSONBallotEncoding extends JSONBallotEncoding
 
         $hex = $representation->toString(); // seems to add leading zeros
 
-        // remove leading zeros
         // Note : BigInteger->hex() returns a different format than dechex() with a leading zero
-        $hex = dechex(hexdec($hex)); // TODO CHECK
+        // remove leading zeros TODO CHECK
+        $hex = ltrim($hex, '0');
 
         // remap
         $chars = array_map(function ($hexChar) {
