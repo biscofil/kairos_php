@@ -159,7 +159,7 @@ class EGPublicKey implements PublicKey
      */
     public function encryptAndReturnRandomness(EGPlaintext $plainText): array
     {
-        $r = randomBIgt($this->parameterSet->q); // 0 < r < q-1 : randomness
+        $r = $this->parameterSet->getReEncryptionFactor();
         $ciphertext = $this->encryptWithRandomness($plainText, $r);
         return [$ciphertext, $r];
     }

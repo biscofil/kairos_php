@@ -81,7 +81,7 @@ class Mix extends Model
      */
     public function getFilename(): string
     {
-        return 'election_' . $this->trustee->election->uuid . '_mix_' . $this->id . '.json';
+        return 'mix_' . $this->id . '.json';
     }
 
     /**
@@ -154,7 +154,7 @@ class Mix extends Model
         $mixClass = $election->anonymization_method->getClass();
 
         // generate shadow mixes
-        $primaryShadowMixes = $mixClass::generate($election, $cipherTexts, 80);
+        $primaryShadowMixes = $mixClass::generate($election, $cipherTexts, config('kairos.mixnets.shadow_mixes'));
 
         $meTrustee = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
 

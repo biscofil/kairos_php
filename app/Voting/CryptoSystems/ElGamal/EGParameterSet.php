@@ -52,11 +52,11 @@ class EGParameterSet implements ParameterSet
      */
     public static function getDefault(): self
     {
-        $p = BI(config('elgamal.p'), config('elgamal.base')); // prime p
+        $p = BI(config('kairos.elgamal.p'), config('kairos.elgamal.base')); // prime p
         // NOTE: Q,G are inverted!!!
-        $g = BI(config('elgamal.q'), config('elgamal.base'));
+        $g = BI(config('kairos.elgamal.q'), config('kairos.elgamal.base'));
         // NOTE: Q,G are inverted!!!
-        $q = BI(config('elgamal.g'), config('elgamal.base'));
+        $q = BI(config('kairos.elgamal.g'), config('kairos.elgamal.base'));
         return new static($g, $p, $q);
     }
 
@@ -87,6 +87,15 @@ class EGParameterSet implements ParameterSet
     }
 
     // ############################################################
+
+    /**
+     * Returns r with 0 < r < q-1 : randomness
+     * @return \phpseclib3\Math\BigInteger
+     */
+    public function getReEncryptionFactor(): BigInteger
+    {
+        return randomBIgt($this->q);
+    }
 
     /**
      * @return string
