@@ -710,6 +710,7 @@ class Election extends Model
      */
     public function actualFreeze(): void
     {
+        Log::debug("actualFreeze of election $this->id");
         // Elgamal: generate combined public key, RSA: nothing
         $this->cryptosystem->getClass()::onElectionFreeze($this);
         $this->frozen_at = now();

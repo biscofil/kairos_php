@@ -179,19 +179,27 @@ class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
     }
 
     /**
+     * Performs a partial decryption with the secret key share of the trustee and updates the public key
      * @param EGCiphertext $cipher
-     * @param bool $lastStep
      * @return EGCiphertext
      */
-    public function partiallyDecrypt($cipher, bool $lastStep = false): EGCiphertext
+    public function partiallyDecrypt($cipher): EGCiphertext
     {
         $inv = $cipher->alpha->powMod($this->x, $cipher->pk->parameterSet->p)
             ->modInverse($cipher->pk->parameterSet->p);
 
+        $alpha = $cipher->alpha;
         $beta = $inv->multiply($cipher->beta)->powMod(BI1(), $cipher->pk->parameterSet->p);
 
-        if ($lastStep) {
+        // updates the public key by removing
+        $pk = clone $cipher->pk;
+        $pk->y = $pk->y->multiply($this->pk->y->modInverse($cipher->pk->parameterSet->p))
+            ->powMod(BI1(), $cipher->pk->parameterSet->p); // update public key
+
+        // if y = 1 then the output contains the plaintext in beta
+        if ($pk->y->equals(BI1())) {
             // if this is the last partial decryption we must extract from the subgroup
+            $alpha = BI(1);
             $beta = $this->pk->parameterSet->extractMessageFromSubgroup($beta);
             $beta = $this->getMOnceFullyDecrypted($beta); // extractMessageFromSubgroup
             // TODO return plaintext
@@ -199,8 +207,8 @@ class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
 
         $ctClass = static::getCryptosystem()::getCipherTextClass();
         return new $ctClass(
-            $cipher->pk,
-            $cipher->alpha,
+            $pk,
+            $alpha,
             $beta
         );
     }

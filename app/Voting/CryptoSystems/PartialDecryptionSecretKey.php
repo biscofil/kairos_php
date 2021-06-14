@@ -14,9 +14,9 @@ interface PartialDecryptionSecretKey
 
     /**
      * @param \App\Voting\CryptoSystems\Ciphertext $cipher
-     * @param bool $lastStep
      * @return \App\Voting\CryptoSystems\Ciphertext
+     * @noinspection PhpMissingParamTypeInspection
      */
-    public function partiallyDecrypt(CipherText $cipher, bool $lastStep = false): CipherText;
+    public function partiallyDecrypt($cipher): CipherText;
 
 }
