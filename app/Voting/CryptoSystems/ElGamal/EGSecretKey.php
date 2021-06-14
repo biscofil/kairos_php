@@ -199,7 +199,7 @@ class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
         // if y = 1 then the output contains the plaintext in beta
         if ($pk->y->equals(BI1())) {
             // if this is the last partial decryption we must extract from the subgroup
-            $alpha = BI(1);
+            $alpha = BI(0);
             $beta = $this->pk->parameterSet->extractMessageFromSubgroup($beta);
             $beta = $this->getMOnceFullyDecrypted($beta); // extractMessageFromSubgroup
             // TODO return plaintext
