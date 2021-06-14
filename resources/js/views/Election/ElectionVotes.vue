@@ -5,7 +5,10 @@
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="#">Elections</a></li>
                 <li class="breadcrumb-item">
-                    <router-link :to="{name:'election@view', params:{ slug: election.slug }}" >{{ election.name }}</router-link>
+                    <router-link :to="{name:'election@view', params:{ slug: election.slug }}">{{
+                            election.name
+                        }}
+                    </router-link>
                 </li>
                 <li class="breadcrumb-item active" aria-current="page">Votes</li>
             </ol>
@@ -29,7 +32,7 @@
                         @vuetable:pagination-data="onPaginationData">
 
                         <template slot="vote" slot-scope="props">
-                            <VueObjectView :value="props.rowData.vote" />
+                            <VueObjectView :value="props.rowData.vote"/>
                         </template>
 
                     </Vuetable>
@@ -100,8 +103,11 @@ export default {
                     name: 'id',
                     title: 'ID',
                     sortField: 'id',
-                },
-                {
+                }, {
+                    name: 'voter_id',
+                    title: 'Voter ID',
+                    sortField: 'voter_id',
+                }, {
                     name: 'vote',
                     title: 'Vote',
                 }
