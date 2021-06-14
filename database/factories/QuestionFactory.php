@@ -4,6 +4,7 @@
 namespace Database\Factories;
 
 
+use App\Enums\QuestionTypeEnum;
 use App\Models\Question;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
@@ -33,7 +34,7 @@ class QuestionFactory extends Factory
             'question' => Str::random(10),
             'min' => 0,
             'max' => 1,
-            'question_type' => 'multiple_choice'
+            'question_type' => QuestionTypeEnum::MultipleChoice
         ];
     }
 
