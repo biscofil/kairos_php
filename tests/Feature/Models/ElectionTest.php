@@ -175,24 +175,21 @@ class ElectionTest extends TestCase
         $user = User::factory()->create();
 
         // create election
-        $data = Election::factory()->make();
-        $data->cryptosystem = CryptoSystemEnum::ElGamal();
-        $data->anonymization_method = AnonymizationMethodEnum::EncMixNet();
-//        dd($data->toArray());
+        $election = Election::factory()->make();
+        $election->cryptosystem = CryptoSystemEnum::ElGamal();
+        $election->anonymization_method = AnonymizationMethodEnum::EncMixNet();
         $response = $this->actingAs($user)
-            ->json('POST', 'api/elections', $data->toArray());
+            ->json('POST', 'api/elections', $election->toArray());
         self::assertResponseStatusCode(201, $response);
-
-        $keypair = EGKeyPair::generate(); // TODO check!!
 
         $election = Election::findOrFail($response->json('id'));
         $election->voting_starts_at = Carbon::now();
         $election->voting_started_at = Carbon::now();
         $election->voting_ends_at = Carbon::now();
-        $election->public_key = $keypair->pk;
 
-        $trustee = $election->createPeerServerTrustee(getCurrentServer());
+        $election->createPeerServerTrustee(getCurrentServer());
 
+        $election->preFreeze();
         $election->actualFreeze();
 
         self::createElectionQuestions($election);
@@ -206,14 +203,14 @@ class ElectionTest extends TestCase
 
             /** @var RSAPlaintext $plaintext */  // TODO check!!
             $plaintext = Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
-            $cipher = $keypair->pk->encrypt($plaintext); // encrypt it
+            $cipher = $election->public_key->encrypt($plaintext); // encrypt it
             $data = ['vote' => $cipher->toArray(true)];
             /**
              * @see \App\Http\Controllers\CastVoteController::store()
              */
             $token = $user->getNewJwtToken();
             $response = $this->withHeaders(['Authorization' => "Bearer $token"])
-                ->json('POST', "api/elections/$election->slug/cast", $data);
+                ->json('POST', "api/elections/{$election->slug}/cast", $data);
             self::assertResponseStatusCode(200, $response);
 
         }
