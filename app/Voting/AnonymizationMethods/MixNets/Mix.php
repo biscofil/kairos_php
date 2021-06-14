@@ -7,6 +7,7 @@ namespace App\Voting\AnonymizationMethods\MixNets;
 use App\Models\Election;
 use App\Voting\AnonymizationMethods\BelongsToAnonymizationMethod;
 use App\Voting\CryptoSystems\CipherText;
+use App\Voting\CryptoSystems\ElGamal\EGDLogProof;
 
 /**
  * Class Mix
@@ -14,27 +15,30 @@ use App\Voting\CryptoSystems\CipherText;
  * @property Election $election
  * @property Ciphertext[] ciphertexts
  * @property MixNodeParameterSet|null $parameterSet
+ * @property null $proofs
  */
 abstract class Mix implements BelongsToAnonymizationMethod
 {
 
     public Election $election;
     public array $ciphertexts;
-    /** @var \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet|null */
+    /** @var \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet|null $parameterSet */
     public $parameterSet;
+    public $proofs;
 
     /**
      * @param Election $election
      * @param Ciphertext[] $ciphertexts
      * @param MixNodeParameterSet|null $parameterSet
-     * @throws \Exception
+     * @param null $proofs
      * @noinspection PhpMissingParamTypeInspection
      */
-    public function __construct(Election $election, array $ciphertexts, $parameterSet = null)
+    public function __construct(Election $election, array $ciphertexts, $parameterSet = null, $proofs = null)
     {
         $this->election = $election;
         $this->ciphertexts = $ciphertexts;
         $this->parameterSet = $parameterSet;
+        $this->proofs = $proofs;
     }
 
     /**
@@ -85,25 +89,29 @@ abstract class Mix implements BelongsToAnonymizationMethod
         /** @var \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $psClass */
         $psClass = $mixNodeClass::getParameterSetClass();
 
-        $parameterSet = is_null($data['parameter_set'])
-            ? null
-            : $psClass::fromArray($data['parameter_set']);
+        $parameterSet = is_null($data['parameter_set']) ? null : $psClass::fromArray($data['parameter_set']);
 
-        return new static($election, $ciphertexts, $parameterSet);
+        $proofs = is_null($data['proofs']) ? null : array_map(function (?array $proofArray) { // TODO generalize
+            return is_null($proofArray) ? null : EGDLogProof::fromArray($proofArray);
+        }, $data['proofs']);
+
+        return new static($election, $ciphertexts, $parameterSet, $proofs);
     }
 
     /**
-     * @param bool $storeParameterSet only set to TRUE for shadow mixes
      * @return array
      */
-    public function toArray(bool $storeParameterSet = false): array
+    public function toArray(): array
     {
         return [
             'election_uuid' => $this->election->uuid,
             'ciphertexts' => array_map(function (CipherText $cipherText) {
                 return $cipherText->toArray(false);
             }, $this->ciphertexts),
-            'parameter_set' => ($storeParameterSet && $this->parameterSet) ? $this->parameterSet->toArray() : null
+            'parameter_set' => is_null($this->parameterSet) ? null : $this->parameterSet->toArray(),
+            'proofs' => is_null($this->proofs) ? null : array_map(function (?EGDLogProof $proof) { // TODO generalize
+                return is_null($proof) ? null : $proof->toArray();
+            }, $this->proofs)
         ];
     }
 

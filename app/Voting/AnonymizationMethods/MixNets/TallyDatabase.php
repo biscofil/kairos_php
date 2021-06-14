@@ -182,6 +182,7 @@ class TallyDatabase
      * Returns a record ready for insertion
      * @param array $plainVote
      * @return array
+     * @throws \Exception
      */
     private function getBallotRecord(array $plainVote): array
     {
@@ -197,11 +198,17 @@ class TallyDatabase
         // fill
         foreach ($plainVote as $questionIdx => $questionAnswers) {
             $q = $questionIdx + 1;
-            foreach ($questionAnswers as $idx => $questionAnswer) {
-                $a = $idx + 1;
-                $record["q_{$q}_a_{$a}"] = $questionAnswer;
+            foreach ($questionAnswers as $answerIdx => $questionAnswer) {
+                $a = $answerIdx + 1;
+                $fieldName = "q_{$q}_a_{$a}";
+                if (!array_key_exists($fieldName, $record)) {
+                    throw new \Exception("$fieldName is not present in [" . implode(',', array_keys($record)) . ']');
+                }
+                $record[$fieldName] = $questionAnswer;
             }
         }
+
+//        sort($record);
 
         return $record;
 

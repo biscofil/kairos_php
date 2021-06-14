@@ -7,7 +7,9 @@ namespace App\Voting\AnonymizationMethods\MixNets\Decryption;
 use App\Models\Election;
 use App\Voting\AnonymizationMethods\MixNets\Mix;
 use App\Voting\AnonymizationMethods\MixNets\MixNode;
+use App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet;
 use App\Voting\CryptoSystems\CipherText;
+use App\Voting\CryptoSystems\PublicKey;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -19,20 +21,17 @@ class DecryptionMixNode extends MixNode
 
     /**
      * @param Election $election
-     * @param array $ciphertexts
-     * @param \App\Voting\AnonymizationMethods\MixNets\Decryption\DecryptionParameterSet|null $parameterSet
+     * @param CipherText[] $ciphertexts
+     * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
      * @return Mix
      * @throws \Exception
      */
-    public static function forward(Election $election, array $ciphertexts, $parameterSet = null): Mix
+    public static function forward(Election $election, array $ciphertexts, MixNodeParameterSet $parameterSet): Mix
     {
 
-        if (is_null($parameterSet)) {
-
-            $psClass = self::getParameterSetClass();
-
-            // if not provided, generate as many randomness factors as there are ciphertexts
-            $parameterSet = $psClass::create($election->public_key, count($ciphertexts));
+        if (count($ciphertexts) !== count($parameterSet->permutation)) {
+            throw new \Exception('ciphertexts has ' . count($ciphertexts)
+                . ' elements while parameterSet->permutation has ' . count($parameterSet->permutation));
         }
 
         /** @var \App\Models\Trustee $mePeer */
@@ -42,10 +41,9 @@ class DecryptionMixNode extends MixNode
         $sk = $mePeer->private_key;
 
         // decrypt
-        $decryptedCiphertexts = [];
-        foreach ($ciphertexts as $idx => $ciphertext) {
-            $decryptedCiphertexts[$idx] = $sk->partiallyDecrypt($ciphertext);
-        }
+        $decryptedCiphertexts = array_map(function (CipherText $ciphertext) use ($sk): CipherText {
+            return $sk->partiallyDecrypt($ciphertext);
+        }, $ciphertexts);
 
         // shuffle
         $decryptedCiphertexts = $parameterSet->permuteArray($decryptedCiphertexts);
@@ -115,4 +113,30 @@ class DecryptionMixNode extends MixNode
         }, $cipherTexts);
     }
 
+    /**
+     * generate as many randomness factors as there are ciphertexts
+     * @param \App\Voting\CryptoSystems\PublicKey $public_key
+     * @param int $cipherTextCount
+     * @return \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet
+     * @throws \Exception
+     */
+    public static function getPrimaryMixParameterSet(PublicKey $public_key, int $cipherTextCount): MixNodeParameterSet
+    {
+        $psClass = static::getParameterSetClass();
+        // if not provided, generate as many randomness factors as there are ciphertexts
+        return $psClass::create($public_key, $cipherTextCount);
+    }
+
+    /**
+     * generate as many randomness factors as there are ciphertexts
+     * @param \App\Voting\CryptoSystems\PublicKey $public_key
+     * @param int $cipherTextCount
+     * @return \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet
+     * @throws \Exception
+     */
+    public static function getShadowMixParameterSet(PublicKey $public_key, int $cipherTextCount): MixNodeParameterSet
+    {
+        $psClass = static::getParameterSetClass();
+        return $psClass::create($public_key, $cipherTextCount);
+    }
 }

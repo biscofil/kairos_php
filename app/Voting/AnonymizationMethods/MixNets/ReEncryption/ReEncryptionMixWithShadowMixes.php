@@ -39,18 +39,21 @@ class ReEncryptionMixWithShadowMixes extends MixWithShadowMixes
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMix $shadow
      * @param \App\Models\Trustee $claimer
+     * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
      * @return array|null
      */
-    public function getLeftProofs(Mix $shadow, Trustee $claimer): ?array
+    public function getLeftProofs(Mix $shadow, Trustee $claimer, MixNodeParameterSet $parameterSet): ?array
     {
         return null; // not necessary for re encryption mixnet
     }
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMix $shadow
+     * @param \App\Models\Trustee $claimer
+     * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
      * @return array|null
      */
-    public function getRightProofs(Mix $shadow): ?array
+    public function getRightProofs(Mix $shadow, Trustee $claimer, MixNodeParameterSet $parameterSet): ?array
     {
         return null; // not necessary for re encryption mixnet
     }
@@ -59,29 +62,25 @@ class ReEncryptionMixWithShadowMixes extends MixWithShadowMixes
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMix $shadowMix
-     * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
-     * @param $proof
      * @param \App\Models\Trustee $claimer
      * @return bool
      * @throws \Exception
      */
-    public function checkLeftProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof, Trustee $claimer): bool
+    public function checkLeftProof(Mix $shadowMix, Trustee $claimer): bool
     {
-        $mix = ReEncryptingMixNode::forward($this->election, $this->originalCiphertexts, $parameterSet);
+        $mix = ReEncryptingMixNode::forward($this->election, $this->originalCiphertexts, $shadowMix->parameterSet);
         return $mix->equals($shadowMix);
     }
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMix $shadowMix
-     * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
-     * @param $proof
      * @param \App\Models\Trustee $claimer
      * @return bool
      * @throws \Exception
      */
-    public function checkRightProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof, Trustee $claimer): bool
+    public function checkRightProof(Mix $shadowMix, Trustee $claimer): bool
     {
-        $mix = ReEncryptingMixNode::forward($this->election, $shadowMix->ciphertexts, $parameterSet);
+        $mix = ReEncryptingMixNode::forward($this->election, $shadowMix->ciphertexts, $shadowMix->parameterSet);
         return $mix->equals($this->primaryMix);
     }
 

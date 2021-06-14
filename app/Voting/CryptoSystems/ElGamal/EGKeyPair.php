@@ -40,7 +40,7 @@ class EGKeyPair implements KeyPair
         // TODO     EGThresholdPolynomial::random($degree, $this->pk);
         // TODO }else{
 
-        $x = randomBIgt($parameterSet->q); // TODO check
+        $x = $parameterSet->getReEncryptionFactor(); // TODO check
         $y = $parameterSet->g->modPow($x, $parameterSet->p); // also called h
 
         $pkCLass = static::getCryptosystem()::getPublicKeyClass();

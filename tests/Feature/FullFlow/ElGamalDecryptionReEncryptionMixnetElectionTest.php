@@ -36,7 +36,8 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
         $election->anonymization_method = AnonymizationMethodEnum::DecReEncMixNet();
         $election->save();
 
-        self::createElectionQuestions($election);
+        $nQuestions = 3;
+        self::createElectionQuestions($election, $nQuestions);
 
 //        $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
 //        $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
@@ -47,7 +48,6 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
 
         $election->preFreeze();
         $election->actualFreeze();
-        $election->save();
 
         // cast votes
         for ($i = 0; $i < 5; $i++) {
@@ -60,7 +60,10 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
             $voter->save();
 
             // generate a JSON vote structure
-            $votePlain = [[rand(1, 3)], [rand(1, 3)], [rand(1, 3)]];
+            $idxs = [1 => 1, 2 => 2, 3 => 3];
+            $votePlain = array_map(function () use ($idxs) {
+                return rand(0, 3) === 0 ? [] : (array)array_rand($idxs, rand(1, 3));
+            }, range(1, $nQuestions));
 
             $plaintext = Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
             $cipher = $election->public_key->encrypt($plaintext);

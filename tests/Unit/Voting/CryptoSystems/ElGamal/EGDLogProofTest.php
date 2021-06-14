@@ -24,7 +24,7 @@ class EGDLogProofTest extends TestCase
         $msg = BigInteger::random(10);
         $plain = new EGPlaintext($msg);
 
-        $randomness = randomBIgt($keyPair->pk->parameterSet->q);
+        $randomness = $keyPair->pk->parameterSet->getReEncryptionFactor();
 
         $ciphertext = $keyPair->pk->encryptWithRandomness($plain, $randomness);
 

@@ -10,7 +10,9 @@ use App\Models\Trustee;
 use App\P2P\Messages\ThisIsMySecretKey\ThisIsMySecretKeyRequest;
 use App\Voting\AnonymizationMethods\MixNets\Mix;
 use App\Voting\AnonymizationMethods\MixNets\MixNode;
+use App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet;
 use App\Voting\CryptoSystems\CipherText;
+use App\Voting\CryptoSystems\PublicKey;
 use App\Voting\CryptoSystems\SecretKey;
 use Illuminate\Support\Facades\Log;
 use phpseclib3\Math\BigInteger;
@@ -24,31 +26,32 @@ class ReEncryptingMixNode extends MixNode
 
     /**
      * @param Election $election
-     * @param array $ciphertexts
-     * @param \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionParameterSet|null $parameterSet
+     * @param CipherText[] $ciphertexts
+     * @param \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionParameterSet $parameterSet
      * @return Mix
      * @throws \Exception
      */
-    public static function forward(Election $election, array $ciphertexts, $parameterSet = null): Mix
+    public static function forward(Election $election, array $ciphertexts, MixNodeParameterSet $parameterSet): Mix
     {
-
-        if (is_null($parameterSet)) {
-            // if not provided, generate as many randomness factors as there are ciphertexts
-            $parameterSet = ReEncryptionParameterSet::create($election->public_key, count($ciphertexts));
+        if (count($ciphertexts) !== count($parameterSet->reEncryptionFactors)
+            || count($ciphertexts) !== count($parameterSet->permutation)) {
+            throw new \Exception('ciphertexts has ' . count($ciphertexts)
+                . ' elements while parameterSet->reEncryptionFactors has ' . count($parameterSet->reEncryptionFactors)
+                . ' and parameterSet->permutation has ' . count($parameterSet->permutation)
+            );
         }
 
         // apply re-encryption on original ciphertexts
-        $ciphertexts = array_map(function (CipherText $ciphertext, BigInteger $reEncryptionFactor) use ($parameterSet) : CipherText{
+        $_ciphertexts = array_map(function (CipherText $ciphertext, BigInteger $reEncryptionFactor) use ($ciphertexts, $parameterSet): CipherText {
             return $ciphertext->reEncryptWithRandomness($reEncryptionFactor);
         }, $ciphertexts, $parameterSet->reEncryptionFactors);
 
-
         // shuffle
-        $ciphertexts = $parameterSet->permuteArray($ciphertexts);
+        $_ciphertexts = $parameterSet->permuteArray($_ciphertexts);
 
         return new ReEncryptionMix(
             $election,
-            $ciphertexts,
+            $_ciphertexts,
             $parameterSet
         );
 
@@ -191,7 +194,27 @@ class ReEncryptingMixNode extends MixNode
         return $election->save();
     }
 
+    /**
+     * @param \App\Voting\CryptoSystems\PublicKey $public_key
+     * @param int $cipherTextCount
+     * @return \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet
+     * @throws \Exception
+     */
+    public static function getPrimaryMixParameterSet(PublicKey $public_key, int $cipherTextCount): MixNodeParameterSet
+    {
+        $psClass = static::getParameterSetClass();
+        return $psClass::create($public_key, $cipherTextCount);
+    }
 
-//    private static function
-
+    /**
+     * @param \App\Voting\CryptoSystems\PublicKey $public_key
+     * @param int $cipherTextCount
+     * @return \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet
+     * @throws \Exception
+     */
+    public static function getShadowMixParameterSet(PublicKey $public_key, int $cipherTextCount): MixNodeParameterSet
+    {
+        $psClass = static::getParameterSetClass();
+        return $psClass::create($public_key, $cipherTextCount);
+    }
 }

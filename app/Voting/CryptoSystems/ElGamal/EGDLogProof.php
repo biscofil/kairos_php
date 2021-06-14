@@ -44,7 +44,7 @@ class EGDLogProof
     {
 
         # generate random w
-        $w = randomBIgt($sk->pk->parameterSet->q);
+        $w = $sk->pk->parameterSet->getReEncryptionFactor();
 
         # generate commitment A,B
         $commitment_a = $sk->pk->parameterSet->g->modPow($w, $sk->pk->parameterSet->p); # A = g ^ w mod p

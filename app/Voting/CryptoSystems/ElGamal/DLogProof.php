@@ -86,7 +86,7 @@ class DLogProof
     public static function generate(EGSecretKey $sk, callable $challenge_generator): DLogProof
     {
         // pick w
-        $w = randomBIgt($sk->pk->parameterSet->q);
+        $w = $sk->pk->parameterSet->getReEncryptionFactor();
 
         // commitment = A = g ^ w mod p
         $commitment = $sk->pk->parameterSet->g->modPow($w, $sk->pk->parameterSet->p);

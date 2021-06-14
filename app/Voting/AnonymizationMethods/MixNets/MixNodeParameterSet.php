@@ -19,6 +19,10 @@ abstract class MixNodeParameterSet implements BelongsToAnonymizationMethod
     public PublicKey $pk; // TODO remove
     public array $permutation;
 
+//    public function __clone() {
+//        return static::fromArray(static::toArray());
+//    }
+
     /**
      * MixNodeParameterSet constructor.
      * @param PublicKey $pk

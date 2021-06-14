@@ -54,7 +54,7 @@ class ReEncryptionParameterSet extends MixNodeParameterSet
 //            $kpClass = $pk->getCryptosystem()::getKeyPairClass();
 //            $keyPair = $kpClass::generate();
 
-            $reEncryptionFactors[] = randomBIgt($pk->parameterSet->q); // TODO check
+            $reEncryptionFactors[] = $pk->parameterSet->getReEncryptionFactor(); // TODO check
         }
 
         // if not provided, generate permutation

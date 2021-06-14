@@ -95,9 +95,6 @@ class ReEncryptionMixNodeTest extends TestCase
         $primaryShadowMixes->generateProofs($trustee);
 
         // check parameter sets have been removed
-        foreach ($primaryShadowMixes->shadowMixes as $shadowMix) {
-            static::assertNull($shadowMix->parameterSet);
-        }
         static::assertNull($primaryShadowMixes->primaryMix->parameterSet);
 
         // check proof
@@ -128,7 +125,7 @@ class ReEncryptionMixNodeTest extends TestCase
 
         $ciphertexts = [];
         for ($i = 0; $i < rand(5, 10); $i++) {
-            $ciphertexts[] = $keyPair->pk->encrypt(new $ptClass(BigInteger::random(20)));
+            $ciphertexts[] = $this->addVote($election, [[1], [2], [3]]);
         }
 
         $shadowMixCount = rand(2, 3);
@@ -136,21 +133,17 @@ class ReEncryptionMixNodeTest extends TestCase
         $primaryShadowMixes->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits());
         $primaryShadowMixes->generateProofs($trustee);
 
-        $file1 = 'test_without_pk.json';
+        $file1 = 'mix_test.json';
         $primaryShadowMixes->store($file1);
-
-        $file2 = 'test_with_pk.json';
-        $primaryShadowMixes->store($file2, true);
 
         $primaryShadowMixes = ReEncryptionMixWithShadowMixes::load($file1);
 
-        Storage::delete([$file1, $file2]);
+        Storage::delete([$file1]);
 
         // check proof
         static::assertTrue($primaryShadowMixes->isProofValid($trustee));
 
         $primaryShadowMixes->deleteFile($file1);
-        $primaryShadowMixes->deleteFile($file2);
 
     }
 

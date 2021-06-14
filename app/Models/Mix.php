@@ -146,6 +146,12 @@ class Mix extends Model
             // mix with a previous mix
             $cipherTexts = $previousMix->getMixWithShadowMixes()->primaryMix->ciphertexts;
         }
+
+//        dump($cipherTexts);
+        if ((!is_array($cipherTexts)) || count($cipherTexts) === 0) {
+            throw new \Exception('cipherTexts must be a non-empty array');
+        }
+
         /** @var \App\Voting\CryptoSystems\CipherText[] $cipherTexts */
 
         Log::debug('Running mix on ' . count($cipherTexts) . ' ciphertexts');

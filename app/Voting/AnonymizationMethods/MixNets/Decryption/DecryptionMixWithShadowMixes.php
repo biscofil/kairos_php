@@ -4,6 +4,7 @@
 namespace App\Voting\AnonymizationMethods\MixNets\Decryption;
 
 
+use App\Models\Trustee;
 use App\Voting\AnonymizationMethods\MixNets\Mix;
 use App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet;
 use App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes;
@@ -19,12 +20,10 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
-     * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
-     * @param $proof
      * @param \App\Models\Trustee $claimer
      * @return bool
      */
-    public function checkLeftProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof, \App\Models\Trustee $claimer): bool
+    public function checkLeftProof(Mix $shadowMix, Trustee $claimer): bool
     {
         return false;
         // TODO: Implement checkLeftProof() method.
@@ -32,12 +31,10 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
-     * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
-     * @param $proof
      * @param \App\Models\Trustee $claimer
      * @return bool
      */
-    public function checkRightProof(Mix $shadowMix, MixNodeParameterSet $parameterSet, $proof, \App\Models\Trustee $claimer): bool
+    public function checkRightProof(Mix $shadowMix, Trustee $claimer): bool
     {
         return false;
         // TODO: Implement checkRightProof() method.
@@ -64,8 +61,9 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
      * @param \App\Models\Trustee $claimer
+     * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
      */
-    public function getLeftProofs(Mix $shadow, \App\Models\Trustee $claimer): ?array
+    public function getLeftProofs(Mix $shadow, Trustee $claimer, MixNodeParameterSet $parameterSet): ?array
     {
 //        foreach ($shadow->ciphertexts as $cipherText){
 //
@@ -75,8 +73,10 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
+     * @param \App\Models\Trustee $claimer
+     * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
      */
-    public function getRightProofs(Mix $shadow): ?array
+    public function getRightProofs(Mix $shadow, Trustee $claimer, MixNodeParameterSet $parameterSet): ?array
     {
         return null; // TODO DLOG proof
     }

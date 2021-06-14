@@ -135,7 +135,7 @@ class EGCiphertext implements CipherText
     public function reEncryptAndReturnRandomness(): array
     {
         // r: randomness
-        $r = randomBIgt($this->pk->parameterSet->q);
+        $r = $this->pk->parameterSet->getReEncryptionFactor();
         $ciphertext = $this->reEncryptWithRandomness($r);
         return [$ciphertext, $r];
     }

@@ -13,7 +13,6 @@ use App\P2P\Messages\ThisIsMyMixSet\ThisIsMyMixSetRequest;
 use App\P2P\Messages\ThisIsMyMixSet\ThisIsMyMixSetResponse;
 use App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptingMixNode;
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
-use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -42,9 +41,9 @@ class ThisIsMyMixSetRequestTest extends TestCase
 
         $election->actualFreeze();
 
-        $primaryShadowMixes = ReEncryptingMixNode::generate($election, [
-            $election->public_key->encrypt(new EGPlaintext(BI(3)))
-        ], 2);
+        $vote1 = $this->addVote($election, [[1, 3]]);
+
+        $primaryShadowMixes = ReEncryptingMixNode::generate($election, [$vote1], 2);
         $primaryShadowMixes->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits());
         $primaryShadowMixes->generateProofs($trustee);
 

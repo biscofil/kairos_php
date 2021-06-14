@@ -29,7 +29,7 @@ class DecryptionReEncryptionMixNodeTest extends TestCase
 
         // ################################################################################### mixnet starts here
 
-        $reEncryptionRandomness = randomBIgt($kp1->pk->parameterSet->q);
+        $reEncryptionRandomness = $kp1->pk->parameterSet->getReEncryptionFactor();
 
         // ###################  forward step 1/3 : partial decryption ###################
         $partiallyDecryptedCipher = $kp1->sk->partiallyDecrypt($cipher);

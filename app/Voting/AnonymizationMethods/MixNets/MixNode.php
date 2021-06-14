@@ -7,6 +7,9 @@ namespace App\Voting\AnonymizationMethods\MixNets;
 use App\Jobs\GenerateMix;
 use App\Models\Election;
 use App\Voting\AnonymizationMethods\AnonymizationMethod;
+use App\Voting\CryptoSystems\CipherText;
+use App\Voting\CryptoSystems\PublicKey;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -19,7 +22,7 @@ abstract class MixNode implements AnonymizationMethod
 
     /**
      * @param Election $election
-     * @param array $originalCiphertexts
+     * @param CipherText[] $originalCiphertexts
      * @param int $shadowMixCount
      * @return \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes
      * @throws \Exception
@@ -27,16 +30,20 @@ abstract class MixNode implements AnonymizationMethod
     public static function generate(Election $election, array $originalCiphertexts, int $shadowMixCount = 100): MixWithShadowMixes
     {
         if ($shadowMixCount > 160) {
-            throw new \Exception('The max is 160'); // TODO only for elgamal
+            throw new Exception('The max is 160'); // TODO only for elgamal
         }
 
+        $nCuipherText = count($originalCiphertexts);
+
         // generate primary mix
-        $primaryMix = static::forward($election, $originalCiphertexts);
+        $primaryMixParameterSet = static::getPrimaryMixParameterSet($election->public_key, $nCuipherText);
+        $primaryMix = static::forward($election, $originalCiphertexts, $primaryMixParameterSet);
 
         // generate shadow mixes
         $shadowMixes = [];
         for ($i = 0; $i < $shadowMixCount; $i++) {
-            $shadowMixes[] = static::forward($election, $originalCiphertexts);
+            $shadowMixesParameterSet = static::getShadowMixParameterSet($election->public_key, $nCuipherText);
+            $shadowMixes[] = static::forward($election, $originalCiphertexts, $shadowMixesParameterSet);
         }
 
         $MixWithShadowMixesClass = static::getMixWithShadowMixesClass();
@@ -70,12 +77,26 @@ abstract class MixNode implements AnonymizationMethod
 
     /**
      * @param Election $election
-     * @param array $ciphertexts
-     * @param MixNodeParameterSet|null $parameterSet
+     * @param CipherText[] $ciphertexts
+     * @param MixNodeParameterSet $parameterSet
      * @return Mix
      * @noinspection PhpMissingParamTypeInspection
      */
-    abstract public static function forward(Election $election, array $ciphertexts, $parameterSet = null): Mix;
+    abstract public static function forward(Election $election, array $ciphertexts, MixNodeParameterSet $parameterSet): Mix;
+
+    /**
+     * @param \App\Voting\CryptoSystems\PublicKey $public_key
+     * @param int $cipherTextCount
+     * @return \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet
+     */
+    abstract public static function getPrimaryMixParameterSet(PublicKey $public_key, int $cipherTextCount): MixNodeParameterSet;
+
+    /**
+     * @param \App\Voting\CryptoSystems\PublicKey $public_key
+     * @param int $cipherTextCount
+     * @return \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet
+     */
+    abstract public static function getShadowMixParameterSet(PublicKey $public_key, int $cipherTextCount): MixNodeParameterSet;
 
     // ########################################################################
 

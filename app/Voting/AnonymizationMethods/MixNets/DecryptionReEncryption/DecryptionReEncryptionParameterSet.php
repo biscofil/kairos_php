@@ -13,7 +13,7 @@ use phpseclib3\Math\BigInteger;
  * Class DecryptionReEncryptionParameterSet
  * @package App\Voting\AnonymizationMethods\MixNets\DecryptionReEncryption
  * @property BigInteger[] reEncryptionFactors
- * @property bool $skipDecryption
+ * @property bool $decryption
  */
 class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
 {
@@ -21,7 +21,7 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
     use BelongsToReEncryptionMixNode;
 
     public array $reEncryptionFactors;
-    public bool $skipDecryption = false;
+    public bool $decryption = true;
 
     public function __construct(PublicKey $pk, array $reEncryptionFactors, array $permutation)
     {
@@ -42,17 +42,16 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
      */
     public static function create(PublicKey $pk, int $count): self
     {
-
-        $reEncryptionFactors = [];
-        for ($i = 0; $i < $count; $i++) {
-//            $kpClass = $pk->getCryptosystem()::getKeyPairClass();
-//            $keyPair = $kpClass::generate();
-            $reEncryptionFactors[] = randomBIgt($pk->parameterSet->q); // TODO check
-        }
+        $reEncryptionFactors = array_map(function () use ($pk): BigInteger {
+            // $kpClass = $pk->getCryptosystem()::getKeyPairClass();
+            // $keyPair = $kpClass::generate();
+            return $pk->parameterSet->getReEncryptionFactor(); // TODO check
+        }, range(0, $count - 1));
 
         // if not provided, generate permutation
         $permutation = range(0, $count - 1);
         shuffle($permutation);
+
         return new static($pk, $reEncryptionFactors, $permutation);
     }
 
@@ -71,6 +70,7 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
                 return $randomness->toHex();
             }, $this->reEncryptionFactors),
             'permutation' => $this->permutation,
+            'decryption' => $this->decryption
         ];
     }
 
@@ -87,17 +87,21 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
 
         $pk = $pkClass::fromArray($data['pk']);
 
-        $encryption = array_map(function (string $randomnessStr) {
+        $encryption = array_map(function (string $randomnessStr): BigInteger {
             return BI($randomnessStr, 16);
         }, $data['encryption']);
 
         $permutation = $data['permutation'];
 
-        return new static(
+        $out = new static(
             $pk,
             $encryption,
             $permutation
         );
+
+        $out->decryption = boolval($data['decryption']);
+
+        return $out;
 
     }
 
@@ -130,8 +134,6 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
         $permutation = $primaryMixPS->permuteArray($this->getShufflingOrderReversed());
 
         return new static($this->pk, $newReEncryptionFactor, $permutation);
-
-
 
 
         // combine randomness
