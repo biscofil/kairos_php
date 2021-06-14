@@ -88,6 +88,10 @@ rsync -azP _docker/peer22/ root@peer22.biscofil.it:/root/helios
 #ssh -t root@peer20.biscofil.it 'cd /root/helios && docker-compose exec webserver composer dump-autoload'
 #ssh -t root@peer21.biscofil.it 'cd /root/helios && docker-compose exec webserver composer dump-autoload'
 #ssh -t root@peer22.biscofil.it 'cd /root/helios && docker-compose exec webserver composer dump-autoload'
+#
+#ssh -t root@peer20.biscofil.it 'cd /root/helios && chmod 777 -R . && clear && U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose restart'
+#ssh -t root@peer21.biscofil.it 'cd /root/helios && chmod 777 -R . && clear && U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose restart'
+#ssh -t root@peer22.biscofil.it 'cd /root/helios && chmod 777 -R . && clear && U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose restart'
 
 notify-send Done
 
