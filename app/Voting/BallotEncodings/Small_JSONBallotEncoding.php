@@ -44,6 +44,7 @@ class Small_JSONBallotEncoding extends JSONBallotEncoding
      * Decodes a BigInt that represents a ballot
      * @param Plaintext $representation
      * @return mixed|void
+     * @throws \Exception
      */
     public static function decode(Plaintext $representation): array
     {
@@ -61,7 +62,13 @@ class Small_JSONBallotEncoding extends JSONBallotEncoding
 
         $str = implode('', $chars);
 
-        return json_decode($str, true);
+        $out = json_decode($str, true);
+
+        if (is_null($out) || !is_array($out)) {
+            throw new \Exception('Invalid JSON string encoding. Hex: ' . $hex . ', Str: ' . $str);
+        }
+
+        return $out;
     }
 
 }
