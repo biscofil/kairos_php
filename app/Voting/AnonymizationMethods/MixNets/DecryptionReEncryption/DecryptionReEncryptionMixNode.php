@@ -99,8 +99,8 @@ class DecryptionReEncryptionMixNode extends MixNode
         $plainTexts = self::extractVotes($election);
 
         if (!self::storePlainTextBallots($election, $plainTexts)) {
-            Log::error('storePlainTextBallots failed, no tally');
-            return;
+            Log::error('at least one failed insertion in storePlainTextBallots, proceeding to tally');
+            // TODO return;
         }
 
         self::runTally($election);
