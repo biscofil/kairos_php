@@ -47,11 +47,11 @@ class DecryptionReEncryptionMixNodeTest extends TestCase
         static::assertTrue($unReEncryptedCipher->alpha->equals($cipher->alpha));
         static::assertFalse($unReEncryptedCipher->beta->equals($cipher->beta));
 
-        $proof = EGDLogProof::generate($kp1->sk, $cipher, [EGDLogProof::class, 'DLogChallengeGenerator']);
+        $proof = EGDLogProof::generate($kp1->sk, $cipher);
 
-        $proofPlain = $unReEncryptedCipher->extractPlainTextFromBeta();
+        $proofPlain = $unReEncryptedCipher->extractPlainTextFromBeta(true);
 
-        static::assertTrue($proof->verify($kp1->pk, $cipher, $proofPlain, [EGDLogProof::class, 'DLogChallengeGenerator']));
+        static::assertTrue($proof->isValid($kp1->pk, $cipher, $proofPlain));
 
     }
 

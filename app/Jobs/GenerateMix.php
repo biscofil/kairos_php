@@ -45,6 +45,7 @@ class GenerateMix implements ShouldQueue
      */
     public function handle()
     {
-        Mix::generateMix($this->election, $this->previousMix);
+        $mixModel = Mix::generate($this->election, $this->previousMix);
+        $mixModel->afterGeneration();
     }
 }

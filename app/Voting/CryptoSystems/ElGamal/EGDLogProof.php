@@ -37,11 +37,15 @@ class EGDLogProof
      * generate a DDH tuple proof
      * @param \App\Voting\CryptoSystems\ElGamal\EGSecretKey $sk
      * @param \App\Voting\CryptoSystems\ElGamal\EGCiphertext $ciphertext
-     * @param callable $challenge_generator
+     * @param callable|null $challenge_generator
      * @return EGDLogProof
      */
-    public static function generate(EGSecretKey $sk, EGCiphertext $ciphertext, callable $challenge_generator): EGDLogProof
+    public static function generate(EGSecretKey $sk, EGCiphertext $ciphertext, ?callable $challenge_generator = null): EGDLogProof
     {
+
+        if (is_null($challenge_generator)) {
+            $challenge_generator = [EGDLogProof::class, 'DLogChallengeGenerator'];
+        }
 
         # generate random w
         $w = $sk->pk->parameterSet->getReEncryptionFactor();
@@ -68,14 +72,18 @@ class EGDLogProof
 
     /**
      * Verify a DH tuple proof
-     * @param EGPublicKey $pk
+     * @param EGPublicKey $pk Public key of the claimer corresponding to the secret key used to generate the proof
      * @param \App\Voting\CryptoSystems\ElGamal\EGCiphertext $ciphertext
      * @param \App\Voting\CryptoSystems\ElGamal\EGPlaintext $plain
-     * @param callable $challenge_generator
+     * @param callable|null $challenge_generator
      * @return bool
      */
-    public function verify(EGPublicKey $pk, EGCiphertext $ciphertext, EGPlaintext $plain, callable $challenge_generator): bool
+    public function isValid(EGPublicKey $pk, EGCiphertext $ciphertext, EGPlaintext $plain, ?callable $challenge_generator = null): bool
     {
+
+        if (is_null($challenge_generator)) {
+            $challenge_generator = [EGDLogProof::class, 'DLogChallengeGenerator'];
+        }
 
         # check that A, B are in the correct group
         if (!(

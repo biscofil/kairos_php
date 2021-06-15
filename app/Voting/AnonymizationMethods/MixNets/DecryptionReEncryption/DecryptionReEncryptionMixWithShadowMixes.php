@@ -69,10 +69,7 @@ class DecryptionReEncryptionMixWithShadowMixes extends MixWithShadowMixes
             $cipherText = $cipherText->reEncryptWithRandomness($reEncryptionRandomness);
 
             /** @noinspection PhpParamsInspection */
-            return EGDLogProof::generate(
-                $claimer->private_key,
-                $cipherText,
-                [EGDLogProof::class, 'DLogChallengeGenerator']);
+            return EGDLogProof::generate($claimer->private_key, $cipherText);
 
         }, $shadow->ciphertexts, $parameterSet->reEncryptionFactors);
     }
@@ -88,7 +85,7 @@ class DecryptionReEncryptionMixWithShadowMixes extends MixWithShadowMixes
      */
     public function checkLeftProof(Mix $shadowMix, Trustee $claimer): bool
     {
-        $mix = DecryptionReEncryptionMixNode::forward($this->election, $this->originalCiphertexts, $shadowMix->parameterSet);
+        $mix = DecryptionReEncryptionMixNode::forward($this->election, $this->originalCiphertexts, $shadowMix->parameterSet, $claimer);
         return $mix->equals($shadowMix);
     }
 
@@ -119,9 +116,8 @@ class DecryptionReEncryptionMixWithShadowMixes extends MixWithShadowMixes
 
         // ################### backwards step 1/3 -> reverse partial decryption (prove) ###################
         foreach ($ReEncryptedOriginalCiphers as $idx => $reEncryptedCipher) {
-            $plainText = $unShuffledCiphertexts[$idx];
-            $plainText = $plainText->extractPlainTextFromBeta();
-            if (!$shadowMix->proofs[$idx]->verify($claimerPublicKey, $reEncryptedCipher, $plainText, [EGDLogProof::class, 'DLogChallengeGenerator'])) {
+            $plainText = $unShuffledCiphertexts[$idx]->extractPlainTextFromBeta(true);
+            if (!$shadowMix->proofs[$idx]->isValid($claimerPublicKey, $reEncryptedCipher, $plainText)) {
                 return false;
             }
         }

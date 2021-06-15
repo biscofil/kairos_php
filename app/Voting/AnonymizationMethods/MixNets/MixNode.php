@@ -6,6 +6,7 @@ namespace App\Voting\AnonymizationMethods\MixNets;
 
 use App\Jobs\GenerateMix;
 use App\Models\Election;
+use App\Models\Trustee;
 use App\Voting\AnonymizationMethods\AnonymizationMethod;
 use App\Voting\CryptoSystems\CipherText;
 use App\Voting\CryptoSystems\PublicKey;
@@ -23,29 +24,42 @@ abstract class MixNode implements AnonymizationMethod
     /**
      * @param Election $election
      * @param CipherText[] $originalCiphertexts
+     * @param \App\Models\Trustee $trusteeRunningMix
+     * @param \App\Voting\CryptoSystems\PublicKey|null $publicKey
      * @param int $shadowMixCount
      * @return \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes
      * @throws \Exception
      */
-    public static function generate(Election $election, array $originalCiphertexts, int $shadowMixCount = 100): MixWithShadowMixes
+    public static function generateMixAndShadowMixes(Election $election,
+                                                     array $originalCiphertexts,
+                                                     Trustee $trusteeRunningMix,
+                                                     PublicKey $publicKey = null,
+                                                     int $shadowMixCount = 100): MixWithShadowMixes
     {
-        if ($shadowMixCount > 160) {
-            throw new Exception('The max is 160'); // TODO only for elgamal
+        if (is_null($publicKey)) {
+            $publicKey = $election->public_key;
         }
 
-        $nCuipherText = count($originalCiphertexts);
+        if ($shadowMixCount > 160) {
+            throw new Exception('The max is 160'); // TODO check, only for elgamal??
+        }
+
+        $nCipherText = count($originalCiphertexts);
 
         // generate primary mix
-        $primaryMixParameterSet = static::getPrimaryMixParameterSet($election->public_key, $nCuipherText);
-        $primaryMix = static::forward($election, $originalCiphertexts, $primaryMixParameterSet);
+        $primaryMixParameterSet = static::getPrimaryMixParameterSet($publicKey, $nCipherText);
+        $primaryMix = static::forward($election, $originalCiphertexts, $primaryMixParameterSet, $trusteeRunningMix);
 
         // generate shadow mixes
         $shadowMixes = [];
         for ($i = 0; $i < $shadowMixCount; $i++) {
-            $shadowMixesParameterSet = static::getShadowMixParameterSet($election->public_key, $nCuipherText);
-            $shadowMixes[] = static::forward($election, $originalCiphertexts, $shadowMixesParameterSet);
+            $shadowMixesParameterSet = static::getShadowMixParameterSet($publicKey, $nCipherText);
+            $shadowMixes[] = static::forward($election, $originalCiphertexts, $shadowMixesParameterSet, $trusteeRunningMix);
         }
 
+        /**
+         * @see \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes::__construct()
+         */
         $MixWithShadowMixesClass = static::getMixWithShadowMixesClass();
         return new $MixWithShadowMixesClass(
             $originalCiphertexts,
@@ -79,10 +93,11 @@ abstract class MixNode implements AnonymizationMethod
      * @param Election $election
      * @param CipherText[] $ciphertexts
      * @param MixNodeParameterSet $parameterSet
+     * @param \App\Models\Trustee $trusteeRunningMix
      * @return Mix
      * @noinspection PhpMissingParamTypeInspection
      */
-    abstract public static function forward(Election $election, array $ciphertexts, MixNodeParameterSet $parameterSet): Mix;
+    abstract public static function forward(Election $election, array $ciphertexts, MixNodeParameterSet $parameterSet, Trustee $trusteeRunningMix): Mix;
 
     /**
      * @param \App\Voting\CryptoSystems\PublicKey $public_key

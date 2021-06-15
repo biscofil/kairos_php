@@ -5,6 +5,7 @@ namespace App\Voting\QuestionTypes;
 
 
 use App\Models\Question;
+use App\Voting\AnonymizationMethods\MixNets\TallyDatabase;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -24,6 +25,13 @@ abstract class QuestionType
     {
         $this->question = $question;
     }
+
+    /**
+     * @param \App\Voting\AnonymizationMethods\MixNets\TallyDatabase $tallyDatabase
+     * @param \App\Models\Question $question
+     * @return void
+     */
+    abstract public static function createAnswersTable(TallyDatabase $tallyDatabase, Question $question): void;
 
     /**
      * @param \App\Models\Question $question

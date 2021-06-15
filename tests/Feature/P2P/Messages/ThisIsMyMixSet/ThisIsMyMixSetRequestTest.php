@@ -43,7 +43,7 @@ class ThisIsMyMixSetRequestTest extends TestCase
 
         $vote1 = $this->addVote($election, [[1, 3]]);
 
-        $primaryShadowMixes = ReEncryptingMixNode::generate($election, [$vote1], 2);
+        $primaryShadowMixes = ReEncryptingMixNode::generateMixAndShadowMixes($election, [$vote1], $trustee, null, 2);
         $primaryShadowMixes->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits());
         $primaryShadowMixes->generateProofs($trustee);
 

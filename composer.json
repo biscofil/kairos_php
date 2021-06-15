@@ -17,6 +17,7 @@
         "api-clients/pusher": "^1.2",
         "bensampo/laravel-enum": "^3.3",
         "doctrine/dbal": "^3.1",
+        "drupol/phpermutations": "^1.4",
         "elhebert/laravel-sri": "^3.0",
         "fideloper/proxy": "^4.4",
         "fruitcake/laravel-cors": "^2.0",

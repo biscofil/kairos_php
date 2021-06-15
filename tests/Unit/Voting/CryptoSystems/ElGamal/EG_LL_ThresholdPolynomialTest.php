@@ -59,13 +59,13 @@ class EG_LL_ThresholdPolynomialTest extends TestCase
         $cipher123 = $kp1->sk->partiallyDecrypt($cipher); // first server
         $cipher123 = $kp2->sk->partiallyDecrypt($cipher123); // second server
         $cipher123 = $kp3->sk->partiallyDecrypt($cipher123); // third server
-        static::assertTrue($cipher123->beta->equals($plain->m));
+        static::assertTrue($cipher123->extractPlainTextFromBeta(true)->equals($plain));
 
         // third > second > first
         $cipher321 = $kp3->sk->partiallyDecrypt($cipher); // first server
         $cipher321 = $kp2->sk->partiallyDecrypt($cipher321); // first server
         $cipher321 = $kp1->sk->partiallyDecrypt($cipher321); // third server
-        static::assertTrue($cipher321->beta->equals($plain->m));
+        static::assertTrue($cipher321->extractPlainTextFromBeta(true)->equals($plain));
 
     }
 
@@ -106,7 +106,7 @@ class EG_LL_ThresholdPolynomialTest extends TestCase
         // last server
         $cipher3 = $kp3->sk->partiallyDecrypt($cipher2); // third server
 
-        static::assertTrue($cipher3->beta->equals($plain->m));
+        static::assertTrue($cipher3->extractPlainTextFromBeta(true)->equals($plain));
 
     }
 }

@@ -4,7 +4,13 @@
 namespace App\Voting\QuestionTypes;
 
 
+use App\Models\Answer;
 use App\Models\Question;
+use App\Voting\AnonymizationMethods\MixNets\TallyDatabase;
+use drupol\phpermutations\Generators\Permutations;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Class MultipleChoice
@@ -13,6 +19,36 @@ use App\Models\Question;
  */
 class MultipleChoice extends QuestionType
 {
+
+    /**
+     * @param \App\Voting\AnonymizationMethods\MixNets\TallyDatabase $tallyDatabase
+     * @param \App\Models\Question $question
+     */
+    public static function createAnswersTable(TallyDatabase $tallyDatabase, Question $question): void
+    {
+
+        $question_answers_table_name = TallyDatabase::getQuestionAnswersTableName($question);
+
+        try {
+            $tallyDatabase->connection->getSchemaBuilder()->dropIfExists($question_answers_table_name);
+        } catch (Throwable $e) {
+            Log::error($e->getMessage());
+        }
+
+        $tallyDatabase->connection->getSchemaBuilder()->create($question_answers_table_name, function (Blueprint $table) {
+            $table->unsignedInteger('id')->primary();
+            $table->string('answer');
+            $table->string('url');
+        });
+
+        $question->answers->each(function (Answer $answer) use ($tallyDatabase, $question_answers_table_name) {
+            $tallyDatabase->connection->table($question_answers_table_name)->insert([
+                'id' => $answer->local_id,
+                'answer' => $answer->answer,
+                'url' => $answer->url
+            ]);
+        });
+    }
 
     /**
      * @param \App\Models\Question $question
@@ -31,11 +67,9 @@ class MultipleChoice extends QuestionType
          * ) GROUP BY id HAVING id NOT NULL
          */
 
-        $tallyDatabase = $question->election->getTallyDatabase(); // TODO only for mixnets
+        $questionAnswerCols = TallyDatabase::getAnswerColumnNames($question);
 
-        $questionAnswerCols = $tallyDatabase->getAnswerColumnNames($question);
-
-        $question_answers_table_name = $tallyDatabase->getOutputTableName();
+        $question_answers_table_name = TallyDatabase::getOutputTableName($question->election);
 
         $innerQuery = '';
         $first = true;
@@ -60,6 +94,25 @@ class MultipleChoice extends QuestionType
         $outerQuery = 'SELECT id, SUM(c) as count FROM (%s) GROUP BY id HAVING id IS NOT NULL';
         return sprintf($outerQuery, $innerQuery);
 
+    }
+
+    /**
+     * @param \App\Models\Question $question
+     * @return array
+     */
+    public static function generateAllCombinations(Question $question)
+    {
+        $out = [];
+        $list = $question->answers()->pluck('local_id')->toArray();
+        for ($i = $question->min; $i <= $question->max; $i++) { // max(1, $question->min)
+            if ($i === 0) {
+                $out[] = [];
+                continue;
+            }
+            $permutations = new Permutations($list, $i);
+            $out = array_merge($out, $permutations->toArray());
+        }
+        return $out;
     }
 
 }

@@ -88,10 +88,9 @@ function ping(string $ip, int $port = 80): bool
     curl_setopt($ch, CURLOPT_TIMEOUT, 5);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $data = curl_exec($ch);
+    curl_exec($ch);
     $health = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    dump($health);
     return boolval($health);
 }
 

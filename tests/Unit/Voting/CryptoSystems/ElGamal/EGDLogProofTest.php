@@ -28,20 +28,20 @@ class EGDLogProofTest extends TestCase
 
         $ciphertext = $keyPair->pk->encryptWithRandomness($plain, $randomness);
 
-        $proof = EGDLogProof::generate($keyPair->sk, $ciphertext, [EGDLogProof::class, 'DLogChallengeGenerator']);
+        $proof = EGDLogProof::generate($keyPair->sk, $ciphertext);
 
-        $r = $proof->verify($keyPair->pk, $ciphertext, $plain, [EGDLogProof::class, 'DLogChallengeGenerator']);
+        $r = $proof->isValid($keyPair->pk, $ciphertext, $plain);
         static::assertTrue($r);
 
         // re encryption should have a different proof
         $randomness = BigInteger::random(50);
         $ciphertext = $ciphertext->reEncryptWithRandomness($randomness);
-        $r = $proof->verify($keyPair->pk, $ciphertext, $plain, [EGDLogProof::class, 'DLogChallengeGenerator']);
+        $r = $proof->isValid($keyPair->pk, $ciphertext, $plain);
         static::assertFalse($r);
 
         // undoing re encryption should make proof work
         $ciphertext = $ciphertext->reverseReEncryptionWithRandomness($randomness);
-        $r = $proof->verify($keyPair->pk, $ciphertext, $plain, [EGDLogProof::class, 'DLogChallengeGenerator']);
+        $r = $proof->isValid($keyPair->pk, $ciphertext, $plain);
         static::assertTrue($r);
     }
 

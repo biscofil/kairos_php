@@ -10,6 +10,7 @@ use App\Models\Election;
 use App\Models\Question;
 use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
+use App\Voting\QuestionTypes\MultipleChoice;
 use Tests\TestCase;
 
 class MultipleChoicesTest extends TestCase
@@ -29,7 +30,7 @@ class MultipleChoicesTest extends TestCase
         $election->public_key = $keyPair->pk;
         $election->private_key = $keyPair->sk;
         self::createElectionQuestions($election);
-        $election->preFreeze();
+        self::assertTrue($election->preFreeze());
         $election->actualFreeze();
 
         $votePlain = [
@@ -62,7 +63,6 @@ class MultipleChoicesTest extends TestCase
         self::assertFalse($tallyDatabase->file_exists());
 
     }
-
 
     /**
      * @test

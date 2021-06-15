@@ -188,7 +188,6 @@ class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
         $inv = $cipher->alpha->powMod($this->x, $cipher->pk->parameterSet->p)
             ->modInverse($cipher->pk->parameterSet->p);
 
-        $alpha = $cipher->alpha;
         $beta = $inv->multiply($cipher->beta)->powMod(BI1(), $cipher->pk->parameterSet->p);
 
         // updates the public key by removing
@@ -199,16 +198,16 @@ class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
         // if y = 1 then the output contains the plaintext in beta
         if ($pk->y->equals(BI1())) {
             // if this is the last partial decryption we must extract from the subgroup
-            $alpha = BI(0);
-            $beta = $this->pk->parameterSet->extractMessageFromSubgroup($beta);
-            $beta = $this->getMOnceFullyDecrypted($beta); // extractMessageFromSubgroup
+            // $alpha = BI(0);
+//            $beta = $this->pk->parameterSet->extractMessageFromSubgroup($beta);
+//            $beta = $this->getMOnceFullyDecrypted($beta); // extractMessageFromSubgroup
             // TODO return plaintext
         }
 
         $ctClass = static::getCryptosystem()::getCipherTextClass();
         return new $ctClass(
             $pk,
-            $alpha,
+            $cipher->alpha,
             $beta
         );
     }

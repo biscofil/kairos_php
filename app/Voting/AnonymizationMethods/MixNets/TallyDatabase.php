@@ -4,15 +4,16 @@
 namespace App\Voting\AnonymizationMethods\MixNets;
 
 
-use App\Models\Answer;
 use App\Models\Election;
 use App\Models\Question;
 use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
+use Exception;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\SQLiteConnection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use PDO;
+use Throwable;
 
 /**
  * Class TallyDatabase
@@ -24,9 +25,9 @@ use PDO;
 class TallyDatabase
 {
 
-    private Election $election;
-    private string $pathname;
-    private SQLiteConnection $connection;
+    public Election $election;
+    public string $pathname;
+    public SQLiteConnection $connection;
 
     /**
      * TallyDatabase constructor.
@@ -57,28 +58,29 @@ class TallyDatabase
 
     /**
      * Returns the name of the table to use in
+     * @param \App\Models\Election $election
      * @return string
      * @see \App\Models\Election::getTallyDatabase()
      */
-    public function getOutputTableName(): string
+    public static function getOutputTableName(Election $election): string
     {
-        return 'e_' . $this->election->id;
+        return 'e_' . $election->id;
     }
 
     /**
      * @param \App\Models\Question $question
      * @return string
      */
-    public function getQuestionAnswersTableName(Question $question): string
+    public static function getQuestionAnswersTableName(Question $question): string
     {
-        return "e_{$this->election->id}_q_{$question->local_id}_a";
+        return "e_{$question->election_id}_q_{$question->local_id}_a";
     }
 
     /**
      * @param \App\Models\Question $question
      * @return array
      */
-    public function getAnswerColumnNames(Question $question): array
+    public static function getAnswerColumnNames(Question $question): array
     {
         $names = [];
         for ($aIdx = 0; $aIdx < $question->max; $aIdx++) {
@@ -100,33 +102,18 @@ class TallyDatabase
         // create a table for each question
         Log::debug('Creating a table for each question');
         foreach ($this->election->questions as $question) {
-            $question_answers_table_name = $this->getQuestionAnswersTableName($question);
-            $this->connection->getSchemaBuilder()->dropIfExists($question_answers_table_name);
-
             try {
-                $this->connection->getSchemaBuilder()->create($question_answers_table_name, function (Blueprint $table) {
-                    $table->unsignedInteger('id')->primary();
-                    $table->string('answer');
-                    $table->string('url');
-                });
-
-                $question->answers->each(function (Answer $answer) use ($question_answers_table_name) {
-                    $this->connection->table($question_answers_table_name)->insert([
-                        'id' => $answer->local_id,
-                        'answer' => $answer->answer,
-                        'url' => $answer->url
-                    ]);
-                });
-            } catch (\Throwable $e) {
+                $question->question_type->getClass()::createAnswersTable($this, $question);
+            } catch (Throwable $e) {
                 Log::error('Error during question answers table creation');
+                $question_answers_table_name = TallyDatabase::getQuestionAnswersTableName($question);
                 Log::debug($question_answers_table_name);
                 return false;
             }
-
         }
 
         // create a table for all ballots
-        $output_table_name = $this->getOutputTableName();
+        $output_table_name = TallyDatabase::getOutputTableName($this->election);
 
         Log::debug("Dropping (if exists) and creating table $output_table_name");
         $this->connection->getSchemaBuilder()->dropIfExists($output_table_name);
@@ -136,7 +123,7 @@ class TallyDatabase
 
             foreach ($this->election->questions as $question) {
                 $question_answers_table_name = "e_{$this->election->id}_q_{$question->local_id}_a";
-                foreach ($this->getAnswerColumnNames($question) as $cName) {
+                foreach (TallyDatabase::getAnswerColumnNames($question) as $cName) {
                     $table->unsignedInteger($cName)->nullable();
                     $table->foreign($cName)->references('id')->on($question_answers_table_name);
                 }
@@ -152,7 +139,7 @@ class TallyDatabase
             try {
                 $this->connection->statement("DROP VIEW IF EXISTS $viewName;");
                 $this->connection->statement($query);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Log::error('Error during view creation');
                 Log::debug($query);
                 return false;
@@ -190,7 +177,7 @@ class TallyDatabase
 
         //set all as null
         foreach ($this->election->questions as $question) {
-            foreach ($this->getAnswerColumnNames($question) as $cName) {
+            foreach (TallyDatabase::getAnswerColumnNames($question) as $cName) {
                 $record[$cName] = null;
             }
         }
@@ -202,7 +189,7 @@ class TallyDatabase
                 $a = $answerIdx + 1;
                 $fieldName = "q_{$q}_a_{$a}";
                 if (!array_key_exists($fieldName, $record)) {
-                    throw new \Exception("$fieldName is not present in [" . implode(',', array_keys($record)) . ']');
+                    throw new Exception("$fieldName is not present in [" . implode(',', array_keys($record)) . ']');
                 }
                 $record[$fieldName] = $questionAnswer;
             }
@@ -223,8 +210,8 @@ class TallyDatabase
 
         // remove existing records
         try {
-            $this->connection->table($this->getOutputTableName())->truncate();
-        } catch (\Throwable $e) {
+            $this->connection->table(TallyDatabase::getOutputTableName($this->election))->truncate();
+        } catch (Throwable $e) {
             Log::error('insertPlainTextBallots > Error during table truncation');
             Log::error($e->getMessage());
             return false;
@@ -240,7 +227,7 @@ class TallyDatabase
                 if ($this->insertBallot($plainVoteArray, $questionCount)) {
                     $successCount++;
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Log::error('insertPlainTextBallots > Error during plaintext decoding and insertion');
                 Log::error($e->getMessage());
                 Log::debug($plainTextVote->toString());
@@ -261,6 +248,7 @@ class TallyDatabase
      * @param array $plainVote structure extracted from JSON
      * @param int|null $questionCount
      * @return bool
+     * @throws \Exception
      */
     public function insertBallot(array &$plainVote, ?int $questionCount = null): bool
     {
@@ -272,6 +260,7 @@ class TallyDatabase
 
         if (!is_array($plainVote) || count($plainVote) !== $questionCount) {
             Log::error('Ignoring vote due to wrong lenght');
+            /** @noinspection PhpParamsInspection */
             Log::debug($plainVote);
             return false;
         }
@@ -282,8 +271,8 @@ class TallyDatabase
         $record = $this->getBallotRecord($plainVote);
 
         try {
-            return $this->connection->table($this->getOutputTableName())->insert($record);
-        } catch (\Throwable $e) {
+            return $this->connection->table(TallyDatabase::getOutputTableName($this->election))->insert($record);
+        } catch (Throwable $e) {
             Log::error($e->getMessage());
             Log::debug($this->connection->getQueryLog());
             Log::debug($record);
@@ -301,7 +290,7 @@ class TallyDatabase
      */
     public function getRecordCount(): int
     {
-        return $this->connection->table($this->getOutputTableName())->count();
+        return $this->connection->table(TallyDatabase::getOutputTableName($this->election))->count();
     }
 
     // ###############################################################################################

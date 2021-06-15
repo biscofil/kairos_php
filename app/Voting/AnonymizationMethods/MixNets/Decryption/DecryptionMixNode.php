@@ -23,10 +23,11 @@ class DecryptionMixNode extends MixNode
      * @param Election $election
      * @param CipherText[] $ciphertexts
      * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
+     * @param \App\Models\Trustee $trusteeRunningMix
      * @return Mix
      * @throws \Exception
      */
-    public static function forward(Election $election, array $ciphertexts, MixNodeParameterSet $parameterSet): Mix
+    public static function forward(Election $election, array $ciphertexts, MixNodeParameterSet $parameterSet, \App\Models\Trustee $trusteeRunningMix): Mix
     {
 
         if (count($ciphertexts) !== count($parameterSet->permutation)) {

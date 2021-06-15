@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use App\Jobs\GenerateMix;
 use App\Jobs\SendP2PMessage;
 use App\P2P\Messages\ThisIsMyMixSet\ThisIsMyMixSetRequest;
 use App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes;
 use App\Voting\CryptoSystems\ElGamal\EGSecretKey;
+use App\Voting\CryptoSystems\PublicKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -128,13 +128,12 @@ class Mix extends Model
     /**
      * @param \App\Models\Election $election
      * @param \App\Models\Mix|null $previousMix
-     * @return void
+     * @return \App\Voting\CryptoSystems\CipherText[]
      * @throws \Exception
      */
-    public static function generateMix(Election $election, ?Mix $previousMix = null): void
+    private static function getCipherTexts(Election $election, ?Mix $previousMix): array
     {
-
-        $cipherTexts = null;
+        // get ciphertexts
         if (is_null($previousMix)) {
             // first mix, extract ciphertext from bulletin board
 
@@ -147,12 +146,28 @@ class Mix extends Model
             $cipherTexts = $previousMix->getMixWithShadowMixes()->primaryMix->ciphertexts;
         }
 
-//        dump($cipherTexts);
         if ((!is_array($cipherTexts)) || count($cipherTexts) === 0) {
             throw new \Exception('cipherTexts must be a non-empty array');
         }
 
-        /** @var \App\Voting\CryptoSystems\CipherText[] $cipherTexts */
+        return $cipherTexts;
+    }
+
+    /**
+     * @param \App\Models\Election $election
+     * @param \App\Models\Mix|null $previousMix
+     * @param \App\Models\Trustee|null $trusteeGeneratingMix
+     * @param \App\Voting\CryptoSystems\PublicKey|null $publicKey
+     * @return \App\Models\Mix
+     * @throws \Exception
+     */
+    public static function generate(Election $election, ?Mix $previousMix = null, Trustee $trusteeGeneratingMix = null, ?PublicKey $publicKey = null): Mix
+    {
+        if (is_null($trusteeGeneratingMix)) {
+            $trusteeGeneratingMix = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
+        }
+
+        $cipherTexts = self::getCipherTexts($election, $previousMix);
 
         Log::debug('Running mix on ' . count($cipherTexts) . ' ciphertexts');
 
@@ -160,40 +175,28 @@ class Mix extends Model
         $mixClass = $election->anonymization_method->getClass();
 
         // generate shadow mixes
-        $primaryShadowMixes = $mixClass::generate($election, $cipherTexts, config('kairos.mixnets.shadow_mixes'));
-
-        $meTrustee = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
+        $primaryShadowMixes = $mixClass::generateMixAndShadowMixes($election,
+            $cipherTexts, $trusteeGeneratingMix,
+            $publicKey, config('kairos.mixnets.shadow_mixes'));
 
         // generate challenge bits & proofs
         $primaryShadowMixes->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits());
-        $primaryShadowMixes->generateProofs($meTrustee);
+        $primaryShadowMixes->generateProofs($trusteeGeneratingMix);
 
         $mixModel = new static();
         $mixModel->round = is_null($previousMix) ? 1 : $previousMix->round + 1;
-        $mixModel->trustee_id = $meTrustee->id;
+        $mixModel->trustee_id = $trusteeGeneratingMix->id;
         $mixModel->previous_mix_id = $previousMix ? $previousMix->id : null;
         $mixModel->hash = $primaryShadowMixes->getHash();
         $mixModel->save();
 
         $primaryShadowMixes->store($mixModel->getFilename());
 
-        // send mix to all
-        $messagesToSend = $election->peerServers()->get()
-            ->map(function (PeerServer $trusteePeerServer) use ($mixModel, $meTrustee) {
-                return new ThisIsMyMixSetRequest(
-                    getCurrentServer(),
-                    $trusteePeerServer,
-                    $mixModel
-                );
-            });
-
-        if ($messagesToSend->count()) {
-            SendP2PMessage::dispatch($messagesToSend->toArray());
-        }
-
+        return $mixModel;
     }
 
     /**
+     * Loads from file
      * @return \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes
      * @throws \Exception
      */
@@ -216,8 +219,12 @@ class Mix extends Model
      * @param \App\Models\Trustee $firstTrustee
      * @throws \Exception
      */
-    private function generateSecretKeyFromShares(Election $election, Trustee $firstTrustee): void
+    public function generateSecretKeyFromShares(Election $election, Trustee $firstTrustee): void
     {
+
+        if ($election->hasLLThresholdScheme()) {
+            throw new \Exception('Calling generateSecretKeyFromShares on an election with t = l .');
+        }
 
         $meTrustee = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
 
@@ -237,84 +244,29 @@ class Mix extends Model
     }
 
     /**
-     * TODO has to work with both encryption, decryption, re-encryption
      * @throws \Exception
      */
-    public function verify(): void
+    public function verify(): bool
     {
-        Log::debug('Running VerifyReceivedMix on MIX # ' . $this->id);
+        Log::debug('Running VerifyReceivedMix on MIX # ' . $this->id . ' generated by peer server ' . $this->trustee->peerServer->domain);
 
         $primaryShadowMixes = $this->getMixWithShadowMixes();
 
         try {
-
-            $election = $this->trustee->election;
-            $meTrustee = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
-
-            // if fully decrypted, stop
-            $completeMixChain = $this->getChainLenght() === $election->min_peer_count_t;
-
-            // TODO check t-l-threshold encryption
-
             if ($primaryShadowMixes->isProofValid($this->trustee)) {
                 $this->setAsValid();
                 Log::info('Mix proof is valid!');
-
-                if ($completeMixChain) {
-
-                    Log::info('Chain lenght limit reached');
-
-                    /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode $amClass */
-                    $amClass = $election->anonymization_method->getClass();
-                    $amClass::afterSuccessfulMixProcess($election);
-
-                    return;
-                }
-
-                if ($meTrustee->comesAfterTrustee($this->trustee)) {
-                    Log::info('Running GenerateMix from previous mix');
-
-                    // todo filter qualified peer trustees and combine keys
-                    $firstValidTrustee = ($this->getMixNodeChain()[0])->trustee;
-                    $this->generateSecretKeyFromShares($election, $firstValidTrustee);
-
-                    // if the current peer server is the next in line TODO check
-                    GenerateMix::dispatchSync($election, $this);
-
-                    // TODO here we should execute code, not executed because of the same peer issue
-                }
-
-            } else {
-
-                $this->setAsInvalid();
-                Log::warning('Mix proof is invalid!');
-
-                if ($completeMixChain) {
-                    // TODO check
-                    Log::info('Chain lenght limit reached');
-                    return;
-                }
-
-                if ($meTrustee->comesAfterTrustee($this->trustee)) {
-                    Log::info('Running GenerateMix from bulletin board');
-
-                    // TODO if t-l-encryption use share of current server and (t-1) keys of the next peers
-
-                    // start from scratch with curent server as first valid mix node
-                    $this->generateSecretKeyFromShares($election, $meTrustee);
-
-                    // if the current peer server is the next in line TODO check
-                    GenerateMix::dispatchSync($election);
-                }
-
+                return true;
             }
         } catch (\Exception $e) {
-
             $this->setAsInvalid();
             Log::error('Mix proof failed! > ' . $e->getMessage());
             Log::debug($e);
-
         }
+
+        $this->setAsInvalid();
+        Log::warning('Mix proof is invalid!');
+        return false;
     }
 
     /**
@@ -336,5 +288,30 @@ class Mix extends Model
         // TODO dispatch
     }
 
+    // ##########################################
+
+    /**
+     *
+     */
+    public function afterGeneration(): void
+    {
+
+        $election = $this->trustee->election;
+
+        // send mix to all
+        // TODO prioritize next in chain
+        $messagesToSend = $election->peerServers()->get()
+            ->map(function (PeerServer $trusteePeerServer) {
+                return new ThisIsMyMixSetRequest(
+                    getCurrentServer(),
+                    $trusteePeerServer,
+                    $this
+                );
+            });
+
+        if ($messagesToSend->count()) {
+            SendP2PMessage::dispatch($messagesToSend->toArray());
+        }
+    }
 
 }

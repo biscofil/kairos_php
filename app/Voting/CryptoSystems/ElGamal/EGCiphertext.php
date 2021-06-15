@@ -208,11 +208,16 @@ class EGCiphertext implements CipherText
     /**
      * When using Decryption-Re-Encryption mixnets, the last stage requires to extract
      * the plaintext from beta
+     * @param bool $extractFromSubGroup
+     * @return \App\Voting\CryptoSystems\ElGamal\EGPlaintext
      */
-    public function extractPlainTextFromBeta(): EGPlaintext
+    public function extractPlainTextFromBeta(bool $extractFromSubGroup = false): EGPlaintext
     {
-        $_beta = $this->pk->parameterSet->extractMessageFromSubgroup($this->beta);
-        return new EGPlaintext($_beta);
+        $beta = $this->beta;
+        if ($extractFromSubGroup) {
+            $beta = $this->pk->parameterSet->extractMessageFromSubgroup($beta);
+        }
+        return new EGPlaintext($beta);
     }
 
 }

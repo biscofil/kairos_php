@@ -47,19 +47,14 @@ class ReEncryptionParameterSet extends MixNodeParameterSet
      */
     public static function create(PublicKey $pk, int $count): self
     {
-
-        $reEncryptionFactors = [];
-        for ($i = 0; $i < $count; $i++) {
-
-//            $kpClass = $pk->getCryptosystem()::getKeyPairClass();
-//            $keyPair = $kpClass::generate();
-
-            $reEncryptionFactors[] = $pk->parameterSet->getReEncryptionFactor(); // TODO check
-        }
-
         // if not provided, generate permutation
         $permutation = range(0, $count - 1);
         shuffle($permutation);
+
+        $reEncryptionFactors = array_map(function () use ($pk): BigInteger {
+            return $pk->parameterSet->getReEncryptionFactor();
+        }, $permutation);
+
         return new static($pk, $reEncryptionFactors, $permutation);
     }
 

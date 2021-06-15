@@ -17,16 +17,16 @@ class CastVoteTest extends TestCase
         $vote = new CastVote();
 
         $vote->verified_by = 0;
-        dump($vote->verified_by);
-        dump(decbin($vote->verified_by));
+//        dump($vote->verified_by);
+//        dump(decbin($vote->verified_by));
 
         $vote->setVerifiedBy(5);
-        dump($vote->verified_by);
-        dump(decbin($vote->verified_by));
+//        dump($vote->verified_by);
+//        dump(decbin($vote->verified_by));
 
         $vote->setVerifiedBy(2);
-        dump($vote->verified_by);
-        dump(decbin($vote->verified_by));
+//        dump($vote->verified_by);
+//        dump(decbin($vote->verified_by));
     }
 
 }

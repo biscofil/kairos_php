@@ -42,15 +42,13 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
      */
     public static function create(PublicKey $pk, int $count): self
     {
-        $reEncryptionFactors = array_map(function () use ($pk): BigInteger {
-            // $kpClass = $pk->getCryptosystem()::getKeyPairClass();
-            // $keyPair = $kpClass::generate();
-            return $pk->parameterSet->getReEncryptionFactor(); // TODO check
-        }, range(0, $count - 1));
-
         // if not provided, generate permutation
         $permutation = range(0, $count - 1);
         shuffle($permutation);
+
+        $reEncryptionFactors = array_map(function () use ($pk): BigInteger {
+            return $pk->parameterSet->getReEncryptionFactor();
+        }, $permutation);
 
         return new static($pk, $reEncryptionFactors, $permutation);
     }
@@ -108,7 +106,6 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
     // ##########################################################################
 
     /**
-     * TODO
      * @param self $primaryMixPS
      * @return self
      * @throws \Exception
@@ -135,40 +132,6 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
 
         return new static($this->pk, $newReEncryptionFactor, $permutation);
 
-
-        // combine randomness
-
-//        $perm = range(0, count($this->reEncryptionFactors) - 1);
-//        $newReEncryptionFactor = [];
-//        foreach ($perm as $i) {
-//            $newReEncryptionFactor[] = $primaryMixPS->reEncryptionFactors[$i]
-//                ->subtract($this->reEncryptionFactors[$i])
-//                ->modPow(BI1(), $this->pk->parameterSet->q); // TODO generalize!!!
-//        }
-
-        $solifiedShadowEncryptionFactors = $this->permuteArray($this->reEncryptionFactors);
-        $primaryAAA = $this->permuteArray($primaryMixPS->reEncryptionFactors);
-
-        $solifiedShadowEncryptionFactors = array_map(
-            function (BigInteger $shadowMixReEncryptionFactor, BigInteger $primaryMixReEncryptionFactor): BigInteger {
-                return $primaryMixReEncryptionFactor
-                    ->subtract($shadowMixReEncryptionFactor)
-                    ->modPow(BI1(), $this->pk->parameterSet->q); // TODO generalize!!!
-            },
-            $this->reEncryptionFactors,
-            $primaryMixPS->reEncryptionFactors);
-
-        // permute $newReEncryptionFactor according to shadow mix permutation
-//        /** @var BigInteger[] $newReEncryptionFactor */
-//        $newReEncryptionFactor = $this->permuteArray($newReEncryptionFactor);
-
-        // undo shadow mix shuffling (this)
-        // recover inverse mapping of shadow mix permutation
-        $permutation = $primaryMixPS->permuteArray($this->getShufflingOrderReversed());
-
-        $solifiedShadowEncryptionFactors = $this->permuteArray($solifiedShadowEncryptionFactors);
-
-        return new static($this->pk, $solifiedShadowEncryptionFactors, $permutation);
     }
 
 }

@@ -14,6 +14,7 @@ use App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet;
 use App\Voting\CryptoSystems\CipherText;
 use App\Voting\CryptoSystems\PublicKey;
 use App\Voting\CryptoSystems\SecretKey;
+use Exception;
 use Illuminate\Support\Facades\Log;
 use phpseclib3\Math\BigInteger;
 
@@ -28,14 +29,15 @@ class ReEncryptingMixNode extends MixNode
      * @param Election $election
      * @param CipherText[] $ciphertexts
      * @param \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionParameterSet $parameterSet
+     * @param \App\Models\Trustee $trusteeRunningMix
      * @return Mix
      * @throws \Exception
      */
-    public static function forward(Election $election, array $ciphertexts, MixNodeParameterSet $parameterSet): Mix
+    public static function forward(Election $election, array $ciphertexts, MixNodeParameterSet $parameterSet, Trustee $trusteeRunningMix): Mix
     {
         if (count($ciphertexts) !== count($parameterSet->reEncryptionFactors)
             || count($ciphertexts) !== count($parameterSet->permutation)) {
-            throw new \Exception('ciphertexts has ' . count($ciphertexts)
+            throw new Exception('ciphertexts has ' . count($ciphertexts)
                 . ' elements while parameterSet->reEncryptionFactors has ' . count($parameterSet->reEncryptionFactors)
                 . ' and parameterSet->permutation has ' . count($parameterSet->permutation)
             );

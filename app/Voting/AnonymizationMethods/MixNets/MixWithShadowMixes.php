@@ -63,11 +63,21 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
      */
     public function getFiatShamirChallengeBits(): string
     {
+//        return str_repeat("0", count($this->shadowMixes)); // TODO remove
         $hex = sha1(implode('', array_map(function (Mix $mix) {
             return $mix->getHash();
         }, $this->shadowMixes)));
         $fullLen = (BI($hex, 16))->toBits();
-        return substr($fullLen, 0, count($this->shadowMixes));
+        $out = substr($fullLen, 0, count($this->shadowMixes));
+
+        // make sure enough zeros and ones
+        if (substr_count($out, '0') == 0) {
+            // add zeros
+        } elseif (substr_count($out, '1') == 0) {
+            //add ones
+        }
+
+        return $out;
     }
 
     /**
@@ -179,7 +189,7 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
                     return false;
                 }
             } elseif ($bit === '1') { // right
-                if (!$this->checkRightProof($shadowMix, $claimer)) {// TODO clean
+                if (!$this->checkRightProof($shadowMix, $claimer)) { // TODO clean
                     return false;
                 }
             } else {
@@ -276,7 +286,6 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
     }
 
     /**
-     * @param bool $storePrivateValues
      * @return array
      */
     public function toArray(): array
@@ -289,7 +298,7 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
                 return $cipherText->toArray(false);
             }, $this->originalCiphertexts),
             'primary_mix' => $this->primaryMix->toArray(),
-            'shadow_mixes' => array_map(function (Mix $shadowMix)  {
+            'shadow_mixes' => array_map(function (Mix $shadowMix) {
                 return $shadowMix->toArray();
             }, $this->shadowMixes),
         ];

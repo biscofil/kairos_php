@@ -8,14 +8,16 @@ use App\Models\Election;
 use App\Voting\AnonymizationMethods\BelongsToAnonymizationMethod;
 use App\Voting\CryptoSystems\CipherText;
 use App\Voting\CryptoSystems\ElGamal\EGDLogProof;
+use App\Voting\CryptoSystems\PublicKey;
 
 /**
  * Class Mix
  * @package App\Voting\MixNets
  * @property Election $election
  * @property Ciphertext[] ciphertexts
- * @property MixNodeParameterSet|null $parameterSet
- * @property null $proofs
+ * @property MixNodeParameterSet|null $parameterSet Either for the left of fr the right equivalence proof
+ * @property EGDLogProof[]|null $proofs Either for the left of fr the right equivalence proof
+ * @property PublicKey $publicKey
  */
 abstract class Mix implements BelongsToAnonymizationMethod
 {
@@ -25,20 +27,23 @@ abstract class Mix implements BelongsToAnonymizationMethod
     /** @var \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet|null $parameterSet */
     public $parameterSet;
     public $proofs;
+    protected PublicKey $publicKey;
 
     /**
      * @param Election $election
      * @param Ciphertext[] $ciphertexts
      * @param MixNodeParameterSet|null $parameterSet
      * @param null $proofs
+     * @param \App\Voting\CryptoSystems\PublicKey|null $publicKey
      * @noinspection PhpMissingParamTypeInspection
      */
-    public function __construct(Election $election, array $ciphertexts, $parameterSet = null, $proofs = null)
+    public function __construct(Election $election, array $ciphertexts, $parameterSet = null, $proofs = null, ?PublicKey $publicKey = null)
     {
         $this->election = $election;
         $this->ciphertexts = $ciphertexts;
         $this->parameterSet = $parameterSet;
         $this->proofs = $proofs;
+        $this->publicKey = $publicKey ?? $election->public_key;
     }
 
     /**
@@ -78,9 +83,13 @@ abstract class Mix implements BelongsToAnonymizationMethod
     {
         $election = Election::findFromUuid($data['election_uuid']);
 
+        $pkClass = $election->cryptosystem->getClass()::getPublicKeyClass();
         $ctClass = $election->cryptosystem->getClass()::getCipherTextClass();
-        $ciphertexts = array_map(function (array $cipher) use ($ctClass, $election) {
-            return $ctClass::fromArray($cipher, $election->public_key);
+
+        $publicKey = $pkClass::fromArray($data['public_key']);
+
+        $ciphertexts = array_map(function (array $cipher) use ($ctClass, $publicKey) {
+            return $ctClass::fromArray($cipher, $publicKey);
         }, $data['ciphertexts']);
 
         /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode $mixNodeClass */
@@ -91,11 +100,11 @@ abstract class Mix implements BelongsToAnonymizationMethod
 
         $parameterSet = is_null($data['parameter_set']) ? null : $psClass::fromArray($data['parameter_set']);
 
-        $proofs = is_null($data['proofs']) ? null : array_map(function (?array $proofArray) { // TODO generalize
-            return is_null($proofArray) ? null : EGDLogProof::fromArray($proofArray);
+        $proofs = is_null($data['proofs']) ? null : array_map(function (?array $proofArray) {
+            return is_null($proofArray) ? null : EGDLogProof::fromArray($proofArray); // TODO generalize
         }, $data['proofs']);
 
-        return new static($election, $ciphertexts, $parameterSet, $proofs);
+        return new static($election, $ciphertexts, $parameterSet, $proofs, $publicKey);
     }
 
     /**
@@ -105,6 +114,7 @@ abstract class Mix implements BelongsToAnonymizationMethod
     {
         return [
             'election_uuid' => $this->election->uuid,
+            'public_key' => $this->publicKey->toArray(),
             'ciphertexts' => array_map(function (CipherText $cipherText) {
                 return $cipherText->toArray(false);
             }, $this->ciphertexts),

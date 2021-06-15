@@ -68,7 +68,7 @@ class ReEncryptionMixWithShadowMixes extends MixWithShadowMixes
      */
     public function checkLeftProof(Mix $shadowMix, Trustee $claimer): bool
     {
-        $mix = ReEncryptingMixNode::forward($this->election, $this->originalCiphertexts, $shadowMix->parameterSet);
+        $mix = ReEncryptingMixNode::forward($this->election, $this->originalCiphertexts, $shadowMix->parameterSet, $claimer);
         return $mix->equals($shadowMix);
     }
 
@@ -80,7 +80,7 @@ class ReEncryptionMixWithShadowMixes extends MixWithShadowMixes
      */
     public function checkRightProof(Mix $shadowMix, Trustee $claimer): bool
     {
-        $mix = ReEncryptingMixNode::forward($this->election, $shadowMix->ciphertexts, $shadowMix->parameterSet);
+        $mix = ReEncryptingMixNode::forward($this->election, $shadowMix->ciphertexts, $shadowMix->parameterSet, $claimer);
         return $mix->equals($this->primaryMix);
     }
 

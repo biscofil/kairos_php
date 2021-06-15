@@ -28,6 +28,7 @@ class DecryptionParameterSet extends MixNodeParameterSet
         // generate permutation
         $permutation = range(0, $count - 1);
         shuffle($permutation);
+
         return new static($pk, $permutation);
     }
 
