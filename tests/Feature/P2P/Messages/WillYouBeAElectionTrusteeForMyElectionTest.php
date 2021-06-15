@@ -12,9 +12,10 @@ class WillYouBeAElectionTrusteeForMyElectionTest extends TestCase
 {
 
     /**
+     * @test
      * @throws \Exception
      */
-    public function will_you_be_a_election_trustee_for_my_election_test()
+    public function serialize_unserialize()
     {
 
         $to = new PeerServer();
