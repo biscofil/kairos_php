@@ -124,12 +124,20 @@ class CastVote extends Model
     /**
      * @param int $id
      */
-    public function setVerifiedBy(int $id)
+    public function setVerifiedBy(int $id): void
     {
         // 2^0 = 0001
         // 2^1 = 0010
         $this->verified_by = $this->verified_by | $id;
+    }
 
+    /**
+     * @param int $id
+     * @return bool
+     */
+    public function isVerifiedBy(int $id): bool
+    {
+        return ($this->verified_by & $id) > 0;
     }
 
 }

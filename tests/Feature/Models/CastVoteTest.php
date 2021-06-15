@@ -11,22 +11,19 @@ class CastVoteTest extends TestCase
 {
 
     /**
-     * @ TODO test
+     * @test
      */
     public function setVerifiedBy(){
         $vote = new CastVote();
 
         $vote->verified_by = 0;
-//        dump($vote->verified_by);
-//        dump(decbin($vote->verified_by));
 
         $vote->setVerifiedBy(5);
-//        dump($vote->verified_by);
-//        dump(decbin($vote->verified_by));
+        self::assertTrue($vote->isVerifiedBy(5));
 
         $vote->setVerifiedBy(2);
-//        dump($vote->verified_by);
-//        dump(decbin($vote->verified_by));
+        self::assertTrue($vote->isVerifiedBy(5));
+        self::assertTrue($vote->isVerifiedBy(2));
     }
 
 }
