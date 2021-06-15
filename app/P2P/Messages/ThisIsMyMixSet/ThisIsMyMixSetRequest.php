@@ -4,12 +4,14 @@
 namespace App\P2P\Messages\ThisIsMyMixSet;
 
 
+use App\Jobs\DownloadPeerMix;
 use App\Jobs\VerifyReceivedMix;
 use App\Models\Election;
 use App\Models\Mix;
 use App\Models\PeerServer;
 use App\P2P\Messages\P2PMessageRequest;
 use Exception;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -61,12 +63,10 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
      */
     public function serialize(PeerServer $to): array
     {
-        $primaryShadowMixes = $this->mixModel->getMixWithShadowMixes();
         return [
             'election_uuid' => $this->mixModel->trustee->election->uuid,
             'mix_set' => $this->mixModel->toArray(),
             'previous_mix_set_hash' => $this->mixModel->previousMix ? $this->mixModel->previousMix->hash : null,
-            'file' => $primaryShadowMixes->toArray() // TODO remove
         ];
     }
 
@@ -82,7 +82,6 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
             'election_uuid' => ['required', 'uuid'],
             'mix_set' => ['required', 'array'],
             'previous_mix_set_hash' => ['nullable', 'string'],
-            'file' => ['required', 'array']
         ])->validate();
 
         $election = Election::findFromUuid($data['election_uuid']);
@@ -97,15 +96,6 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
         $mixModel->previous_mix_id = $previousMix ? $previousMix->id : null;
         $mixModel->fillFromSharedArray($data['mix_set']);
         $mixModel->save();
-
-        /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode $amClass */
-        $amClass = $election->anonymization_method->getClass();
-        /** @var \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes $primaryShadowMixesClass */
-        $primaryShadowMixesClass = $amClass::getMixWithShadowMixesClass();
-
-        // parse and store
-        $primaryShadowMixes = $primaryShadowMixesClass::fromArray($data['file']);
-        $primaryShadowMixes->store($mixModel->getFilename());
 
         return new static(
             $sender,
@@ -124,10 +114,14 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
      */
     public function onRequestReceived(): ThisIsMyMixSetResponse
     {
-        Log::debug('ThisIsMyMixSet message received');
+        Log::debug('ThisIsMyMixSet message received > Download > Verify');
 
-        // dispatch verification process and mix if this is the next node
-        VerifyReceivedMix::dispatch($this->mixModel);
+        Bus::chain([
+            // download
+            new DownloadPeerMix($this->mixModel),
+            // verification process and mix if this is the next node
+            new VerifyReceivedMix($this->mixModel)
+        ])->delay(1)->dispatch();
 
         return new ThisIsMyMixSetResponse(getCurrentServer(), $this->requestSender);
     }

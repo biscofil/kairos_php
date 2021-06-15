@@ -7,6 +7,9 @@ use App\P2P\Messages\ThisIsMyMixSet\ThisIsMyMixSetRequest;
 use App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes;
 use App\Voting\CryptoSystems\ElGamal\EGSecretKey;
 use App\Voting\CryptoSystems\PublicKey;
+use Exception;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Utils;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -90,11 +93,32 @@ class Mix extends Model
     // ########################################## RELATIONS
 
     /**
+     *
+     */
+    public function download(): void
+    {
+        $domain = $this->trustee->peerServer->domain;
+
+        $url = "https://$domain/storage/" . $this->getFilename();
+
+        Log::debug("Downloading from $url");
+
+        $client = new Client();
+        $resource = Utils::tryFopen(Storage::path($this->getFilename()), 'w');
+        $res = $client->request('GET', $url, [
+            'verify' => false, // TODO remove
+            'sink' => $resource
+        ]);
+        Log::debug('Status code : ' . $res->getStatusCode());
+
+    }
+
+    /**
      * @return string
      */
     public function getFilename(): string
     {
-        return 'mix_' . $this->id . '.json';
+        return 'mix_' . $this->uuid . '.json';
     }
 
     /**
@@ -175,7 +199,7 @@ class Mix extends Model
         }
 
         if ((!is_array($cipherTexts)) || count($cipherTexts) === 0) {
-            throw new \Exception('cipherTexts must be a non-empty array');
+            throw new Exception('cipherTexts must be a non-empty array');
         }
 
         return $cipherTexts;
@@ -264,7 +288,7 @@ class Mix extends Model
     {
 
         if ($election->hasLLThresholdScheme()) {
-            throw new \Exception('Calling generateSecretKeyFromShares on an election with t = l .');
+            throw new Exception('Calling generateSecretKeyFromShares on an election with t = l .');
         }
 
         $meTrustee = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
@@ -299,7 +323,7 @@ class Mix extends Model
                 Log::info('Mix proof is valid!');
                 return true;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->setAsInvalid();
             Log::error('Mix proof failed! > ' . $e->getMessage());
             Log::debug($e);

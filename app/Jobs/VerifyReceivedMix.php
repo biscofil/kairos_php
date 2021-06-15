@@ -50,7 +50,9 @@ class VerifyReceivedMix implements ShouldQueue
         $meTrustee = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
 
         // if fully decrypted, stop
-        $completeMixChain = $this->mixModel->getChainLenght() === $election->min_peer_count_t;
+        $chainLenght = $this->mixModel->getChainLenght();
+        $completeMixChain = $chainLenght === $election->min_peer_count_t;
+        Log::debug("chainLenght : $chainLenght / $election->min_peer_count_t");
 
         if ($this->mixModel->verify()) {
 
@@ -63,6 +65,8 @@ class VerifyReceivedMix implements ShouldQueue
                 $amClass::afterSuccessfulMixProcess($election);
                 return;
             }
+
+            Log::info('Chain lenght limit NOT reached yet');
 
             if ($meTrustee->comesAfterTrustee($this->mixModel->trustee)) {
                 Log::info('Running GenerateMix from previous mix');

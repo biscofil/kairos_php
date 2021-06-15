@@ -1,4 +1,5 @@
 rsync -azP \
+    --exclude 'sync.sh' \
     --exclude '.env' \
     --exclude 'db.env' \
     --exclude '.git' \
@@ -29,8 +30,8 @@ rsync -azP _docker/peer$1/ root@peer$1.biscofil.it:/root/helios
 #ssh -t root@peer$1.biscofil.it 'cd /root/helios && docker-compose exec webserver php artisan migrate'
 
 #ssh -t root@peer$1.biscofil.it 'cd /root/helios && docker-compose exec webserver composer dump-autoload'
-#
-#ssh -t root@peer$1.biscofil.it 'cd /root/helios && chmod 777 -R . && clear && U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose restart'
+
+ssh -t root@peer$1.biscofil.it 'cd /root/helios && chmod 777 -R . && clear && U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose restart'
 
 notify-send Done $1
 
