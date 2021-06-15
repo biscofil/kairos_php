@@ -10,7 +10,7 @@ return [
     ],
 
     'mixnets' => [
-        'shadow_mixes' => intval(env('SHADOW_MIXES', 5))
+        'shadow_mixes' => intval(env('SHADOW_MIXES', 80))
     ]
 
 ];
