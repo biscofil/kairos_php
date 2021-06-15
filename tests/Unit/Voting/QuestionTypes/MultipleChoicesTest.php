@@ -134,4 +134,32 @@ class MultipleChoicesTest extends TestCase
 
     }
 
+    /**
+     * @test
+     */
+    public function enumeration()
+    {
+
+        $election = Election::factory()->create();
+        $election->cryptosystem = CryptoSystemEnum::ElGamal();
+        $election->anonymization_method = AnonymizationMethodEnum::EncMixNet();
+        $nQuestions = 3;
+        self::createElectionQuestions($election, $nQuestions);
+
+        $enumerations = MultipleChoice::generateAllCombinations($election->questions()->first());
+
+        $idxs = [1 => 1, 2 => 2, 3 => 3];
+        $randomQuestionAnswers = rand(0, 3) === 0 ? [] : (array)array_rand($idxs, rand(1, 3));
+        $pos = array_search($randomQuestionAnswers, $enumerations);
+        self::assertNotEquals(false, $pos);
+
+//        dump($pos);
+//        dump(decbin($pos));
+//
+//        $ps = EGParameterSet::getDefault();
+//        dump(array_map(function (int $pos) {
+//
+//        }, $enumerations, range(0, count($enumerations))));
+    }
+
 }

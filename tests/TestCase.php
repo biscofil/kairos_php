@@ -99,14 +99,15 @@ abstract class TestCase extends BaseTestCase
      * @param \App\Models\Election $election
      * @param int $nQuestions
      * @param int $nAnswers
+     * @param int $min
      */
-    public static function createElectionQuestions(Election &$election, int $nQuestions = 3, int $nAnswers = 3): void
+    public static function createElectionQuestions(Election &$election, int $nQuestions = 3, int $nAnswers = 3, int $min = 0): void
     {
         for ($i = 0; $i < $nQuestions; $i++) {
             $question = Question::factory()->make();
             $question->local_id = $i + 1;
             $question->election_id = $election->id;
-            $question->min = 0;
+            $question->min = $min;
             $question->max = $nAnswers;
             $question->save();
             for ($k = 0; $k < $nAnswers; $k++) {
