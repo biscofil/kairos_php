@@ -32,19 +32,19 @@ class EGPublicKey implements PublicKey
         $this->y = $y;
     }
 
+    // ####################################################################
+
     /**
-     * @param \App\Voting\CryptoSystems\ElGamal\EGPublicKey $b
+     * @param self $b
      * @return bool
      * @throws \Exception
      */
-    public function equals(EGPublicKey $b): bool
+    public function equals($b): bool
     {
         $this->ensureSameParameters($b);
         return $this->y->equals($b->y);
     }
 
-    // ####################################################################
-    // ####################################################################
     // ####################################################################
 
     /**

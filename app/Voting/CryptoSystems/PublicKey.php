@@ -13,13 +13,21 @@ use App\Models\Cast\Castable;
 interface PublicKey extends Castable, BelongsToCryptoSystem
 {
 
+
+    /**
+     * @param \App\Voting\CryptoSystems\PublicKey $b
+     * @return bool
+     * @noinspection PhpMissingParamTypeInspection
+     */
+    public function equals($b): bool;
+
     /**
      * @param array $data
      * @param bool $ignoreParameterSet
      * @param int $base
      * @return static
      */
-    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16) : self;
+    public static function fromArray(array $data, bool $ignoreParameterSet = false, int $base = 16): self;
 
     /**
      * @param bool $ignoreParameterSet

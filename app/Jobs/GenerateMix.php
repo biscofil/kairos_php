@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class GenerateMix
@@ -45,7 +46,10 @@ class GenerateMix implements ShouldQueue
      */
     public function handle()
     {
+        $start = now();
         $mixModel = Mix::generate($this->election, $this->previousMix);
+        $end = now();
+        Log::debug('Mix generated in ' . $end->diffInMilliseconds($start) . ' milliseconds');
         $mixModel->afterGeneration();
     }
 }

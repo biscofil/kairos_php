@@ -75,7 +75,7 @@ class VerifyReceivedMix implements ShouldQueue
                 }
 
                 // if the current peer server is the next in line TODO check
-                GenerateMix::dispatchSync($election, $this);
+                GenerateMix::dispatchSync($election, $this->mixModel);
 
                 // TODO here we should execute code, not executed because of the same peer issue
             }

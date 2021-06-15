@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Tests\Feature\P2P\Messages;
+namespace Tests\Feature\P2P\Messages\Freeze1IAmFreezingElection;
 
 
 use App\Models\Election;

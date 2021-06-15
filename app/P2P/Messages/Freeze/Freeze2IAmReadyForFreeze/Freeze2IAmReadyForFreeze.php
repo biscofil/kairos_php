@@ -45,7 +45,8 @@ class Freeze2IAmReadyForFreeze
                 getCurrentServer(),
                 $trusteePeerServer,
                 $election,
-                true // TODO <-------------------------
+                true,  // TODO <-------------------------,
+                $election->trustees
             );
         });
         SendP2PMessage::dispatch($messagesToSend->toArray());
