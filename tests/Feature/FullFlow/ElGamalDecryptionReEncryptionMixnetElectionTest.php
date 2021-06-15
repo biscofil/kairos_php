@@ -15,6 +15,7 @@ use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGCiphertext;
 use App\Voting\CryptoSystems\ElGamal\EGDLogProof;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 /**
@@ -161,6 +162,7 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
         $trustee3->save();
 
         $election->min_peer_count_t = 3;
+        $election->voting_started_at = Carbon::now();
         $election->save();
 
 //        $election->preFreeze();
@@ -249,6 +251,7 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
         $election->createPeerServerTrustee(getCurrentServer());
 
         $election->min_peer_count_t = 1;
+        $election->voting_started_at = Carbon::now();
         $election->save();
 
         $election->preFreeze();

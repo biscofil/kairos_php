@@ -10,6 +10,7 @@ use App\Models\Election;
 use App\Models\User;
 use App\Models\Voter;
 use App\Voting\CryptoSystems\ExpElGamal\ExpEGPlaintext;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 /**
@@ -37,6 +38,7 @@ class ExpElGamalHomomorphicElectionTest extends TestCase
         $keyPair = $kpClass::generate();
         $election->public_key = $keyPair->pk;
         $election->private_key = $keyPair->sk;
+        $election->voting_started_at = Carbon::now();
         $election->save();
 
         $election->actualFreeze();

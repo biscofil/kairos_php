@@ -13,6 +13,7 @@ use App\P2P\Messages\ThisIsMyMixSet\ThisIsMyMixSetRequest;
 use App\P2P\Messages\ThisIsMyMixSet\ThisIsMyMixSetResponse;
 use App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptingMixNode;
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -35,6 +36,7 @@ class ThisIsMyMixSetRequestTest extends TestCase
         $election->cryptosystem->getClass()::onElectionFreeze($election); // generateCombinedPublicKey
         $keyPair = EGKeyPair::generate();
         $election->public_key = $keyPair->pk;
+        $election->voting_started_at = Carbon::now();
         $election->save();
 
         $trustee = $election->createPeerServerTrustee($me);
@@ -48,6 +50,7 @@ class ThisIsMyMixSetRequestTest extends TestCase
         $primaryShadowMixes->generateProofs($trustee);
 
         $mixModel = new Mix();
+        $mixModel->uuid = Mix::getNewUUID()->string;
         $mixModel->trustee_id = $election->getTrusteeFromPeerServer($me, true)->id;
         $mixModel->hash = Str::random(10);
         $mixModel->round = 1;
@@ -61,6 +64,7 @@ class ThisIsMyMixSetRequestTest extends TestCase
 
         // change to prevent database unique constraint
         $oldHash = $mixModel->hash;
+        $mixModel->uuid = Mix::getNewUUID()->string;
         $mixModel->hash = Str::random(10);
         $mixModel->save();
 
