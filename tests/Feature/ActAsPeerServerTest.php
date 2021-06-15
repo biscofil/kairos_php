@@ -4,15 +4,19 @@
 namespace Tests\Feature;
 
 
+use App\Http\Middleware\ActAsPeer;
 use App\Models\PeerServer;
-use App\Providers\AppServiceProvider;
 use Tests\TestCase;
 
+/**
+ * Class ActAsPeerServerTest
+ * @package Tests\Feature
+ */
 class ActAsPeerServerTest extends TestCase
 {
 
     /**
-     * @ TODO test
+     * @test
      */
     public function default_peer()
     {
@@ -20,7 +24,7 @@ class ActAsPeerServerTest extends TestCase
          * @see \App\Http\Controllers\Controller::settings_auth()
          */
         $response = $this->getJson('api/settings_auth');
-        $this->assertResponseStatusCode(200, $response);
+        self::assertResponseStatusCode(200, $response);
 
         $serverPeer = $response->json('peer');
 
@@ -28,7 +32,7 @@ class ActAsPeerServerTest extends TestCase
     }
 
     /**
-     * @ TODO test
+     * @test
      */
     public function another_peer()
     {
@@ -39,14 +43,13 @@ class ActAsPeerServerTest extends TestCase
          * @see \App\Http\Controllers\Controller::settings_auth()
          */
         $response = $this
-            ->withHeaders([AppServiceProvider::ActAsPeerServerKey => $newPeer->id])
+            ->withHeaders([ActAsPeer::ActAsPeerServerKey => $newPeer->id])
             ->json(
                 'GET',
-                'api/settings_auth?aaa=1',
-//                [],
-                [AppServiceProvider::ActAsPeerServerKey => "$newPeer->id"]);
+                'api/settings_auth',
+                [ActAsPeer::ActAsPeerServerKey => "$newPeer->id"]);
 
-        $this->assertResponseStatusCode(200, $response);
+        self::assertResponseStatusCode(200, $response);
 
         $serverPeer = $response->json('peer');
         static::assertEquals($newPeer->id, $serverPeer['id']);

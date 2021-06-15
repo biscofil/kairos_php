@@ -2,6 +2,7 @@
 
 namespace App\Http;
 
+use App\Http\Middleware\ActAsPeer;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\AuthenticateWithElectionCreatorJwt;
 use App\Http\Middleware\CanVote;
@@ -39,6 +40,7 @@ class Kernel extends HttpKernel
      * @var array
      */
     protected $middleware = [
+        ActAsPeer::class,
         HandleCors::class,
         //RefreshAndReturnToken::class,
         TrustProxies::class,
