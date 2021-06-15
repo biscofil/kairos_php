@@ -5,11 +5,13 @@ namespace App\Voting\AnonymizationMethods\MixNets\Decryption;
 
 
 use App\Models\Election;
+use App\Models\Trustee;
 use App\Voting\AnonymizationMethods\MixNets\Mix;
 use App\Voting\AnonymizationMethods\MixNets\MixNode;
 use App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet;
 use App\Voting\CryptoSystems\CipherText;
 use App\Voting\CryptoSystems\PublicKey;
+use Exception;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -27,19 +29,16 @@ class DecryptionMixNode extends MixNode
      * @return Mix
      * @throws \Exception
      */
-    public static function forward(Election $election, array $ciphertexts, MixNodeParameterSet $parameterSet, \App\Models\Trustee $trusteeRunningMix): Mix
+    public static function forward(Election $election, array $ciphertexts, MixNodeParameterSet $parameterSet, Trustee $trusteeRunningMix): Mix
     {
 
         if (count($ciphertexts) !== count($parameterSet->permutation)) {
-            throw new \Exception('ciphertexts has ' . count($ciphertexts)
+            throw new Exception('ciphertexts has ' . count($ciphertexts)
                 . ' elements while parameterSet->permutation has ' . count($parameterSet->permutation));
         }
 
-        /** @var \App\Models\Trustee $mePeer */
-        $mePeer = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
-
         /** @var \App\Voting\CryptoSystems\PartialDecryptionSecretKey $sk */
-        $sk = $mePeer->private_key;
+        $sk = $trusteeRunningMix->private_key;
 
         // decrypt
         $decryptedCiphertexts = array_map(function (CipherText $ciphertext) use ($sk): CipherText {

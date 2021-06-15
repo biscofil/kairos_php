@@ -204,19 +204,20 @@ abstract class MixNode implements AnonymizationMethod
 
     /**
      * @param \App\Models\Election $election
+     * @param \App\Models\Trustee|null $trusteeRunningCode
      */
-    public static function afterVotingPhaseEnds(Election &$election)
+    public static function afterVotingPhaseEnds(Election &$election, ?Trustee $trusteeRunningCode = null)
     {
         Log::debug('MixNode afterVotingPhaseEnds');
 
-        $meTrustee = $election->getTrusteeFromPeerServer(getCurrentServer());
+        $trusteeRunningCode = $trusteeRunningCode ?? $election->getTrusteeFromPeerServer(getCurrentServer());
 
-        if ($meTrustee) {
+        if ($trusteeRunningCode) {
             // current server is a peer
             Log::debug('afterVotingPhaseEnds > Current server is a trustee');
 
             // if ($meTrustee->getPeerServerIndex() === 1) { // TODO check
-            if ($meTrustee->accepts_ballots) { // TODO check
+            if ($trusteeRunningCode->accepts_ballots) { // TODO check
                 // current server is a peer
 
                 Log::debug('MixNode afterVotingPhaseEnds > dispatching GenerateMix');

@@ -38,21 +38,31 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
         $nQuestions = 3;
         self::createElectionQuestions($election, $nQuestions);
 
-        $trustee1 = $election->createPeerServerTrustee(getCurrentServer());
+        $peer1 = PeerServer::factory()->create();
+        $trustee1 = $election->createPeerServerTrustee($peer1);
+        $trustee1->generateKeyPair();
+        $trustee1->save();
 
         $peer2 = PeerServer::factory()->create();
         $trustee2 = $election->createPeerServerTrustee($peer2);
         $trustee2->generateKeyPair();
         $trustee2->save();
 
-        $election->min_peer_count_t = 2;
+        $peer3 = PeerServer::factory()->create();
+        $trustee3 = $election->createPeerServerTrustee($peer3);
+        $trustee3->generateKeyPair();
+        $trustee3->save();
+
+        $election->min_peer_count_t = 3;
         $election->save();
 
 //        $election->preFreeze();
         $election->actualFreeze();
 
         // public key of election is the combination
-        self::assertTrue($trustee1->public_key->combine($trustee2->public_key)->equals($election->public_key));
+        /** @noinspection PhpParamsInspection */
+        self::assertTrue($trustee1->public_key->combine($trustee2->public_key)->combine($trustee3->public_key)
+            ->equals($election->public_key));
 
         // cast vote
         $user = User::factory()->create();
@@ -73,36 +83,49 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
         // #################################### check decryption >>>>>
 
         /** @var EGCiphertext $cipher */
-        $cipherReEncryptedOnce = $cipher->reEncrypt();
-        /** @var EGCiphertext $cipherDecryptedOnce */
-        $cipherDecryptedOnce = $trustee1->private_key->partiallyDecrypt($cipherReEncryptedOnce);
+        $cipherReEncrypted1 = $cipher->reEncrypt();
+        /** @var EGCiphertext $cipherDecrypted1 */
+        $cipherDecrypted1 = $trustee1->private_key->partiallyDecrypt($cipherReEncrypted1);
 
-        $cipherReEncryptedTwice = $cipherDecryptedOnce->reEncrypt();
+        $cipherReEncrypted2 = $cipherDecrypted1->reEncrypt();
         /** @var EGCiphertext $pt */
-        $cipherDecryptedTwice = $trustee2->private_key->partiallyDecrypt($cipherReEncryptedTwice);
+        $cipherDecrypted2 = $trustee2->private_key->partiallyDecrypt($cipherReEncrypted2);
 
-        $extractedPlainText = $cipherDecryptedTwice->extractPlainTextFromBeta(true);
+        $cipherReEncrypted3 = $cipherDecrypted2->reEncrypt();
+        /** @var EGCiphertext $pt */
+        $cipherDecrypted3 = $trustee3->private_key->partiallyDecrypt($cipherReEncrypted3);
+
+        $extractedPlainText = $cipherDecrypted3->extractPlainTextFromBeta(true);
         self::assertTrue($plaintext->equals($extractedPlainText));
         self::assertEquals($votePlain, Small_JSONBallotEncoding::decode($extractedPlainText));
 
         // #################################### check decryption <<<<<
 
         /** @noinspection PhpParamsInspection */
-        $proof1 = EGDLogProof::generate($trustee1->private_key, $cipherReEncryptedOnce);
+        $proof1 = EGDLogProof::generate($trustee1->private_key, $cipherReEncrypted1);
         /** @noinspection PhpParamsInspection */
         self::assertTrue($proof1->isValid(
             $trustee1->public_key,
-            $cipherReEncryptedOnce,
-            $cipherDecryptedOnce->extractPlainTextFromBeta(true)
+            $cipherReEncrypted1,
+            $cipherDecrypted1->extractPlainTextFromBeta(true)
         ));
 
         /** @noinspection PhpParamsInspection */
-        $proof2 = EGDLogProof::generate($trustee2->private_key, $cipherReEncryptedTwice);
+        $proof2 = EGDLogProof::generate($trustee2->private_key, $cipherReEncrypted2);
         /** @noinspection PhpParamsInspection */
         self::assertTrue($proof2->isValid(
             $trustee2->public_key,
-            $cipherReEncryptedTwice,
-            $cipherDecryptedTwice->extractPlainTextFromBeta(true)
+            $cipherReEncrypted2,
+            $cipherDecrypted2->extractPlainTextFromBeta(true)
+        ));
+
+        /** @noinspection PhpParamsInspection */
+        $proof3 = EGDLogProof::generate($trustee3->private_key, $cipherReEncrypted3);
+        /** @noinspection PhpParamsInspection */
+        self::assertTrue($proof3->isValid(
+            $trustee3->public_key,
+            $cipherReEncrypted3,
+            $cipherDecrypted3->extractPlainTextFromBeta(true)
         ));
 
     }
@@ -122,21 +145,31 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
         $nQuestions = 3;
         self::createElectionQuestions($election, $nQuestions);
 
-        $trustee1 = $election->createPeerServerTrustee(getCurrentServer());
+        $peer1 = PeerServer::factory()->create();
+        $trustee1 = $election->createPeerServerTrustee($peer1);
+        $trustee1->generateKeyPair();
+        $trustee1->save();
 
         $peer2 = PeerServer::factory()->create();
         $trustee2 = $election->createPeerServerTrustee($peer2);
         $trustee2->generateKeyPair();
         $trustee2->save();
 
-        $election->min_peer_count_t = 2;
+        $peer3 = PeerServer::factory()->create();
+        $trustee3 = $election->createPeerServerTrustee($peer3);
+        $trustee3->generateKeyPair();
+        $trustee3->save();
+
+        $election->min_peer_count_t = 3;
         $election->save();
 
 //        $election->preFreeze();
         $election->actualFreeze();
 
         // public key of election is the combination
-        self::assertTrue($trustee1->public_key->combine($trustee2->public_key)->equals($election->public_key));
+        /** @noinspection PhpParamsInspection */
+        self::assertTrue($trustee1->public_key->combine($trustee2->public_key)->combine($trustee3->public_key)
+            ->equals($election->public_key));
 
         // cast votes
         $ballots = [];
@@ -174,19 +207,28 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
         self::assertEquals($trustee1->id, $mix1->trustee_id);
         self::assertTrue($mix1->is_valid);
 
-        $mix2 = Mix::generate($election, $mix1, $trustee2, $trustee2->public_key);
+        $mix2 = Mix::generate($election, $mix1, $trustee2); // , $trustee2->public_key->combine($trustee3->public_key)
         $mix2->verify();
         self::assertEquals($trustee2->id, $mix2->trustee_id);
         self::assertTrue($mix2->is_valid);
 
-        // check ciphertexts match input
-        $outBallots = array_map(function (EGCiphertext $ct) {
-            return Small_JSONBallotEncoding::decode($ct->extractPlainTextFromBeta(true));
-        }, $mix2->getMixWithShadowMixes()->primaryMix->ciphertexts);
+        $mix3 = Mix::generate($election, $mix2, $trustee3); // , $trustee3->public_key
+        $mix3->verify();
+        self::assertEquals($trustee3->id, $mix3->trustee_id);
+        self::assertTrue($mix3->is_valid);
 
-        foreach ($outBallots as $outBallot) {
-            self::assertTrue(in_array($outBallot, $ballots));
-        }
+        // check ciphertexts match input
+        $votes = array_map(function (EGCiphertext $ct) {
+            return Small_JSONBallotEncoding::decode($ct->extractPlainTextFromBeta(true));
+        }, $mix3->getMixWithShadowMixes()->primaryMix->ciphertexts);
+
+        usort($ballots, function ($a, $b) {
+            return sha1(json_encode($a)) > sha1(json_encode($b));
+        });
+        usort($votes, function ($a, $b) {
+            return sha1(json_encode($a)) > sha1(json_encode($b));
+        });
+        self::assertEquals($ballots, $votes);
 
     }
 

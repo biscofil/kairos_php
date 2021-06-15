@@ -15,8 +15,9 @@ interface AnonymizationMethod
 
     /**
      * @param Election $election
+     * @param \App\Models\Trustee|null $trusteeRunningCode
      */
-    public static function afterVotingPhaseEnds(Election &$election);
+    public static function afterVotingPhaseEnds(Election &$election, ?\App\Models\Trustee $trusteeRunningCode = null);
 
     /**
      * @param \App\Models\Election $election

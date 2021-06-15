@@ -123,6 +123,21 @@ class Mix extends Model
         return count($this->getMixNodeChain());
     }
 
+    /**
+     * TODO handle skipped peer servers
+     * @return \App\Models\Trustee[]|Collection
+     */
+    public function getNextTrusteeChain(): Collection
+    {
+        $election = $this->trustee->election;
+        $trustees = [];
+        for ($i = $this->round; $i <= $election->min_peer_count_t; $i++) {
+            $peer = $election->getPeerServerFromIndex($i - 1);
+            $trustees[] = $election->getTrusteeFromPeerServer($peer);
+        }
+        return collect($trustees);
+    }
+
     // ##########################################
 
     /**
@@ -157,15 +172,31 @@ class Mix extends Model
      * @param \App\Models\Election $election
      * @param \App\Models\Mix|null $previousMix
      * @param \App\Models\Trustee|null $trusteeGeneratingMix
-     * @param \App\Voting\CryptoSystems\PublicKey|null $publicKey
      * @return \App\Models\Mix
      * @throws \Exception
      */
-    public static function generate(Election $election, ?Mix $previousMix = null, Trustee $trusteeGeneratingMix = null, ?PublicKey $publicKey = null): Mix
+    public static function generate(Election $election, ?Mix $previousMix = null, Trustee $trusteeGeneratingMix = null): Mix
     {
         if (is_null($trusteeGeneratingMix)) {
             $trusteeGeneratingMix = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
         }
+
+        $mixModel = new static();
+        $mixModel->round = is_null($previousMix) ? 1 : $previousMix->round + 1;
+        $mixModel->trustee_id = $trusteeGeneratingMix->id;
+        $mixModel->previous_mix_id = $previousMix ? $previousMix->id : null;
+
+        // combine public keys of next trustees
+        $publicKey = $mixModel->getNextTrusteeChain()->reduce(function (?PublicKey $carry, Trustee $trustee) {
+            if (is_null($carry)) {
+                //first
+                return $trustee->public_key;
+            }
+            /** @noinspection PhpParamsInspection */
+            return $carry->combine($trustee->public_key);
+        }, null);
+
+        // TODO generate $publicKey based on next peers
 
         $cipherTexts = self::getCipherTexts($election, $previousMix);
 
@@ -183,10 +214,6 @@ class Mix extends Model
         $primaryShadowMixes->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits());
         $primaryShadowMixes->generateProofs($trusteeGeneratingMix);
 
-        $mixModel = new static();
-        $mixModel->round = is_null($previousMix) ? 1 : $previousMix->round + 1;
-        $mixModel->trustee_id = $trusteeGeneratingMix->id;
-        $mixModel->previous_mix_id = $previousMix ? $previousMix->id : null;
         $mixModel->hash = $primaryShadowMixes->getHash();
         $mixModel->save();
 
