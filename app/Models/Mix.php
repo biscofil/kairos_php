@@ -13,12 +13,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Webpatser\Uuid\Uuid;
 
 /**
  * Class Mix
  * @package App\Models
  * @property int id
  * @property int round
+ * @property string uuid
  * @property string hash
  * @property bool|null is_valid
  *
@@ -36,6 +38,7 @@ class Mix extends Model
     protected $fillable = [
         'round',
         'previous_mix_id', // TODO use uuid / hash
+        'uuid',
         'hash',
         'trustee_id',
         'is_valid',
@@ -43,6 +46,7 @@ class Mix extends Model
 
     public $shareableFields = [
         'round',
+        'uuid',
         'hash',
     ];
 
@@ -53,6 +57,15 @@ class Mix extends Model
     protected $appends = [
         'download_url'
     ];
+
+    /**
+     * @return \Webpatser\Uuid\Uuid
+     * @throws \Exception
+     */
+    public static function getNewUUID(): Uuid
+    {
+        return Uuid::generate(5, url('mixes/' . (self::count() + 1) . '/' . rand(0, 9999999)), Uuid::NS_URL);
+    }
 
     // ########################################## RELATIONS
 
@@ -182,6 +195,7 @@ class Mix extends Model
         }
 
         $mixModel = new static();
+        $mixModel->uuid = self::getNewUUID()->string;
         $mixModel->round = is_null($previousMix) ? 1 : $previousMix->round + 1;
         $mixModel->trustee_id = $trusteeGeneratingMix->id;
         $mixModel->previous_mix_id = $previousMix ? $previousMix->id : null;
