@@ -8,11 +8,11 @@
                 <ul class="timeline">
                     <li v-for="timelineItem in timelineItems" :class="timelineItem.class">
                         <a href="javascript:void(0)">
-                            {{timelineItem.title}}
+                            {{ timelineItem.title }}
                         </a>
-                        <a href="javascript:void(0)" class="float-right">{{timelineItem.datetime}}</a>
+                        <a href="javascript:void(0)" class="float-right">{{ timelineItem.datetime }}</a>
                         <p>
-                            {{timelineItem.description}}
+                            {{ timelineItem.description }}
                         </p>
                     </li>
                 </ul>
@@ -44,7 +44,7 @@ export default {
         if (this.election.frozen_at) {
             this.timelineItems.push({
                 datetime: new Date(this.election.frozen_at),
-                title: 'Freeze',
+                title: 'Election freeze',
                 description: 'Frozen @ ' + (new Date(this.election.frozen_at)).toDateString(),
                 class: 'done'
             })
@@ -53,7 +53,7 @@ export default {
         if (this.election.voting_starts_at) {
             this.timelineItems.push({
                 datetime: new Date(this.election.voting_starts_at),
-                title: this.election.voting_started_at ? 'Started' : 'Starts',
+                title: 'Voting phase start',
                 description: this.election.voting_started_at
                     ? ('Started @ ' + (new Date(this.election.voting_started_at)).toDateString())
                     : ('Starts @ ' + (new Date(this.election.voting_starts_at)).toDateString()),
@@ -64,7 +64,7 @@ export default {
         if (this.election.voting_ends_at) {
             this.timelineItems.push({
                 datetime: new Date(this.election.voting_ends_at),
-                title: this.election.voting_ended_at ? 'Ended' : 'Ends',
+                title: 'Voting phase end',
                 description: this.election.voting_ended_at
                     ? ('Ended @ ' + (new Date(this.election.voting_ended_at)).toDateString())
                     : ('Ends @ ' + (new Date(this.election.voting_ends_at)).toDateString()),
