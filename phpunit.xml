@@ -31,7 +31,7 @@
     </coverage>
     <php>
         <ini name="memory_limit" value="4G" />
-        <env name="SHADOW_MIXES" value="5" force="true"/>
+        <env name="SHADOW_MIXES" value="4" force="true"/>
         <env name="APP_ENV" value="testing"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_DRIVER" value="array"/>

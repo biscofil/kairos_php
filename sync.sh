@@ -23,7 +23,7 @@ rsync -azP \
     ./ root@peer$1.biscofil.it:/root/helios
 rsync -azP _docker/peer$1/ root@peer$1.biscofil.it:/root/helios
 
-#ssh -t root@peer$1.biscofil.it 'cd /root/helios && docker-compose exec webserver php artisan config:cache'
+ssh -t root@peer$1.biscofil.it 'cd /root/helios && docker-compose exec webserver php artisan config:cache'
 
 #ssh -t root@peer$1.biscofil.it 'cd /root/helios && docker-compose exec webserver php artisan route:cache'
 
