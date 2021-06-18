@@ -38,7 +38,7 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_DRIVER" value="array"/>
         <env name="MAIL_DRIVER" value="array"/>
-        <env name="QUEUE_CONNECTION" value="sync"/>
+<!--        <env name="QUEUE_CONNECTION" value="sync" force="true"/>-->
         <env name="SESSION_DRIVER" value="array"/>
         <!-- gitlab mysql credentials -->
         <env name="DB_DATABASE" value="laravel"/>

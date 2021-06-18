@@ -16,6 +16,8 @@ use App\Voting\CryptoSystems\ElGamal\EGSecretKey;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 
 abstract class TestCase extends BaseTestCase
@@ -118,4 +120,26 @@ abstract class TestCase extends BaseTestCase
             }
         }
     }
+
+    /**
+     *
+     */
+    public static function purgeJobs() : void{
+        DB::table('jobs')->truncate();
+    }
+
+    /**
+     * @return int
+     */
+    public static function getPendingJobCount() : int{
+        return  DB::table('jobs')->count();
+    }
+
+    /**
+     * @return int
+     */
+    public static function runFirstPendingJob() : int{
+       return Artisan::call('queue:work', ['--once' => 1]);
+    }
+
 }

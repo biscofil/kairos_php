@@ -288,12 +288,11 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
             self::assertResponseStatusCode(200, $response);
         }
 
+        self::purgeJobs();
         $election->anonymization_method->getClass()::afterVotingPhaseEnds($election);
+        self::assertEquals(1, self::getPendingJobCount());
 
-        /** @noinspection PhpPossiblePolymorphicInvocationInspection */
-        $election->anonymization_method->getClass()::afterSuccessfulMixProcess($election);
-
-        self::assertNotNull($election->tallying_finished_at);
+        self::runFirstPendingJob();
 
         /** @var \App\Models\Mix $lastMix */
         $lastMix = $election->mixes()->latest()->firstOrFail();
@@ -311,6 +310,12 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
             return sha1(json_encode($a)) > sha1(json_encode($b));
         });
         self::assertEquals($ballots, $votes);
+
+
+        /** @noinspection PhpPossiblePolymorphicInvocationInspection */
+        $election->anonymization_method->getClass()::afterSuccessfulMixProcess($election);
+
+        self::assertNotNull($election->tallying_finished_at);
     }
 
 }

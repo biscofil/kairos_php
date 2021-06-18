@@ -44,10 +44,11 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
             $this->addVote($election, [[1], [2], [3]]);
         }
 
+        self::purgeJobs();
         $election->anonymization_method->getClass()::afterVotingPhaseEnds($election);
+        self::assertEquals(1, self::getPendingJobCount());
 
-//        $election->private_key = $keyPair->sk;
-//        $election->save();
+        self::runFirstPendingJob();
 
         $trustee->private_key = $trusteeKeyPair->sk;
         $trustee->save();
