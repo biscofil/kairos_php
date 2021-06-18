@@ -83,7 +83,6 @@ class ASCII_JSONBallotEncodingTest extends TestCase
         self::assertFalse($b === json_encode(json_decode($b)));
         self::assertFalse($c === json_encode(json_decode($c)));
 
-//        dump(json_decode($d));
 //        self::assertNotEquals(json_decode($a, true), json_decode($d, true));
         $invalidItemsD = array_filter(json_decode($d, true), function ($v) {
             return !is_int($v);

@@ -98,7 +98,7 @@ class ReEncryptionParameterSetTest extends TestCase
 
         $rev = $shadowMixPS->permuteArray(range(0, $n - 1));
 
-        static::assertEquals($rev,$oldPerm);
+        static::assertEquals($rev, $oldPerm);
 
     }
 

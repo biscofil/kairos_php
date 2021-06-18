@@ -204,25 +204,39 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
             self::assertResponseStatusCode(200, $response);
         }
 
+        // ################# MIX 1
         $mix1 = Mix::generate($election, null, $trustee1);
+        /** @noinspection PhpParamsInspection */
+        self::assertTrue($mix1->getMixWithShadowMixes()->getPrimaryMix()->ciphertexts[0]->pk->equals(
+            $trustee1->public_key->combine($trustee2->public_key)->combine($trustee3->public_key)
+        ));
         $mix1->verify();
         self::assertEquals($trustee1->id, $mix1->trustee_id);
         self::assertTrue($mix1->is_valid);
 
-        $mix2 = Mix::generate($election, $mix1, $trustee2); // , $trustee2->public_key->combine($trustee3->public_key)
+        // ################# MIX 2
+        $mix2 = Mix::generate($election, $mix1, $trustee2);
+        /** @noinspection PhpParamsInspection */
+        self::assertTrue($mix2->getMixWithShadowMixes()->getPrimaryMix()->ciphertexts[0]->pk->equals(
+            $trustee2->public_key->combine($trustee3->public_key)
+        ));
         $mix2->verify();
         self::assertEquals($trustee2->id, $mix2->trustee_id);
         self::assertTrue($mix2->is_valid);
 
-        $mix3 = Mix::generate($election, $mix2, $trustee3); // , $trustee3->public_key
+        // ################# MIX 3
+        $mix3 = Mix::generate($election, $mix2, $trustee3);
+        self::assertTrue($mix3->getMixWithShadowMixes()->getPrimaryMix()->ciphertexts[0]->pk->equals(
+            $trustee3->public_key
+        ));
         $mix3->verify();
         self::assertEquals($trustee3->id, $mix3->trustee_id);
         self::assertTrue($mix3->is_valid);
 
-        // check ciphertexts match input
+        // ################# check ciphertexts match input
         $votes = array_map(function (EGCiphertext $ct) {
             return Small_JSONBallotEncoding::decode($ct->extractPlainTextFromBeta(true));
-        }, $mix3->getMixWithShadowMixes()->primaryMix->ciphertexts);
+        }, $mix3->getMixWithShadowMixes()->getPrimaryMix()->ciphertexts);
 
         usort($ballots, function ($a, $b) {
             return sha1(json_encode($a)) > sha1(json_encode($b));
@@ -290,7 +304,7 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
 
         self::purgeJobs();
         $election->anonymization_method->getClass()::afterVotingPhaseEnds($election);
-        self::assertEquals(1, self::getPendingJobCount());
+        self::assertNotEquals(0, self::getPendingJobCount());
 
         self::runFirstPendingJob();
 
@@ -301,7 +315,7 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
 
         $votes = array_map(function (EGCiphertext $ct) {
             return Small_JSONBallotEncoding::decode($ct->extractPlainTextFromBeta(true));
-        }, $lastMix->getMixWithShadowMixes()->primaryMix->ciphertexts);
+        }, $lastMix->getMixWithShadowMixes()->getPrimaryMix()->ciphertexts);
 
         usort($ballots, function ($a, $b) {
             return sha1(json_encode($a)) > sha1(json_encode($b));

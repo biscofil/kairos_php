@@ -59,7 +59,7 @@ class EGPublicKeyTest extends TestCase
                 $ct = $kp->pk->encrypt($ptIn);
                 $ptOut = $kp->sk->decrypt($ct);
                 self::assertEquals($i < $l, $ptIn->equals($ptOut));
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 self::assertTrue($i >= $l);
             }
 

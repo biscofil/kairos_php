@@ -8,12 +8,12 @@ use App\Models\Election;
 use App\Models\Trustee;
 use App\Models\User;
 use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
-use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use App\Voting\CryptoSystems\RSA\RSAPlaintext;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Tests\TestCase;
+use Throwable;
 
 /**
  * Class ElectionTest
@@ -31,11 +31,9 @@ class ElectionTest extends TestCase
         $user = User::factory()->create();
 
         // create election
-        /** @var Election $data */
-        $data = Election::factory()->make();
-        $data->cryptosystem = CryptoSystemEnum::RSA();
-        $response = $this->actingAs($user)
-            ->json('POST', 'api/elections', $data->toArray());
+        $election = Election::factory()->make();
+        $election->cryptosystem = CryptoSystemEnum::RSA();
+        $response = $this->actingAs($user)->json('POST', 'api/elections', $election->toArray());
         self::assertResponseStatusCode(201, $response);
 
         $election = Election::findOrFail($response->json('id'));
@@ -162,7 +160,7 @@ class ElectionTest extends TestCase
         try {
             // if succeeds (unlikely)
             static::assertNotEquals($plainVote, Small_JSONBallotEncoding::decode($out));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             self::assertTrue(true);
         }
     }

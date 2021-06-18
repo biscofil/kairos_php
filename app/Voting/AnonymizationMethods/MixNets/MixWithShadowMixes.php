@@ -3,56 +3,197 @@
 
 namespace App\Voting\AnonymizationMethods\MixNets;
 
+use App\Models\CastVote;
 use App\Models\Election;
+use App\Models\Mix as MixModel;
 use App\Models\Trustee;
 use App\Voting\AnonymizationMethods\BelongsToAnonymizationMethod;
-use App\Voting\CryptoSystems\CipherText;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 /**
  * Class MixWithShadowMixed
  * @package App\Voting\AnonymizationMethods\MixNets
- * @property \App\Voting\AnonymizationMethods\MixNets\Mix $primaryMix
- * @property \App\Voting\AnonymizationMethods\MixNets\Mix[] $shadowMixes
- * @property Ciphertext[] originalCiphertexts
- * @property string $challengeBits
- * @property array $proofs
- * @property MixNodeParameterSet[] $parameterSets
- * @property \App\Models\Election election
+ * @property MixModel $mixModel
+ * @property null|array $shadowMixHashes
  */
 abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
 {
 
-    public Mix $primaryMix;
-    public array $shadowMixes;
-    public array $originalCiphertexts;
-    protected string $challengeBits = '';
-    public Election $election;
+    public MixModel $mixModel;
+    private ?array $shadowMixHashes = null; // used to perform hashing in an optimized way
 
     /**
      * MixWithShadowMixed constructor.
-     * @param CipherText[] $originalCipherTexts
-     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $primaryMix
-     * @param array $shadowMixes
-     * @param \App\Models\Election $election
+     * @param MixModel $mixModel
      */
-    public function __construct(array $originalCipherTexts, Mix $primaryMix, array $shadowMixes, Election $election)
+    public function __construct(MixModel &$mixModel)
     {
-        $this->originalCiphertexts = $originalCipherTexts;
-        $this->primaryMix = $primaryMix;
-        $this->shadowMixes = $shadowMixes;
-        $this->election = $election;
+        $this->mixModel = $mixModel;
     }
 
     // ########################################################################
+
+    /**
+     * Once the challenge bits have been generated, this method egnerates a proof for each bit
+     * @param \App\Models\Trustee $claimer
+     * @throws \Exception
+     */
+    public function generateProofs(Trustee $claimer): void
+    {
+        $this->mixModel = $this->mixModel->fresh(); // TODO check!!!!!
+
+        if (strlen($this->mixModel->challenge_bits) === 0) {
+            throw new Exception("Challenge bit string can't be empty");
+        }
+
+        $challengeBitArray = str_split($this->mixModel->challenge_bits);
+        $count = count($challengeBitArray);
+
+//        if (array_keys($challengeBitArray) !== array_keys($this->shadowMixes)) {
+//            throw new Exception($count . ' challenge bits and ' . count($this->shadowMixes) . ' shadow mixes');
+//        }
+
+        /** @var Mix $mixClass */
+        $mixClass = static::getAnonimizationMethod()::getMixClass();
+
+        $primaryMix = $this->getPrimaryMix();
+
+        array_map(function (string $bit, int $i) use ($primaryMix, $mixClass, $claimer, $count) {
+
+            Log::debug('Generating proof ' . ($i + 1) . ' / ' . $count);
+
+            $shadowMixFilename = $this->mixModel->getShadowMixFilename($i);
+            $shadowMix = $mixClass::load($this->mixModel, $shadowMixFilename);
+
+            if ($bit === '0') { // left
+                $parameterSet = $this->getLeftEquivalenceParameterSet($shadowMix);
+                $proof = $this->getLeftProofs($shadowMix, $claimer, $parameterSet);
+            } elseif ($bit === '1') { // right
+                $parameterSet = $this->getRightEquivalenceParameterSet($shadowMix, $primaryMix);
+                $proof = $this->getRightProofs($shadowMix, $claimer, $parameterSet);
+            } else {
+                throw new Exception("Bit must be either 1 or 0, '$bit' given");
+            }
+
+            $shadowMix->parameterSet = $parameterSet; // forget parameter set of shadow mix
+            $shadowMix->proofs = $proof; // forget parameter set of shadow mix
+
+            $shadowMix->store($shadowMixFilename);
+
+        }, $challengeBitArray, range(0, $count - 1));
+
+        $primaryMix->parameterSet = null; // forget parameter set of primary mix
+        $primaryMix->proofs = null;
+        $primaryMix->store($this->mixModel->getPrimaryMixFilename());
+
+    }
+
+    /**
+     * Checks the correctenss of each shadow mix given their proofs
+     * @return bool
+     * @throws \Exception
+     */
+    public function isProofValid(): bool
+    {
+
+        $this->mixModel = $this->mixModel->fresh(); // TODO check
+
+        $claimer = $this->mixModel->trustee;
+
+        /** @var \App\Voting\AnonymizationMethods\MixNets\Mix $mixClass */
+        $mixClass = static::getAnonimizationMethod()::getMixClass();
+
+        $inputMix = $this->mixModel->getInputCipherTextsMix();
+        $primaryMix = $this->getPrimaryMix();
+
+        $this->shadowMixHashes = []; // keep track of hash for global hash
+
+        foreach (range(0, $this->mixModel->shadow_mix_count - 1) as $idx) {
+
+            $shadowMix = $mixClass::load($this->mixModel, $this->mixModel->getShadowMixFilename($idx));
+
+            Log::debug('Checking shadow mix ' . ($idx + 1) . ' / ' . $this->mixModel->shadow_mix_count);
+
+            $bit = $this->mixModel->challenge_bits[$idx];
+
+            if ($bit === '0') { // left
+                if (!$this->checkLeftProof($inputMix, $shadowMix, $claimer)) {
+                    Log::error(" > invalid left proof #$idx");
+                    return false;
+                }
+            } elseif ($bit === '1') { // right
+                if (!$this->checkRightProof($shadowMix, $primaryMix, $claimer)) {
+                    Log::error(" > invalid right proof #$idx");
+                    return false;
+                }
+            } else {
+                throw new Exception("Bit must be either 1 or 0, '$bit' given");
+            }
+
+            $this->shadowMixHashes[] = $shadowMix->getHash();
+
+        }
+
+        // check after cycling trough all the mixes in order to only load them once
+        // the hash of every mix is stored in $this->shadowMixHashes
+        // and will be used by getFiatShamirChallengeBits()
+        if ($this->mixModel->challenge_bits !== $this->getFiatShamirChallengeBits()) {
+            return false;
+        }
+
+        return true;
+
+    }
+
+    // ########################################################################
+
+    /**
+     * @return \App\Voting\AnonymizationMethods\MixNets\Mix
+     */
+    public function getPrimaryMix(): Mix
+    {
+        $mixClass = static::getAnonimizationMethod()::getMixClass();
+        return $mixClass::load($this->mixModel, $this->mixModel->getPrimaryMixFilename());
+    }
+
+    /**
+     * Creates a mix containing the ciphertexts extracted from the bulletin board
+     * @param \App\Models\Election $election
+     * @return \App\Voting\AnonymizationMethods\MixNets\Mix
+     */
+    public static function extractVotesFromBulletinBoard(Election $election): Mix
+    {
+        /** @var Mix $mixClass */
+        $mixClass = static::getAnonimizationMethod()::getMixClass();
+
+        /** @var Mix $out */
+        return new $mixClass(
+            $election->votes()->onlyLastOfVoters()->get()->map(function (CastVote $castVote) {
+                return $castVote->vote;
+            })->toArray()
+        );
+    }
 
     /**
      * @return string
      */
     public function getHash(): string
     {
-        return sha1(json_encode($this->toArray()));
+
+        /** @var Mix $mixClass */
+        $mixClass = static::getAnonimizationMethod()::getMixClass();
+
+        if (is_null($this->shadowMixHashes)) {
+            // only if not performed yet
+            $this->shadowMixHashes = array_map(function (int $i) use ($mixClass): string {
+                $mix = $mixClass::load($this->mixModel, $this->mixModel->getShadowMixFilename($i));
+                return $mix->getHash();
+            }, range(0, $this->mixModel->shadow_mix_count - 1));
+        }
+
+        return sha1(implode('', $this->shadowMixHashes));
     }
 
     // ########################################################################
@@ -63,19 +204,16 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
      */
     public function getFiatShamirChallengeBits(): string
     {
-//        return str_repeat("0", count($this->shadowMixes)); // TODO remove
-        $hex = sha1(implode('', array_map(function (Mix $mix) {
-            return $mix->getHash();
-        }, $this->shadowMixes)));
-        $fullLen = (BI($hex, 16))->toBits();
-        $out = substr($fullLen, 0, count($this->shadowMixes));
+        $hash = $this->getHash();
+        $fullLen = (BI($hash, 16))->toBits();
+        $out = substr($fullLen, 0, $this->mixModel->shadow_mix_count);
 
-        // make sure enough zeros and ones
-        if (substr_count($out, '0') == 0) {
-            // add zeros
-        } elseif (substr_count($out, '1') == 0) {
-            //add ones
-        }
+//        // make sure enough zeros and ones
+//        if (substr_count($out, '0') == 0) {
+//            // add zeros
+//        } elseif (substr_count($out, '1') == 0) {
+//            // add ones
+//        }
 
         return $out;
     }
@@ -89,71 +227,29 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
 //        if (!(str_contains($bits, '1') && str_contains($bits, '0'))) {
 //            throw new Exception('The challenge bit string must contain each bit at leats once');
 //        }
-        $this->challengeBits = $bits;
-    }
-
-    /**
-     * @param \App\Models\Trustee $claimer
-     * @throws \Exception
-     */
-    public function generateProofs(Trustee $claimer): void
-    {
-
-        if (strlen($this->challengeBits) === 0) {
-            throw new Exception("Challenge bit string can't be empty");
-        }
-
-        // TODO clean parameter sets of opposite side
-
-        for ($i = 0; $i < strlen($this->challengeBits); $i++) {
-
-            if (!array_key_exists($i, $this->shadowMixes)) {
-                throw new Exception(strlen($this->challengeBits) . ' challenge bits and '
-                    . count($this->shadowMixes) . ' shadow mixes');
-            }
-
-            $bit = $this->challengeBits[$i];
-            $mix = $this->shadowMixes[$i];
-
-            $parameterSet = null;
-            $proof = null;
-
-            if ($bit === '0') { // left
-                $parameterSet = $this->getLeftEquivalenceParameterSet($mix);
-                $proof = $this->getLeftProofs($mix, $claimer, $parameterSet);
-            } elseif ($bit === '1') { // right
-                $parameterSet = $this->getRightEquivalenceParameterSet($mix);
-                $proof = $this->getRightProofs($mix, $claimer, $parameterSet);
-            } else {
-                throw new Exception("Bit must be either 1 or 0, '$bit' given");
-            }
-
-            $this->shadowMixes[$i]->parameterSet = $parameterSet; // forget parameter set of shadow mix
-            $this->shadowMixes[$i]->proofs = $proof; // forget parameter set of shadow mix
-        }
-
-        $this->primaryMix->parameterSet = null; // forget parameter set of primary mix
-
+        $this->mixModel->challenge_bits = $bits;
+        $this->mixModel->save();
     }
 
     // ########################################################################
 
     /**
-     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
+     * @param Mix $shadow
      * @return \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet
      */
     abstract public function getLeftEquivalenceParameterSet(Mix $shadow): MixNodeParameterSet;
 
     /**
-     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
+     * @param Mix $shadowMix
+     * @param Mix $primaryMix
      * @return \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet
      */
-    abstract public function getRightEquivalenceParameterSet(Mix $shadow): MixNodeParameterSet;
+    abstract public function getRightEquivalenceParameterSet(Mix $shadowMix, Mix $primaryMix): MixNodeParameterSet;
 
     // ########################################################################
 
     /**
-     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
+     * @param Mix $shadow
      * @param \App\Models\Trustee $claimer
      * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
      */
@@ -169,139 +265,31 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
     // ########################################################################
 
     /**
-     * @param \App\Models\Trustee $claimer
-     * @return bool
-     * @throws \Exception
-     */
-    public function isProofValid(Trustee $claimer): bool
-    {
-
-        if ($this->challengeBits !== $this->getFiatShamirChallengeBits()) {
-            return false;
-        }
-
-        foreach ($this->shadowMixes as $idx => $shadowMix) {
-
-            $bit = $this->challengeBits[$idx];
-
-            if ($bit === '0') { // left
-                if (!$this->checkLeftProof($shadowMix, $claimer)) { // TODO clean
-                    return false;
-                }
-            } elseif ($bit === '1') { // right
-                if (!$this->checkRightProof($shadowMix, $claimer)) { // TODO clean
-                    return false;
-                }
-            } else {
-                throw new Exception("Bit must be either 1 or 0, '$bit' given");
-            }
-
-        }
-
-        return true;
-
-    }
-
-    /**
+     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $inputCipherTexts
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
      * @param \App\Models\Trustee $claimer
      * @return bool
      */
-    abstract public function checkLeftProof(Mix $shadowMix, Trustee $claimer): bool;
+    abstract public function checkLeftProof(Mix $inputCipherTexts, Mix $shadowMix, Trustee $claimer): bool;
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
+     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $primaryMix
      * @param \App\Models\Trustee $claimer
      * @return bool
      */
-    abstract public function checkRightProof(Mix $shadowMix, Trustee $claimer): bool;
+    abstract public function checkRightProof(Mix $shadowMix, Mix $primaryMix, Trustee $claimer): bool;
 
     // ########################################################################
 
     /**
      * @param string $fileName
-     * @return mixed
-     */
-    public function store(string $fileName): void
-    {
-        $data = $this->toArray();
-        Storage::put($fileName, json_encode($data, JSON_PRETTY_PRINT));
-    }
-
-    /**
-     * @param string $fileName
      * @return bool
+     * @deprecated
      */
     public function deleteFile(string $fileName): bool
     {
         return Storage::delete($fileName);
-    }
-
-    /**
-     * @param string $fileName
-     * @return \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes
-     * @throws \Exception
-     */
-    public static function load(string $fileName): self
-    {
-        $data = json_decode(Storage::get($fileName), true);
-        return static::fromArray($data);
-    }
-
-    // ########################################################################
-
-    /**
-     * @param array $data
-     * @return \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes
-     * @throws \Exception
-     */
-    public static function fromArray(array $data): self
-    {
-        $election = Election::findFromUuid($data['election_uuid']);
-
-        $csClass = $election->cryptosystem->getClass();
-
-        // challenge bits
-        $challengeBits = $data['challenge_bits'];
-
-        // original ciphertexts
-        $ctClass = $csClass::getCipherTextClass();
-        $originalCiphertexts = array_map(function (array $originalCiphertext) use ($election, $ctClass) {
-            return $ctClass::fromArray($originalCiphertext, $election->public_key);
-        }, $data['original_ciphertexts']);
-
-        /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode|string $mixNetAnonimizationMethodClass */
-        $mixNetAnonimizationMethodClass = static::getAnonimizationMethod();
-        $mixClass = $mixNetAnonimizationMethodClass::getMixClass();
-
-        $primaryMix = $mixClass::fromArray($data['primary_mix']);
-
-        $shadowMixes = array_map(function (array $shadowMixArray) use ($mixClass) {
-            return $mixClass::fromArray($shadowMixArray);
-        }, $data['shadow_mixes']);
-
-        $out = new static($originalCiphertexts, $primaryMix, $shadowMixes, $election);
-        $out->challengeBits = $challengeBits;
-        return $out;
-    }
-
-    /**
-     * @return array
-     */
-    public function toArray(): array
-    {
-        return [
-            'election_uuid' => $this->election->uuid,
-            'challenge_bits' => $this->challengeBits,
-            //
-            'original_ciphertexts' => array_map(function (CipherText $cipherText) {
-                return $cipherText->toArray(false);
-            }, $this->originalCiphertexts),
-            'primary_mix' => $this->primaryMix->toArray(),
-            'shadow_mixes' => array_map(function (Mix $shadowMix) {
-                return $shadowMix->toArray();
-            }, $this->shadowMixes),
-        ];
     }
 
 }

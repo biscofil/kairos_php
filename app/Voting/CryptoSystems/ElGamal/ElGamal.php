@@ -85,6 +85,7 @@ class ElGamal implements CryptoSystem, SupportsTLThresholdEncryption
     /**
      * @param \App\Models\Election $election
      * @noinspection PhpMissingParentCallCommonInspection
+     * @throws \Exception
      */
     public static function onElectionFreeze(Election &$election): void
     {

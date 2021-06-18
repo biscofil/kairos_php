@@ -32,13 +32,14 @@ class DecryptionReEncryptionMixWithShadowMixes extends MixWithShadowMixes
     }
 
     /**
-     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
+     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
+     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $primaryMix
      * @return DecryptionReEncryptionParameterSet
      */
-    public function getRightEquivalenceParameterSet(Mix $shadow): MixNodeParameterSet
+    public function getRightEquivalenceParameterSet(Mix $shadowMix, Mix $primaryMix): MixNodeParameterSet
     {
         /** @var DecryptionReEncryptionParameterSet $out */
-        $out = $shadow->parameterSet->combine($this->primaryMix->parameterSet); // TODO Call to a member function combine() on null
+        $out = $shadowMix->parameterSet->combine($primaryMix->parameterSet);
         $out->decryption = true;
         return $out;
     }
@@ -77,25 +78,26 @@ class DecryptionReEncryptionMixWithShadowMixes extends MixWithShadowMixes
     // ########################################################################
 
     /**
-     * TODO generalize
+     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $inputCipherTexts
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
      * @param \App\Models\Trustee $claimer
      * @return bool
      * @throws \Exception
      */
-    public function checkLeftProof(Mix $shadowMix, Trustee $claimer): bool
+    public function checkLeftProof(Mix $inputCipherTexts, Mix $shadowMix, Trustee $claimer): bool
     {
-        $mix = DecryptionReEncryptionMixNode::forward($this->election, $this->originalCiphertexts, $shadowMix->parameterSet, $claimer);
+        $mix = DecryptionReEncryptionMixNode::forward($inputCipherTexts, $shadowMix->parameterSet, $claimer);
         return $mix->equals($shadowMix);
     }
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
+     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $primaryMix
      * @param \App\Models\Trustee $claimer
      * @return bool
      * @throws \Exception
      */
-    public function checkRightProof(Mix $shadowMix, Trustee $claimer): bool
+    public function checkRightProof(Mix $shadowMix, Mix $primaryMix, Trustee $claimer): bool
     {
         /** @var \App\Voting\CryptoSystems\ElGamal\EGPublicKey $claimerPublicKey */
         $claimerPublicKey = $claimer->public_key;
@@ -107,7 +109,7 @@ class DecryptionReEncryptionMixWithShadowMixes extends MixWithShadowMixes
         $newParameterSet->permutation = $newParameterSet->getShufflingOrderReversed();
 
         /** @var EGCiphertext[] $unShuffledCiphertexts */
-        $unShuffledCiphertexts = $newParameterSet->permuteArray($this->primaryMix->ciphertexts);
+        $unShuffledCiphertexts = $newParameterSet->permuteArray($primaryMix->ciphertexts);
 
         // ################### backwards step 2/3 -> apply re-encryption to original ###################
         $ReEncryptedOriginalCiphers = array_map(function (CipherText $cipherText, BigInteger $reEncryptionFactor): EGCiphertext {

@@ -121,8 +121,9 @@ class RSAPublicKey implements PublicKey
 
     /**
      * @param RSAPlaintext $plainText
-     * @return
+     * @return RSACiphertext
      * @noinspection PhpMissingParamTypeInspection
+     * @noinspection PhpMissingReturnTypeInspection
      */
     public function encrypt($plainText)
     {

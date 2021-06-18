@@ -18,6 +18,7 @@ class DecryptionReEncryptionMix extends Mix
      * @param Mix $b
      * @return bool
      * @throws \Exception
+     * @noinspection PhpMissingParentCallCommonInspection
      */
     public function equals(Mix $b): bool
     {

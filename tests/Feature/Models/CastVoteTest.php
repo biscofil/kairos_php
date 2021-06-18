@@ -13,7 +13,8 @@ class CastVoteTest extends TestCase
     /**
      * @test
      */
-    public function setVerifiedBy(){
+    public function setVerifiedBy()
+    {
         $vote = new CastVote();
 
         $vote->verified_by = 0;

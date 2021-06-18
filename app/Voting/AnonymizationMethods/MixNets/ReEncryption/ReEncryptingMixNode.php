@@ -26,36 +26,31 @@ class ReEncryptingMixNode extends MixNode
 {
 
     /**
-     * @param Election $election
-     * @param CipherText[] $ciphertexts
+     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $inputMix
      * @param \App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionParameterSet $parameterSet
      * @param \App\Models\Trustee $trusteeRunningMix
      * @return Mix
      * @throws \Exception
      */
-    public static function forward(Election $election, array $ciphertexts, MixNodeParameterSet $parameterSet, Trustee $trusteeRunningMix): Mix
+    public static function forward(Mix $inputMix, MixNodeParameterSet $parameterSet, Trustee $trusteeRunningMix): Mix
     {
-        if (count($ciphertexts) !== count($parameterSet->reEncryptionFactors)
-            || count($ciphertexts) !== count($parameterSet->permutation)) {
-            throw new Exception('ciphertexts has ' . count($ciphertexts)
+        if (count($inputMix->ciphertexts) !== count($parameterSet->reEncryptionFactors)
+            || count($inputMix->ciphertexts) !== count($parameterSet->permutation)) {
+            throw new Exception('ciphertexts has ' . count($inputMix->ciphertexts)
                 . ' elements while parameterSet->reEncryptionFactors has ' . count($parameterSet->reEncryptionFactors)
                 . ' and parameterSet->permutation has ' . count($parameterSet->permutation)
             );
         }
 
         // apply re-encryption on original ciphertexts
-        $_ciphertexts = array_map(function (CipherText $ciphertext, BigInteger $reEncryptionFactor) use ($ciphertexts, $parameterSet): CipherText {
+        $_ciphertexts = array_map(function (CipherText $ciphertext, BigInteger $reEncryptionFactor): CipherText {
             return $ciphertext->reEncryptWithRandomness($reEncryptionFactor);
-        }, $ciphertexts, $parameterSet->reEncryptionFactors);
+        }, $inputMix->ciphertexts, $parameterSet->reEncryptionFactors);
 
         // shuffle
         $_ciphertexts = $parameterSet->permuteArray($_ciphertexts);
 
-        return new ReEncryptionMix(
-            $election,
-            $_ciphertexts,
-            $parameterSet
-        );
+        return new ReEncryptionMix($_ciphertexts, $parameterSet);
 
     }
 
@@ -166,7 +161,7 @@ class ReEncryptingMixNode extends MixNode
         /** @var \App\Models\Mix $lastMix */
         $lastMix = $election->mixes()->latest()->firstOrFail();
 
-        $cipherTexts = $lastMix->getMixWithShadowMixes()->primaryMix->ciphertexts;
+        $cipherTexts = $lastMix->getMixWithShadowMixes()->getPrimaryMix()->ciphertexts;
 
         return array_map(function (CipherText $cipherText) use ($election) {
             return $election->private_key->decrypt($cipherText);

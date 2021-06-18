@@ -23,20 +23,20 @@ class DecryptionReEncryptionMixNode extends MixNode
 {
 
     /**
-     * @param Election $election
-     * @param \App\Voting\CryptoSystems\CipherText[] $ciphertexts
+     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $inputMix
      * @param \App\Voting\AnonymizationMethods\MixNets\DecryptionReEncryption\DecryptionReEncryptionParameterSet $parameterSet
      * @param \App\Models\Trustee $trusteeRunningMix
      * @return Mix
-     * @throws \Exception
      */
-    public static function forward(Election $election, array $ciphertexts, MixNodeParameterSet $parameterSet, Trustee $trusteeRunningMix): Mix
+    public static function forward(Mix $inputMix, MixNodeParameterSet $parameterSet, Trustee $trusteeRunningMix): Mix
     {
         // apply re-encryption on original ciphertexts
         $ciphertexts = array_map(function (CipherText $ciphertext, BigInteger $r) use ($parameterSet): EGCiphertext {
             $ciphertext->pk = $parameterSet->pk;
-            return $ciphertext->reEncryptWithRandomness($r);
-        }, $ciphertexts, $parameterSet->reEncryptionFactors);
+            $ciphertext = $ciphertext->reEncryptWithRandomness($r);
+            $ciphertext->pk = $parameterSet->pk;
+            return $ciphertext;
+        }, $inputMix->ciphertexts, $parameterSet->reEncryptionFactors);
 
         // shuffle partially decryption and re-encrypted ciphertexts
         /** @var EGCiphertext[] $ciphertexts */
@@ -47,19 +47,15 @@ class DecryptionReEncryptionMixNode extends MixNode
             $sk = $trusteeRunningMix->private_key;
 
             // do partial decryption on re-encrypted ciphertexts
-            $ciphertexts = array_map(function (EGCiphertext $cipherText) use ($sk): EGCiphertext {
+            $ciphertexts = array_map(function (EGCiphertext $cipherText) use ($parameterSet, $sk): EGCiphertext {
                 /** @noinspection PhpIncompatibleReturnTypeInspection */
-                return $sk->partiallyDecrypt($cipherText);
+                $out = $sk->partiallyDecrypt($cipherText);
+                $out->pk = $parameterSet->pk;
+                return $out;
             }, $ciphertexts);
         }
 
-        return new DecryptionReEncryptionMix(
-            $election,
-            $ciphertexts,
-            $parameterSet,
-            null,
-            $parameterSet->pk // TODO remove, already present in $parameterSet
-        );
+        return new DecryptionReEncryptionMix($ciphertexts, $parameterSet, null);
     }
 
     /**
@@ -116,7 +112,7 @@ class DecryptionReEncryptionMixNode extends MixNode
         /** @var \App\Models\Mix $lastMix */
         $lastMix = $election->mixes()->latest()->firstOrFail();
 
-        $cipherTexts = $lastMix->getMixWithShadowMixes()->primaryMix->ciphertexts;
+        $cipherTexts = $lastMix->getMixWithShadowMixes()->getPrimaryMix()->ciphertexts;
 
         return array_map(function (EGCiphertext $cipherText) use ($election) {
             return $cipherText->extractPlainTextFromBeta(true);

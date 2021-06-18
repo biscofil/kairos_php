@@ -6,7 +6,6 @@ namespace Tests\Unit\Voting\CryptoSystems\ElGamal;
 
 use App\Voting\CryptoSystems\ElGamal\DLogProof;
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
-use App\Voting\CryptoSystems\ElGamal\EGSecretKey;
 use Tests\TestCase;
 
 class DLogProofTest extends TestCase

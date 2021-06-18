@@ -114,8 +114,7 @@ class EGDLogProof
         # check that little_h ^ response = B * big_h ^ challenge
         $second_check = $second_check_left->equals($second_check_right);
 
-
-        # check the challenge?
+        # check the challenge actually matches the commitment
         $third_check = true;
         if ($challenge_generator) {
             $third_check = $this->challenge->equals($challenge_generator($this->commitment));

@@ -13,6 +13,7 @@ use App\Voting\CryptoSystems\CipherText;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use App\Voting\CryptoSystems\ElGamal\EGPublicKey;
 use App\Voting\CryptoSystems\ElGamal\EGSecretKey;
+use Exception;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Http\JsonResponse;
@@ -35,7 +36,7 @@ abstract class TestCase extends BaseTestCase
             if ($response->getStatusCode() !== $expectedCode) {
                 try {
                     dump($response->json());
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     dump($response->content());
                 }
             }
@@ -49,7 +50,7 @@ abstract class TestCase extends BaseTestCase
      */
     public static function assertValidEGKeyPair(EGPublicKey $pk, EGSecretKey $sk)
     {
-        $p = new EGPlaintext(randomBIgt($pk->parameterSet->p));
+        $p = new EGPlaintext(randomBIgt($pk->parameterSet->p->bitwise_rightShift(1)));
         $c = $pk->encrypt($p);
         $p2 = $sk->decrypt($c);
         static::assertTrue($p->equals($p2));
@@ -124,22 +125,25 @@ abstract class TestCase extends BaseTestCase
     /**
      *
      */
-    public static function purgeJobs() : void{
+    public static function purgeJobs(): void
+    {
         DB::table('jobs')->truncate();
     }
 
     /**
      * @return int
      */
-    public static function getPendingJobCount() : int{
-        return  DB::table('jobs')->count();
+    public static function getPendingJobCount(): int
+    {
+        return DB::table('jobs')->count();
     }
 
     /**
      * @return int
      */
-    public static function runFirstPendingJob() : int{
-       return Artisan::call('queue:work', ['--once' => 1]);
+    public static function runFirstPendingJob(): int
+    {
+        return Artisan::call('queue:work', ['--once' => 1]);
     }
 
 }

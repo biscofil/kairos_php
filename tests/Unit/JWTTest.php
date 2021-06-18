@@ -3,7 +3,6 @@
 
 namespace Tests\Unit;
 
-use App\Models\PeerServer;
 use Illuminate\Support\Str;
 use Lcobucci\JWT\Builder;
 use Lcobucci\JWT\Parser;

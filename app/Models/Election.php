@@ -216,6 +216,7 @@ class Election extends Model
      *
      * @return string
      * @noinspection PhpMissingReturnTypeInspection
+     * @noinspection PhpMissingParentCallCommonInspection
      */
     public function getRouteKeyName()
     {
@@ -754,6 +755,16 @@ class Election extends Model
     // ############################################
 
     /**
+     * @return bool
+     */
+    public function deleteFiles() : bool
+    {
+        return Storage::deleteDirectory($this->getElectionFolder());
+    }
+
+    // ############################################
+
+    /**
      * @param bool $featured
      */
     public function setFeatured(bool $featured): void
@@ -901,6 +912,7 @@ class Election extends Model
     {
         $sortedDomains = $this->getPeerServerIndexMapping($peerServers); // [domain => index]
         $sortedDomains = array_flip($sortedDomains); // [index => domain]
+        $idx = $idx % count($sortedDomains);
         return PeerServer::withDomain($sortedDomains[$idx])->firstOrFail();
     }
 
@@ -918,12 +930,20 @@ class Election extends Model
     // #######################################################################################
 
     /**
+     * @return string
+     */
+    public function getElectionFolder(): string
+    {
+        return 'election_' . $this->uuid . '/';
+    }
+
+    /**
      * TODO only for mixnets
      * @return string
      */
     public function getOutputDatabaseFilename(): string
     {
-        return 'election_' . $this->id . '.sqlite';
+        return $this->getElectionFolder() . 'ballots.sqlite';
     }
 
     /**

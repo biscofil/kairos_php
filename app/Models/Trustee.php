@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use phpseclib3\Math\BigInteger;
 use Webpatser\Uuid\Uuid;
 
@@ -60,6 +61,7 @@ use Webpatser\Uuid\Uuid;
  * @method self|Builder peerServers() Filters peer server trustees
  * @method self|Builder peerServersAcceptingBallots() Filters peer server trustees that accepts ballots
  * @method self|Builder users() Filter user trustees
+ * @method self|Builder notExcluded() Filter non excluded trustees
  * @method static self findOrFail($id)
  * @method static self|null find(int|array $array)
  * @method static int count()
@@ -122,6 +124,7 @@ class Trustee extends Model
      *
      * @return string
      * @noinspection PhpMissingReturnTypeInspection
+     * @noinspection PhpMissingParentCallCommonInspection
      */
     public function getRouteKeyName()
     {
@@ -181,6 +184,34 @@ class Trustee extends Model
     public function scopeUsers(Builder $builder): Builder
     {
         return $builder->whereNull('peer_server_id');
+    }
+
+    // ################################################################
+
+    /**
+     * Filters trustees that have performed less than n strikes
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     * @param int $strikes
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeNotExcluded(Builder $builder, int $strikes = 2): Builder
+    {
+
+        $excludedQuery = DB::table('mixes')
+            ->select(['trustee_id'])
+            ->groupBy('trustee_id')
+            ->where('is_valid', '=', 0)
+            ->having(DB::raw('COUNT(id)'), '>=', $strikes);
+
+        return $builder->whereNotIn('trustees.id', $excludedQuery);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isExcluded(): bool
+    {
+        return self::notExcluded()->where('trustees.id', '=', $this->id)->count() === 0;
     }
 
     // ################################################################

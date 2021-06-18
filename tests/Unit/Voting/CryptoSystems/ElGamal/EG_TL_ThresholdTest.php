@@ -41,7 +41,6 @@ class EG_TL_ThresholdTest extends TestCase
 //            BI(31),
 //        );
         $parameterSet = EGParameterSet::getDefault();
-//        dump($parameterSet->toString());
 
         $t = 3;
         $peers = [
@@ -99,7 +98,6 @@ class EG_TL_ThresholdTest extends TestCase
             }
         }
         $pk = $pk[0];
-//        dump('################### public key : ' . $pk->y->toString());
 
 
         // ########################## true (virtual) private key
@@ -108,7 +106,6 @@ class EG_TL_ThresholdTest extends TestCase
             $virtual_secret_x = $peer->sk->combine($virtual_secret_x);
         }
         $virtual_secret_x->x = $virtual_secret_x->x->modPow(BI1(), $parameterSet->q);
-//        dump('################### virtual_secret_x : ' . $virtual_secret_x->x->toString());
         self::assertValidEGKeyPair($pk, $virtual_secret_x);
 
 
@@ -124,7 +121,6 @@ class EG_TL_ThresholdTest extends TestCase
         $I = array_values($I);
 
         $I_IDS = array_column($I, 'id');
-//        dump('Peers [' . implode(',', $I_IDS) . ']');
 
         $share_secret_x = null;
         foreach ($I as $peer) {
@@ -132,14 +128,12 @@ class EG_TL_ThresholdTest extends TestCase
             $lambda = getLagrangianCoefficientMod($I_IDS, $peer->id, $parameterSet->q);
 
             $x_j = $peer->skShare;
-//            dump($x_j->x->toString() . '*' . $lambda->toString() . ' mod ' . $parameterSet->q);
             $x_j->x = $x_j->x->multiply($lambda)->modPow(BI1(), $parameterSet->q);
 
             $share_secret_x = $x_j->combine($share_secret_x);
 
         }
         $share_secret_x->x = $share_secret_x->x->modPow(BI1(), $parameterSet->q);
-//        dump('################### share_secret_x : ' . $share_secret_x->x->toString());
         static::assertTrue($share_secret_x->x->equals($virtual_secret_x->x));
 
     }
@@ -153,7 +147,6 @@ class EG_TL_ThresholdTest extends TestCase
         // G=49, P=311, Q=31
 //        $parameterSet = new EGParameterSet(BI(49), BI(311), BI(31),);
         $parameterSet = EGParameterSet::getDefault();
-//        dump($parameterSet->toString());
 
         $t = rand(4, 8);
         $p = new Peer(rand(1, 100), $parameterSet, $t);

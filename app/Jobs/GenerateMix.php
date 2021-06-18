@@ -27,6 +27,8 @@ class GenerateMix implements ShouldQueue
     public Election $election;
     public ?Mix $previousMix;
 
+    public $timeout = 3600;
+
     /**
      * GenerateMix constructor.
      * @param \App\Models\Election $election

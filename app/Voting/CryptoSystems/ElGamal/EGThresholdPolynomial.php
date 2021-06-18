@@ -79,7 +79,6 @@ class EGThresholdPolynomial implements ThresholdPolynomial
             $A_i_k = $this->ps->g->modPow($a_i_k, $this->ps->p);
             $values[] = $A_i_k;
         }
-//        dump("{$this->id} is broadcasting " . $b->toString());
         $tbClass = static::getCryptosystem()::getThresholdBroadcastClass();
         return new $tbClass($values, $this->ps);
     }

@@ -44,25 +44,18 @@ class EGThresholdBroadcast implements ThresholdBroadcast
         $mod = $this->ps->p;
 
         // left part
-
         $left = $this->ps->g->modPow($share_i_j, $mod); // mod
-
-//        dump("   A = {$this->ps->q->toString()}^{$share_i_j->toString()} mod {$mod->toString()} = {$left->toString()}");// mod
 
         // right part
         $right = BI(1);
         foreach ($this->A_I_K_values as $k => $A_i_k) {
 
             $exp = BI(pow($j, $k));
-//              $exp =BI($j * $k);
 
             $term = $A_i_k->modPow($exp, $mod);
             $right = $right->multiply($term)->modPow(BI1(), $mod);
-//            dump("   B = B * [{$A_i_k->toString()}^[$j^$k] mod {$mod->toString()} = {$term->toString()}] = {$right->toString()}");
 
         }
-
-//        dump("{$left->toString()} =? {$right->toString()}");
 
         return $left->equals($right);
     }

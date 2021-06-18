@@ -16,16 +16,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Webpatser\Uuid\Uuid;
 
 /**
  * Class Mix
  * @package App\Models
+ *
+ * This class represents a primary mix and all shadow mixes usd for proof
+ *
  * @property int id
  * @property int round
  * @property string uuid
  * @property string hash
  * @property bool|null is_valid
+ *
+ * @property int|null shadow_mix_count
+ * @property string|null challenge_bits
  *
  * @property int|null previous_mix_id TODO use uuid / hash
  * @property \App\Models\Mix|null previousMix
@@ -38,6 +45,8 @@ class Mix extends Model
     use HasShareableFields;
     use HasFactory;
 
+    protected $table = 'mixes';
+
     protected $fillable = [
         'round',
         'previous_mix_id', // TODO use uuid / hash
@@ -45,12 +54,18 @@ class Mix extends Model
         'hash',
         'trustee_id',
         'is_valid',
+        //
+        'shadow_mix_count',
+        'challenge_bits',
     ];
 
     public $shareableFields = [
         'round',
         'uuid',
         'hash',
+        //
+        'shadow_mix_count',
+        'challenge_bits',
     ];
 
     protected $casts = [
@@ -93,32 +108,152 @@ class Mix extends Model
     // ########################################## RELATIONS
 
     /**
-     *
+     * @return \App\Voting\AnonymizationMethods\MixNets\Mix
+     * @throws \Exception
      */
-    public function download(): void
+    public function getInputCipherTextsMix(): \App\Voting\AnonymizationMethods\MixNets\Mix
     {
-        $domain = $this->trustee->peerServer->domain;
 
-        $url = "https://$domain/storage/" . $this->getFilename();
+        /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode|string $mixClass */
+        $mixClass = $this->trustee->election->anonymization_method->getClass();
 
-        Log::debug("Downloading from $url");
+        /** @var MixWithShadowMixes $mixWithShadowMixesClass */
+        $mixWithShadowMixesClass = $mixClass::getMixWithShadowMixesClass();
 
-        $client = new Client();
-        $resource = Utils::tryFopen(Storage::path($this->getFilename()), 'w');
-        $res = $client->request('GET', $url, [
-            'verify' => false, // TODO remove
-            'sink' => $resource
-        ]);
-        Log::debug('Status code : ' . $res->getStatusCode());
+        $election = $this->trustee->election;
+        $previousMix = $this->previousMix;
 
+        if (is_null($previousMix)) {
+            // first mix, extract ciphertext from bulletin board
+            Log::debug('getInputCipherTextsMix > self::extractVotesFromBulletinBoard($election)');
+            $inputCipherTextMix = $mixWithShadowMixesClass::extractVotesFromBulletinBoard($election);
+            $inputCipherTextMix->store($this->getBulletinBoardMixFilename());
+        } else {
+            // mix with a previous mix
+            Log::debug('getInputCipherTextsMix > $previousMix->getMixWithShadowMixes()->getPrimaryMix()');
+            $inputCipherTextMix = $previousMix->getMixWithShadowMixes()->getPrimaryMix();
+        }
+
+        Log::debug('Input mix hash : ' . $inputCipherTextMix->getHash());
+
+        if ((!is_array($inputCipherTextMix->ciphertexts)) || count($inputCipherTextMix->ciphertexts) === 0) {
+            throw new Exception('Mix cipherText array must be non-empty');
+        }
+
+        return $inputCipherTextMix;
+    }
+
+    /**
+     * @param \App\Voting\CryptoSystems\PublicKey|null $publicKey
+     * @return \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes
+     * @throws \Exception
+     */
+    public function generateMixAndShadowMixes(?PublicKey $publicKey = null): MixWithShadowMixes
+    {
+
+        if (is_null($publicKey)) {
+            $publicKey = $this->computePublicKeyOfNextTrustees();
+        }
+
+        /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode|string $mixClass */
+        $mixClass = $this->trustee->election->anonymization_method->getClass();
+
+        /** @var MixWithShadowMixes $mixWithShadowMixesClass */
+        $mixWithShadowMixesClass = $mixClass::getMixWithShadowMixesClass();
+
+        if ($this->shadow_mix_count > 160) {
+            throw new Exception('The max is 160'); // TODO check, only for elgamal??
+        }
+
+        // get the input mix
+        $inputMix = $this->getInputCipherTextsMix();
+
+        $nCipherText = count($inputMix->ciphertexts);
+        Log::debug('Generating primary mix and shadow mixes on ' . $nCipherText . ' ciphertexts');
+
+        // generate primary mix
+        $primaryMixParameterSet = $mixClass::getPrimaryMixParameterSet($publicKey, $nCipherText);
+        $primaryMix = $mixClass::forward($inputMix, $primaryMixParameterSet, $this->trustee);
+        $primaryMix->store($this->getPrimaryMixFilename());
+
+        // generate shadow mixes
+        for ($i = 0; $i < $this->shadow_mix_count; $i++) {
+
+            Log::debug('Generating shadow mix ' . ($i + 1) . ' / ' . $this->shadow_mix_count);
+
+            $shadowMixesParameterSet = $mixClass::getShadowMixParameterSet($publicKey, $nCipherText);
+            $shadowMix = $mixClass::forward($inputMix, $shadowMixesParameterSet, $this->trustee);
+            $shadowMix->store($this->getShadowMixFilename($i));
+        }
+
+        return new $mixWithShadowMixesClass($this);
     }
 
     /**
      * @return string
      */
-    public function getFilename(): string
+    public function getBulletinBoardMixFilename(): string
     {
-        return 'mix_' . $this->uuid . '.json';
+        return $this->trustee->election->getElectionFolder() . "mix_{$this->uuid}/bb.json";
+    }
+
+    /**
+     * @return string
+     */
+    public function getPrimaryMixFilename(): string
+    {
+        return $this->trustee->election->getElectionFolder() . "mix_{$this->uuid}/primary_mix.json";
+    }
+
+    /**
+     * @param int $i 0 <= $i < n
+     * @return string
+     */
+    public function getShadowMixFilename(int $i): string
+    {
+        return $this->trustee->election->getElectionFolder() . "mix_{$this->uuid}/shadow_mix_$i.json";
+    }
+
+    // ##########################################
+
+    /**
+     * Download from another server
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function download(): void
+    {
+        $storagePaths = [
+            $this->getPrimaryMixFilename()
+        ];
+
+        if (is_null($this->previousMix)) {
+            $storagePaths[] = $this->getBulletinBoardMixFilename();
+        }
+
+        foreach (range(0, $this->shadow_mix_count - 1) as $idx) {
+            $storagePaths[] = $this->getShadowMixFilename($idx);
+        }
+
+        $domain = $this->trustee->peerServer->domain;
+
+        $client = new Client();
+
+        foreach ($storagePaths as $storagePath) {
+
+            $url = "https://$domain/storage/$storagePath";
+
+            Log::debug("Downloading from $url");
+
+            $resource = Utils::tryFopen(Storage::path($storagePath), 'w');
+            $res = $client->request('GET', $url, [
+                'verify' => false, // TODO remove
+                'sink' => $resource
+            ]);
+
+            Log::debug('Status code : ' . $res->getStatusCode());
+
+        }
+
     }
 
     /**
@@ -127,7 +262,7 @@ class Mix extends Model
      */
     public function getDownloadUrlAttribute(): string
     {
-        return Storage::url($this->getFilename());
+        return Storage::url($this->trustee->election->getElectionFolder()); // TODO
     }
 
     /**
@@ -160,6 +295,17 @@ class Mix extends Model
         return count($this->getMixNodeChain());
     }
 
+    //    /**
+    //     * @return \App\Models\Trustee[]|Collection
+    //     */
+    //    public function getTrusteeChain(): Collection{
+    //        $chainTrustees = [];
+    //        $election = $this->trustee->election;
+    //        $election->getPeerServerIndexMapping();
+    //        $allTrustees = $election->trustees;
+    //        return collect($chainTrustees);
+    //    }
+
     /**
      * TODO handle skipped peer servers
      * @return \App\Models\Trustee[]|Collection
@@ -168,42 +314,20 @@ class Mix extends Model
     {
         $election = $this->trustee->election;
         $trustees = [];
-        for ($i = $this->round; $i <= $election->min_peer_count_t; $i++) {
-            $peer = $election->getPeerServerFromIndex($i - 1);
-            $trustees[] = $election->getTrusteeFromPeerServer($peer);
+        $carry = 0;
+        for ($i = $this->round; $i <= ($election->min_peer_count_t + $carry); $i++) { // 1 - t
+            $peer = $election->getPeerServerFromIndex($i - 1); // 0 - t-1
+            $trustee = $election->getTrusteeFromPeerServer($peer);
+//            if ($trustee->isExcluded()) {
+//                $carry++;
+//                continue;
+//            }
+            $trustees[] = $trustee;
         }
         return collect($trustees);
     }
 
     // ##########################################
-
-    /**
-     * @param \App\Models\Election $election
-     * @param \App\Models\Mix|null $previousMix
-     * @return \App\Voting\CryptoSystems\CipherText[]
-     * @throws \Exception
-     */
-    private static function getCipherTexts(Election $election, ?Mix $previousMix): array
-    {
-        // get ciphertexts
-        if (is_null($previousMix)) {
-            // first mix, extract ciphertext from bulletin board
-
-            /** @var Collection|\App\Voting\CryptoSystems\CipherText[] $cipherTexts */
-            $cipherTexts = $election->votes()->onlyLastOfVoters()->get()->map(function (CastVote $castVote) {
-                return $castVote->vote;
-            })->toArray();
-        } else {
-            // mix with a previous mix
-            $cipherTexts = $previousMix->getMixWithShadowMixes()->primaryMix->ciphertexts;
-        }
-
-        if ((!is_array($cipherTexts)) || count($cipherTexts) === 0) {
-            throw new Exception('cipherTexts must be a non-empty array');
-        }
-
-        return $cipherTexts;
-    }
 
     /**
      * @param \App\Models\Election $election
@@ -214,48 +338,29 @@ class Mix extends Model
      */
     public static function generate(Election $election, ?Mix $previousMix = null, Trustee $trusteeGeneratingMix = null): Mix
     {
+        // take the trustee running the mix generation, if null the current server is picked
         if (is_null($trusteeGeneratingMix)) {
             $trusteeGeneratingMix = $election->getTrusteeFromPeerServer(getCurrentServer(), true);
         }
 
         $mixModel = new static();
         $mixModel->uuid = self::getNewUUID()->string;
-        $mixModel->round = is_null($previousMix) ? 1 : $previousMix->round + 1;
+        $mixModel->round = is_null($previousMix) ? 1 : ($previousMix->round + 1);
         $mixModel->trustee_id = $trusteeGeneratingMix->id;
         $mixModel->previous_mix_id = $previousMix ? $previousMix->id : null;
-
-        // combine public keys of next trustees
-        $publicKey = $mixModel->getNextTrusteeChain()->reduce(function (?PublicKey $carry, Trustee $trustee) {
-            if (is_null($carry)) {
-                //first
-                return $trustee->public_key;
-            }
-            /** @noinspection PhpParamsInspection */
-            return $carry->combine($trustee->public_key);
-        }, null);
-
-        // TODO generate $publicKey based on next peers
-
-        $cipherTexts = self::getCipherTexts($election, $previousMix);
-
-        Log::debug('Running mix on ' . count($cipherTexts) . ' ciphertexts');
-
-        /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode|string $mixClass */
-        $mixClass = $election->anonymization_method->getClass();
-
-        // generate shadow mixes
-        $primaryShadowMixes = $mixClass::generateMixAndShadowMixes($election,
-            $cipherTexts, $trusteeGeneratingMix,
-            $publicKey, config('kairos.mixnets.shadow_mixes'));
-
-        // generate challenge bits & proofs
-        $primaryShadowMixes->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits());
-        $primaryShadowMixes->generateProofs($trusteeGeneratingMix);
-
-        $mixModel->hash = $primaryShadowMixes->getHash();
+        $mixModel->shadow_mix_count = config('kairos.mixnets.shadow_mixes');
+        $mixModel->hash = Str::random(100); // will be overwritten
         $mixModel->save();
 
-        $primaryShadowMixes->store($mixModel->getFilename());
+        // generate shadow mixes
+        $publicKey = $mixModel->computePublicKeyOfNextTrustees();
+        $primaryShadowMixes = $mixModel->generateMixAndShadowMixes($publicKey);
+        $mixModel->hash = $primaryShadowMixes->getHash();
+
+        // generate challenge bits & proofs
+        $primaryShadowMixes->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits()); // TODO optimize
+
+        $primaryShadowMixes->generateProofs($trusteeGeneratingMix);
 
         return $mixModel;
     }
@@ -274,7 +379,10 @@ class Mix extends Model
         /** @var \App\Voting\AnonymizationMethods\MixNets\MixWithShadowMixes $primaryShadowMixesClass */
         $primaryShadowMixesClass = $amClass::getMixWithShadowMixesClass();
 
-        return $primaryShadowMixesClass::load($this->getFilename());
+        /**
+         * @see MixWithShadowMixes::__construct()
+         */
+        return new $primaryShadowMixesClass($this);
 
     }
 
@@ -318,7 +426,7 @@ class Mix extends Model
         $primaryShadowMixes = $this->getMixWithShadowMixes();
 
         try {
-            if ($primaryShadowMixes->isProofValid($this->trustee)) {
+            if ($primaryShadowMixes->isProofValid()) {
                 $this->setAsValid();
                 Log::info('Mix proof is valid!');
                 return true;
@@ -377,6 +485,19 @@ class Mix extends Model
         if ($messagesToSend->count()) {
             SendP2PMessage::dispatch($messagesToSend->toArray());
         }
+    }
+
+    /**
+     * combine public keys of next trustees
+     * @return \App\Voting\CryptoSystems\PublicKey
+     */
+    public function computePublicKeyOfNextTrustees(): PublicKey
+    {
+        /** @var PublicKey $publicKey */
+        return $this->getNextTrusteeChain()->reduce(function (?PublicKey $carry, Trustee $trustee): PublicKey {
+            /** @noinspection PhpParamsInspection */
+            return is_null($carry) ? $trustee->public_key : $carry->combine($trustee->public_key);
+        });
     }
 
 }

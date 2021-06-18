@@ -6,8 +6,8 @@ namespace Tests\Unit\Voting\CryptoSystems\ElGamal;
 
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\ElGamal\EGParameterSet;
-use App\Voting\CryptoSystems\ElGamal\EGSecretKey;
 use App\Voting\CryptoSystems\ElGamal\EGPublicKey;
+use App\Voting\CryptoSystems\ElGamal\EGSecretKey;
 use App\Voting\CryptoSystems\ElGamal\EGThresholdBroadcast;
 use App\Voting\CryptoSystems\ElGamal\EGThresholdPolynomial;
 use phpseclib3\Math\BigInteger;
@@ -61,7 +61,6 @@ class Peer
         $this->pk = $kp->pk;
 
         $this->polynomial = $kp->sk->getThresholdPolynomial($t);
-//        dump("Peer $this->id : " . $this->polynomial->toString());
     }
 
     // ##########################################################
@@ -113,7 +112,6 @@ class Peer
             $s = $s->add($recSh)->modPow(BI1(), $this->ps->p); // was q
             $str .= "+{$recSh->toString()}";
         }
-//        dump("     > x_{$this->id}  = $str mod {$this->ps->p} = " . $s->toString());
         return new EGSecretKey($pk, $s);
     }
 
@@ -127,7 +125,6 @@ class Peer
         foreach ($this->qualifiedPeers as $qualifiedPeerID) {
 
             $_p = new EGPublicKey($this->ps, $this->receivedBroadcasts["$qualifiedPeerID"]->A_I_K_values[0]);
-//            dump($_p->y->toString());
             $s = $_p->combine($s);
 //
 //            $s = $s->multiply($this->receivedBroadcasts[$qualifiedPeerID]->A_I_K_values[0]) // public key = factors[0], maybe not

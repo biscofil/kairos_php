@@ -2,18 +2,15 @@
 
 namespace Tests\Unit\Voting\AnonymizationMethods\MixNets\ReEncryption;
 
+use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
-use App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptingMixNode;
-use App\Voting\AnonymizationMethods\MixNets\ReEncryption\ReEncryptionMixWithShadowMixes;
+use App\Models\Mix;
 use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
-use App\Voting\CryptoSystems\ElGamal\EGParameterSet;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
 use Exception;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use phpseclib3\Math\BigInteger;
 use Tests\TestCase;
 
 /**
@@ -61,44 +58,42 @@ class ReEncryptionMixNodeTest extends TestCase
 
         $election = Election::factory()->create();
         $election->cryptosystem = CryptoSystemEnum::ElGamal(); // TODO remove
+        $election->anonymization_method = AnonymizationMethodEnum::EncMixNet(); // TODO remove
         $election->save();
 
         $trustee = $election->createPeerServerTrustee(getCurrentServer());
+        $trustee->generateKeyPair();
 
-        $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
-        $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
+        $election->preFreeze();
+        $election->actualFreeze();
 
-        $ps = EGParameterSet::random(20); // TODO remove
-        $keyPair = $kpClass::generate($ps);
-        $election->public_key = $keyPair->pk;
-        $election->private_key = $keyPair->sk;
-        $election->save();
-
-        // generate ballots
-        $ciphertexts = [];
-        for ($i = 0; $i < 5; $i++) { // TODO rand(5, 10)
-            $plain = new $ptClass(BigInteger::random(15));
-            $ciphertexts[] = $keyPair->pk->encrypt($plain);
+        for ($i = 0; $i < 5; $i++) {
+            self::addVote($election, [[rand(1, 3)]]);
         }
 
-        $shadowMixCount = rand(4, 5);
-        $primaryShadowMixes = ReEncryptingMixNode::generateMixAndShadowMixes($election, $ciphertexts, $trustee, null, $shadowMixCount);
+        $mixModel = new Mix();
+        $mixModel->round = 1;
+        $mixModel->previous_mix_id = null;
+        $mixModel->uuid = Mix::getNewUUID()->string;
+        $mixModel->trustee()->associate($trustee);
+        $mixModel->hash = Str::random(100);
+        $mixModel->shadow_mix_count = rand(4, 5);
+        $mixModel->save();
 
-        // generate bits
-        $challengeBits = $primaryShadowMixes->getFiatShamirChallengeBits();
-        static::assertEquals($shadowMixCount, strlen($challengeBits));
+        $primaryShadowMixes = $mixModel->generateMixAndShadowMixes();
 
-        // set them
-        $primaryShadowMixes->setChallengeBits($challengeBits);
+        $challengeBits = $primaryShadowMixes->getFiatShamirChallengeBits(); // generate bits
+        static::assertEquals($mixModel->shadow_mix_count, strlen($challengeBits));
+        $primaryShadowMixes->setChallengeBits($challengeBits); // set them
 
         // generate proof
         $primaryShadowMixes->generateProofs($trustee);
 
         // check parameter sets have been removed
-        static::assertNull($primaryShadowMixes->primaryMix->parameterSet);
+        static::assertNull($primaryShadowMixes->getPrimaryMix()->parameterSet);
 
         // check proof
-        static::assertTrue($primaryShadowMixes->isProofValid($trustee));
+        static::assertTrue($primaryShadowMixes->isProofValid());
 
     }
 
@@ -111,39 +106,45 @@ class ReEncryptionMixNodeTest extends TestCase
 
         $election = Election::factory()->create();
         $election->cryptosystem = CryptoSystemEnum::ElGamal();
+        $election->anonymization_method = AnonymizationMethodEnum::EncMixNet();
         $election->save();
 
         $trustee = $election->createPeerServerTrustee(getCurrentServer());
+        $trustee->generateKeyPair();
 
-        $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
-        $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
+        $election->preFreeze();
+        $election->actualFreeze();
 
-        $keyPair = $kpClass::generate();
-        $election->public_key = $keyPair->pk;
-        $election->private_key = $keyPair->sk;
-        $election->save();
-
-        $ciphertexts = [];
         for ($i = 0; $i < rand(5, 10); $i++) {
-            $ciphertexts[] = $this->addVote($election, [[1], [2], [3]]);
+            $this->addVote($election, [[1], [2], [3]]);
         }
 
-        $shadowMixCount = rand(2, 3);
-        $primaryShadowMixes = ReEncryptingMixNode::generateMixAndShadowMixes($election, $ciphertexts, $trustee, null, $shadowMixCount);
+        $mixModel = new Mix();
+        $mixModel->round = 1;
+        $mixModel->previous_mix_id = null;
+        $mixModel->uuid = Mix::getNewUUID()->string;
+        $mixModel->trustee()->associate($trustee);
+        $mixModel->hash = Str::random(100);
+        $mixModel->shadow_mix_count = rand(2, 3);
+        $mixModel->save();
+
+        $primaryShadowMixes = $mixModel->generateMixAndShadowMixes();
         $primaryShadowMixes->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits());
         $primaryShadowMixes->generateProofs($trustee);
 
-        $file1 = 'mix_test.json';
-        $primaryShadowMixes->store($file1);
+//        $file1 = 'mix_test.json';
+//        $primaryShadowMixes->store($file1);
 
-        $primaryShadowMixes = ReEncryptionMixWithShadowMixes::load($file1);
+//        $primaryShadowMixes = $mixModel->getMixWithShadowMixes();
 
-        Storage::delete([$file1]);
+//        Storage::delete([$file1]);
 
         // check proof
-        static::assertTrue($primaryShadowMixes->isProofValid($trustee));
+        static::assertTrue($primaryShadowMixes->isProofValid());
 
-        $primaryShadowMixes->deleteFile($file1);
+//        $primaryShadowMixes->deleteFile($file1);
+
+        $election->deleteFiles();
 
     }
 

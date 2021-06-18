@@ -19,11 +19,12 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
     use BelongsToDecryptionMixNode;
 
     /**
+     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $inputCipherTexts
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
      * @param \App\Models\Trustee $claimer
      * @return bool
      */
-    public function checkLeftProof(Mix $shadowMix, Trustee $claimer): bool
+    public function checkLeftProof(Mix $inputCipherTexts, Mix $shadowMix, Trustee $claimer): bool
     {
         return false;
         // TODO: Implement checkLeftProof() method.
@@ -31,10 +32,11 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
 
     /**
      * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
+     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $primaryMix
      * @param \App\Models\Trustee $claimer
      * @return bool
      */
-    public function checkRightProof(Mix $shadowMix, Trustee $claimer): bool
+    public function checkRightProof(Mix $shadowMix, Mix $primaryMix, Trustee $claimer): bool
     {
         return false;
         // TODO: Implement checkRightProof() method.
@@ -50,12 +52,13 @@ class DecryptionMixWithShadowMixes extends MixWithShadowMixes
     }
 
     /**
-     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadow
+     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $shadowMix
+     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $primaryMix
      * @return \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet
      */
-    public function getRightEquivalenceParameterSet(Mix $shadow): MixNodeParameterSet
+    public function getRightEquivalenceParameterSet(Mix $shadowMix, Mix $primaryMix): MixNodeParameterSet
     {
-        return $shadow->parameterSet->combine($this->primaryMix->parameterSet);
+        return $shadowMix->parameterSet->combine($primaryMix->parameterSet);
     }
 
     /**

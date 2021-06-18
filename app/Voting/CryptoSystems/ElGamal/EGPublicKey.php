@@ -156,6 +156,7 @@ class EGPublicKey implements PublicKey
      * Encrypt a plaintext and return the randomness just generated and used.
      * @param EGPlaintext $plainText
      * @return array
+     * @throws \Exception
      */
     public function encryptAndReturnRandomness(EGPlaintext $plainText): array
     {

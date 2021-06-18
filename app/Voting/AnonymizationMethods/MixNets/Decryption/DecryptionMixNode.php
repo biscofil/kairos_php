@@ -22,18 +22,17 @@ class DecryptionMixNode extends MixNode
 {
 
     /**
-     * @param Election $election
-     * @param CipherText[] $ciphertexts
+     * @param \App\Voting\AnonymizationMethods\MixNets\Mix $inputMix
      * @param \App\Voting\AnonymizationMethods\MixNets\MixNodeParameterSet $parameterSet
      * @param \App\Models\Trustee $trusteeRunningMix
      * @return Mix
      * @throws \Exception
      */
-    public static function forward(Election $election, array $ciphertexts, MixNodeParameterSet $parameterSet, Trustee $trusteeRunningMix): Mix
+    public static function forward(Mix $inputMix, MixNodeParameterSet $parameterSet, Trustee $trusteeRunningMix): Mix
     {
 
-        if (count($ciphertexts) !== count($parameterSet->permutation)) {
-            throw new Exception('ciphertexts has ' . count($ciphertexts)
+        if (count($inputMix->ciphertexts) !== count($parameterSet->permutation)) {
+            throw new Exception('ciphertexts has ' . count($inputMix->ciphertexts)
                 . ' elements while parameterSet->permutation has ' . count($parameterSet->permutation));
         }
 
@@ -43,13 +42,12 @@ class DecryptionMixNode extends MixNode
         // decrypt
         $decryptedCiphertexts = array_map(function (CipherText $ciphertext) use ($sk): CipherText {
             return $sk->partiallyDecrypt($ciphertext);
-        }, $ciphertexts);
+        }, $inputMix->ciphertexts);
 
         // shuffle
         $decryptedCiphertexts = $parameterSet->permuteArray($decryptedCiphertexts);
 
         return new DecryptionMix(
-            $election,
             $decryptedCiphertexts,
             $parameterSet
         );

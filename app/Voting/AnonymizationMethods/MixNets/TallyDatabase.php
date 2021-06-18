@@ -32,6 +32,7 @@ class TallyDatabase
     /**
      * TallyDatabase constructor.
      * @param \App\Models\Election $election
+     * @throws \Exception
      */
     public function __construct(Election $election)
     {
@@ -43,15 +44,27 @@ class TallyDatabase
     /**
      * Returns the connections to use for storing plantext ballots
      * @return \Illuminate\Database\SQLiteConnection
+     * @throws \Exception
      */
     private function getConnection(): SQLiteConnection
     {
-        $pdo = new PDO('sqlite:' . $this->pathname);
-        $conn = new SQLiteConnection($pdo);
-        $conn->setTablePrefix('');
-        $conn->setDatabaseName('');
-        return $conn;
+        try {
+
+            $folder = dirname($this->pathname);
+            if (!file_exists($folder) && !is_dir($folder)) {
+                mkdir($folder);
+            }
+
+            $pdo = new PDO('sqlite:' . $this->pathname);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $conn = new SQLiteConnection($pdo);
+            $conn->setTablePrefix('');
+            $conn->setDatabaseName('');
+            return $conn;
 //        $builder = new \Illuminate\Database\Query\Builder($connection);
+        } catch (\Throwable $e) {
+            throw  new \Exception("Can't open database @ $this->pathname");
+        }
     }
 
     // ###############################################################################################
