@@ -21,6 +21,8 @@ class SendP2PMessage implements ShouldQueue
 
     public array $messages;
 
+    public $timeout = 3600;
+
     /**
      * Create a new job instance.
      * @param $messages

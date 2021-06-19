@@ -27,6 +27,8 @@ class VerifyReceivedMix implements ShouldQueue
 
     public Mix $mixModel;
 
+    public $timeout = 3600;
+
     /**
      * WaitAndRespond constructor.
      * @param \App\Models\Mix $mixModel

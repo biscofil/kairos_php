@@ -25,6 +25,8 @@ class VerifyVote implements ShouldQueue
 
     public $castVote;
 
+    public $timeout = 3600;
+
     /**
      * Create a new job instance.
      *

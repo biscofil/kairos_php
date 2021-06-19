@@ -24,6 +24,8 @@ class OnElectionFreezeTimeout implements ShouldQueue
 
     public Election $election;
 
+    public $timeout = 3600;
+
     /**
      * Create a new job instance.
      *

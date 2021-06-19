@@ -23,6 +23,8 @@ class RunP2PTask implements ShouldQueue
 
     public Task $task;
 
+    public $timeout = 3600;
+
     /**
      * Create a new job instance.
      * @param Task $task
