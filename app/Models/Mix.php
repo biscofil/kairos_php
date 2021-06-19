@@ -420,6 +420,7 @@ class Mix extends Model
         $start = microtime(true);
         $primaryShadowMixes->generateProofs($trusteeGeneratingMix);
         $mixModel->proofs_generated_in = microtime(true) - $start;
+        $mixModel->save();
 
         return $mixModel;
     }
