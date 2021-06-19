@@ -122,27 +122,45 @@ class Mix extends Model
     public function getInputCipherTextsMix(): \App\Voting\AnonymizationMethods\MixNets\Mix
     {
 
-        /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode|string $mixClass */
-        $mixClass = $this->trustee->election->anonymization_method->getClass();
+        /** @var \App\Voting\AnonymizationMethods\MixNets\MixNode|string $mixNodeClass */
+        $mixNodeClass = $this->trustee->election->anonymization_method->getClass();
 
         /** @var MixWithShadowMixes $mixWithShadowMixesClass */
-        $mixWithShadowMixesClass = $mixClass::getMixWithShadowMixesClass();
+        $mixClass = $mixNodeClass::getMixClass();
+
+        /** @var MixWithShadowMixes $mixWithShadowMixesClass */
+        $mixWithShadowMixesClass = $mixNodeClass::getMixWithShadowMixesClass();
 
         $election = $this->trustee->election;
         $previousMix = $this->previousMix;
 
         if (is_null($previousMix)) {
             // first mix, extract ciphertext from bulletin board
-            Log::debug('getInputCipherTextsMix > self::extractVotesFromBulletinBoard($election)');
-            $inputCipherTextMix = $mixWithShadowMixesClass::extractVotesFromBulletinBoard($election);
-            $inputCipherTextMix->store($this->getBulletinBoardMixFilename());
+            // $this->trustee->peer_server_id === PeerServer::meID &&
+
+            $bulletinBoardFile = $this->getBulletinBoardMixFilename();
+            Log::debug('getBulletinBoardMixFilename > ' . $bulletinBoardFile);
+
+            Log::debug('file_exists(Storage::path( .... -> ' . (file_exists(Storage::path($bulletinBoardFile)) ? 'Y' : 'N'));
+            Log::debug('Storage::exists( .... -> ' . (Storage::exists($bulletinBoardFile) ? 'Y' : 'N'));
+
+            if (Storage::exists($bulletinBoardFile)) {
+                Log::debug('getInputCipherTextsMix > reading generated bulletin board file');
+                $inputCipherTextMix = $mixClass::load($this, $bulletinBoardFile);
+            } else {
+                // i am generating
+                Log::debug('getInputCipherTextsMix > generating bulletin board file');
+                $inputCipherTextMix = $mixWithShadowMixesClass::extractVotesFromBulletinBoard($election);
+                $inputCipherTextMix->store($bulletinBoardFile);
+            }
         } else {
             // mix with a previous mix
-            Log::debug('getInputCipherTextsMix > $previousMix->getMixWithShadowMixes()->getPrimaryMix()');
+            Log::debug('getInputCipherTextsMix > using output of previous mix');
             $inputCipherTextMix = $previousMix->getMixWithShadowMixes()->getPrimaryMix();
         }
 
         Log::debug('Input mix hash : ' . $inputCipherTextMix->getHash());
+        Log::debug('Input mix ciphertext count : ' . count($inputCipherTextMix->ciphertexts));
 
         if ((!is_array($inputCipherTextMix->ciphertexts)) || count($inputCipherTextMix->ciphertexts) === 0) {
             throw new Exception('Mix cipherText array must be non-empty');
@@ -197,12 +215,22 @@ class Mix extends Model
         return new $mixWithShadowMixesClass($this);
     }
 
+    // ##########################################
+
+    /**
+     * @return string
+     */
+    public function getMixFolder(): string
+    {
+        return $this->trustee->election->getElectionFolder() . "mix_{$this->uuid}/";
+    }
+
     /**
      * @return string
      */
     public function getBulletinBoardMixFilename(): string
     {
-        return $this->trustee->election->getElectionFolder() . "mix_{$this->uuid}/bb.json";
+        return $this->getMixFolder() . 'bb.json';
     }
 
     /**
@@ -210,7 +238,7 @@ class Mix extends Model
      */
     public function getPrimaryMixFilename(): string
     {
-        return $this->trustee->election->getElectionFolder() . "mix_{$this->uuid}/primary_mix.json";
+        return $this->getMixFolder() . 'primary_mix.json';
     }
 
     /**
@@ -219,47 +247,51 @@ class Mix extends Model
      */
     public function getShadowMixFilename(int $i): string
     {
-        return $this->trustee->election->getElectionFolder() . "mix_{$this->uuid}/shadow_mix_$i.json";
+        return $this->getMixFolder() . "shadow_mix_$i.json";
     }
-
-    // ##########################################
 
     /**
      * Download from another server
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function download(): void
+    public function download(bool $reDownloadExisting = false): void
     {
-        $storagePaths = [
+        $storageRelativePaths = [
             $this->getPrimaryMixFilename()
         ];
 
         if (is_null($this->previousMix)) {
-            $storagePaths[] = $this->getBulletinBoardMixFilename();
+            $storageRelativePaths[] = $this->getBulletinBoardMixFilename();
         }
 
         foreach (range(0, $this->shadow_mix_count - 1) as $idx) {
-            $storagePaths[] = $this->getShadowMixFilename($idx);
+            $storageRelativePaths[] = $this->getShadowMixFilename($idx);
         }
 
         $domain = $this->trustee->peerServer->domain;
 
         $client = new Client();
 
-        foreach ($storagePaths as $storagePath) {
+        foreach ($storageRelativePaths as $storageRelativePath) {
 
-            $url = "https://$domain/storage/$storagePath";
+            $absoluteFilePath = Storage::path($storageRelativePath);
+            if ((!file_exists($absoluteFilePath)) || $reDownloadExisting) {
+                $url = "https://$domain/storage/$storageRelativePath";
+                Log::debug("Downloading from $url to $absoluteFilePath");
 
-            Log::debug("Downloading from $url");
+                $folder = dirname($absoluteFilePath);
+                if (!file_exists($folder) && !is_dir($folder)) {
+                    mkdir($folder, 0777, true);
+                }
 
-            $resource = Utils::tryFopen(Storage::path($storagePath), 'w');
-            $res = $client->request('GET', $url, [
-                'verify' => false, // TODO remove
-                'sink' => $resource
-            ]);
+                $resource = Utils::tryFopen($absoluteFilePath, 'w');
+                $res = $client->request('GET', $url, [
+                    'verify' => false, // TODO remove
+                    'sink' => $resource
+                ]);
 
-            Log::debug('Status code : ' . $res->getStatusCode());
-
+                Log::debug('Status code : ' . $res->getStatusCode());
+            }
         }
 
     }
@@ -272,6 +304,8 @@ class Mix extends Model
     {
         return Storage::url($this->trustee->election->getElectionFolder()); // TODO
     }
+
+    // ##########################################
 
     /**
      * @return \App\Models\Mix[]
@@ -335,6 +369,14 @@ class Mix extends Model
         return collect($trustees);
     }
 
+    /**
+     * @return bool
+     */
+    public function deleteFiles(): bool
+    {
+        return Storage::deleteDirectory($this->getMixFolder());
+    }
+
     // ##########################################
 
     /**
@@ -360,6 +402,10 @@ class Mix extends Model
         $mixModel->hash = Str::random(100); // will be overwritten
         $mixModel->save();
 
+        Log::debug(' ####################################################################### ');
+        Log::debug(" ############### Generating Mix $mixModel->id with UUID $mixModel->uuid");
+        Log::debug(' ####################################################################### ');
+
         // generate shadow mixes
         $publicKey = $mixModel->computePublicKeyOfNextTrustees();
         $start = microtime(true);
@@ -368,7 +414,7 @@ class Mix extends Model
         $mixModel->hash = $primaryShadowMixes->getHash();
 
         // generate challenge bits & proofs
-        $primaryShadowMixes->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits()); // TODO optimize
+        $mixModel->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits()); // TODO optimize
 
         // generate proofs and measure time
         $start = microtime(true);
@@ -376,6 +422,19 @@ class Mix extends Model
         $mixModel->proofs_generated_in = microtime(true) - $start;
 
         return $mixModel;
+    }
+
+    /**
+     * @param string $bits
+     * @ throws \Exception
+     */
+    public function setChallengeBits(string $bits): void
+    {
+//        if (!(str_contains($bits, '1') && str_contains($bits, '0'))) {
+//            throw new Exception('The challenge bit string must contain each bit at leats once');
+//        }
+        $this->challenge_bits = $bits;
+        $this->save();
     }
 
     /**
@@ -428,6 +487,8 @@ class Mix extends Model
         $meTrustee->private_key = $sk;
         $meTrustee->save();
     }
+
+    // ##########################################
 
     /**
      * @throws \Exception

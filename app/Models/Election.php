@@ -847,7 +847,7 @@ class Election extends Model
      */
     public static function findFromUuid(string $uuid): ?Election
     {
-        return self::query()->where('uuid', '=', $uuid)->first();
+        return self::query()->where('elections.uuid', '=', $uuid)->first();
     }
 
     /**

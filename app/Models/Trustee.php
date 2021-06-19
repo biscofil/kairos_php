@@ -148,7 +148,7 @@ class Trustee extends Model
     public static function findUUID(string $uuid): ?Trustee
     {
         return self::query()
-            ->where('uuid', '=', $uuid)
+            ->where('trustees.uuid', '=', $uuid)
             ->first();
     }
 

@@ -65,8 +65,8 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
     {
         return [
             'election_uuid' => $this->mixModel->trustee->election->uuid,
-            'mix_set' => $this->mixModel->toArray(),
-            'previous_mix_set_hash' => $this->mixModel->previousMix ? $this->mixModel->previousMix->hash : null,
+            'mix' => $this->mixModel->toArray(),
+            'previous_mix_set_uuid' => $this->mixModel->previousMix ? $this->mixModel->previousMix->uuid : null,
         ];
     }
 
@@ -80,21 +80,24 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
     {
         $data = Validator::make($messageData, [
             'election_uuid' => ['required', 'uuid'],
-            'mix_set' => ['required', 'array'],
-            'previous_mix_set_hash' => ['nullable', 'string'],
+            'mix' => ['required', 'array'],
+            'previous_mix_set_uuid' => ['nullable', 'string'],
         ])->validate();
 
         $election = Election::findFromUuid($data['election_uuid']);
 
         /** @var Mix $previousMix */
-        $previousMix = is_null($data['previous_mix_set_hash'])
+        $previousMix = is_null($data['previous_mix_set_uuid'])
             ? null
-            : $election->mixes()->where('hash', '=', $data['previous_mix_set_hash'])->firstOrFail();
+            : $election->mixes()->where('mixes.uuid', '=', $data['previous_mix_set_uuid'])->firstOrFail();
 
-        $mixModel = new Mix();
-        $mixModel->trustee_id = $election->getTrusteeFromPeerServer($sender, true)->id;
-        $mixModel->previous_mix_id = $previousMix ? $previousMix->id : null;
-        $mixModel->fillFromSharedArray($data['mix_set']);
+        $mixModel = Mix::query()->where('mixes.uuid', '=', $data['mix']['uuid'])->first();
+        if (is_null($mixModel)) {
+            $mixModel = new Mix();
+            $mixModel->trustee_id = $election->getTrusteeFromPeerServer($sender, true)->id;
+            $mixModel->previous_mix_id = $previousMix ? $previousMix->id : null;
+        }
+        $mixModel->fillFromSharedArray($data['mix']);
         $mixModel->save();
 
         return new static(
@@ -116,12 +119,14 @@ class ThisIsMyMixSetRequest extends P2PMessageRequest
     {
         Log::debug('ThisIsMyMixSet message received > Download > Verify');
 
-        Bus::chain([
-            // download
-            new DownloadPeerMix($this->mixModel),
-            // verification process and mix if this is the next node
-            new VerifyReceivedMix($this->mixModel)
-        ])->delay(1)->dispatch();
+        if ($this->mixModel->trustee->peer_server_id !== PeerServer::meID) {
+            Bus::chain([
+                // download
+                new DownloadPeerMix($this->mixModel),
+                // verification process and mix if this is the next node
+                new VerifyReceivedMix($this->mixModel)
+            ])->delay(1)->dispatch();
+        }
 
         return new ThisIsMyMixSetResponse(getCurrentServer(), $this->requestSender);
     }

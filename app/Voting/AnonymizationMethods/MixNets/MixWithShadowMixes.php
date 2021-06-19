@@ -58,9 +58,10 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
         /** @var Mix $mixClass */
         $mixClass = static::getAnonimizationMethod()::getMixClass();
 
+        $inputMix = $this->mixModel->getInputCipherTextsMix();
         $primaryMix = $this->getPrimaryMix();
 
-        array_map(function (string $bit, int $i) use ($primaryMix, $mixClass, $claimer, $count) {
+        array_map(function (string $bit, int $i) use ($inputMix, $primaryMix, $mixClass, $claimer, $count) {
 
             Log::debug('Generating proof ' . ($i + 1) . ' / ' . $count);
 
@@ -68,17 +69,26 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
             $shadowMix = $mixClass::load($this->mixModel, $shadowMixFilename);
 
             if ($bit === '0') { // left
-                $parameterSet = $this->getLeftEquivalenceParameterSet($shadowMix);
-                $proof = $this->getLeftProofs($shadowMix, $claimer, $parameterSet);
+
+                $shadowMix->parameterSet = $this->getLeftEquivalenceParameterSet($shadowMix);
+                $shadowMix->proofs = $this->getLeftProofs($shadowMix, $claimer, $shadowMix->parameterSet);
+
+                if (!$this->checkLeftProof($inputMix, $shadowMix, $claimer)) {
+                    throw new \Exception(" > invalid left proof #$i generated");
+                }
+
             } elseif ($bit === '1') { // right
-                $parameterSet = $this->getRightEquivalenceParameterSet($shadowMix, $primaryMix);
-                $proof = $this->getRightProofs($shadowMix, $claimer, $parameterSet);
+
+                $shadowMix->parameterSet = $this->getRightEquivalenceParameterSet($shadowMix, $primaryMix);
+                $shadowMix->proofs = $this->getRightProofs($shadowMix, $claimer, $shadowMix->parameterSet);
+
+                if (!$this->checkRightProof($shadowMix, $primaryMix, $claimer)) {
+                    throw new \Exception(" > invalid right proof #$i generated");
+                }
+
             } else {
                 throw new Exception("Bit must be either 1 or 0, '$bit' given");
             }
-
-            $shadowMix->parameterSet = $parameterSet; // forget parameter set of shadow mix
-            $shadowMix->proofs = $proof; // forget parameter set of shadow mix
 
             $shadowMix->store($shadowMixFilename);
 
@@ -216,19 +226,6 @@ abstract class MixWithShadowMixes implements BelongsToAnonymizationMethod
 //        }
 
         return $out;
-    }
-
-    /**
-     * @param string $bits
-     * @ throws \Exception
-     */
-    public function setChallengeBits(string $bits): void
-    {
-//        if (!(str_contains($bits, '1') && str_contains($bits, '0'))) {
-//            throw new Exception('The challenge bit string must contain each bit at leats once');
-//        }
-        $this->mixModel->challenge_bits = $bits;
-        $this->mixModel->save();
     }
 
     // ########################################################################

@@ -55,7 +55,7 @@ class ThisIsMyMixSetRequestTest extends TestCase
         $mixModel->save();
 
         $primaryShadowMixes = $mixModel->generateMixAndShadowMixes();
-        $primaryShadowMixes->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits());
+        $mixModel->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits());
         $primaryShadowMixes->generateProofs($trustee);
 
 //        $primaryShadowMixes->store($mixModel->getFilename());

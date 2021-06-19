@@ -84,7 +84,7 @@ class ReEncryptionMixNodeTest extends TestCase
 
         $challengeBits = $primaryShadowMixes->getFiatShamirChallengeBits(); // generate bits
         static::assertEquals($mixModel->shadow_mix_count, strlen($challengeBits));
-        $primaryShadowMixes->setChallengeBits($challengeBits); // set them
+        $mixModel->setChallengeBits($challengeBits); // set them
 
         // generate proof
         $primaryShadowMixes->generateProofs($trustee);
@@ -129,7 +129,7 @@ class ReEncryptionMixNodeTest extends TestCase
         $mixModel->save();
 
         $primaryShadowMixes = $mixModel->generateMixAndShadowMixes();
-        $primaryShadowMixes->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits());
+        $mixModel->setChallengeBits($primaryShadowMixes->getFiatShamirChallengeBits());
         $primaryShadowMixes->generateProofs($trustee);
 
 //        $file1 = 'mix_test.json';

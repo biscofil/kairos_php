@@ -52,7 +52,7 @@ class TallyDatabase
 
             $folder = dirname($this->pathname);
             if (!file_exists($folder) && !is_dir($folder)) {
-                mkdir($folder);
+                mkdir($folder, 0777, true);
             }
 
             $pdo = new PDO('sqlite:' . $this->pathname);
