@@ -7,6 +7,10 @@ namespace App\Voting\AnonymizationMethods\MixNets\DecryptionReEncryption;
 use App\Voting\AnonymizationMethods\MixNets\Mix;
 use App\Voting\CryptoSystems\ElGamal\EGCiphertext;
 
+/**
+ * Class DecryptionReEncryptionMix
+ * @package App\Voting\AnonymizationMethods\MixNets\DecryptionReEncryption
+ */
 class DecryptionReEncryptionMix extends Mix
 {
 

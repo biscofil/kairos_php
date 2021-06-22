@@ -16,6 +16,7 @@ use PDO;
 use Throwable;
 
 /**
+ * TODO call QuestionType isDecryptedBallotValid for each ballot question
  * Class TallyDatabase
  * @package App\Voting\AnonymizationMethods\MixNets
  * @property \App\Models\Election $election
