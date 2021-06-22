@@ -41,7 +41,7 @@ class EGKeyPair implements KeyPair
         // TODO }else{
 
         $x = $parameterSet->getReEncryptionFactor(); // TODO check
-        $y = $parameterSet->g->modPow($x, $parameterSet->p); // also called h
+        $y = $parameterSet->g->powMod($x, $parameterSet->p); // also called h
 
         $pkCLass = static::getCryptosystem()::getPublicKeyClass();
         $pk = new $pkCLass($parameterSet, $y);

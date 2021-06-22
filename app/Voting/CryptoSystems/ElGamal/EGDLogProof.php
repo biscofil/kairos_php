@@ -51,15 +51,15 @@ class EGDLogProof
         $w = $sk->pk->parameterSet->getReEncryptionFactor();
 
         # generate commitment A,B
-        $commitment_a = $sk->pk->parameterSet->g->modPow($w, $sk->pk->parameterSet->p); # A = g ^ w mod p
-        $commitment_b = $ciphertext->alpha->modPow($w, $sk->pk->parameterSet->p); # B = alpha ^ w mod p
+        $commitment_a = $sk->pk->parameterSet->g->powMod($w, $sk->pk->parameterSet->p); # A = g ^ w mod p
+        $commitment_b = $ciphertext->alpha->powMod($w, $sk->pk->parameterSet->p); # B = alpha ^ w mod p
         $commitment = new EGDLogCommitment($commitment_a, $commitment_b);
 
         # get challenge c
         $challenge = $challenge_generator($commitment);
 
         # compute response t
-        $response = $w->add($sk->x->multiply($challenge))->modPow(BI1(), $sk->pk->parameterSet->p);
+        $response = mod($w->add($sk->x->multiply($challenge)), $sk->pk->parameterSet->p);
 
         # create proof instance
         return new EGDLogProof(
@@ -87,30 +87,36 @@ class EGDLogProof
 
         # check that A, B are in the correct group
         if (!(
-            $this->commitment->a->modPow($pk->parameterSet->q, $pk->parameterSet->p)->equals(BI(1))
-            && $this->commitment->b->modPow($pk->parameterSet->q, $pk->parameterSet->p)->equals(BI(1))
+            $this->commitment->a->powMod($pk->parameterSet->q, $pk->parameterSet->p)->equals(BI(1))
+            && $this->commitment->b->powMod($pk->parameterSet->q, $pk->parameterSet->p)->equals(BI(1))
         )) {
             return false;
         }
 
         # g ^ t mod p
-        $first_check_left = $pk->parameterSet->g->modPow($this->response, $pk->parameterSet->p);
+        $first_check_left = $pk->parameterSet->g->powMod($this->response, $pk->parameterSet->p);
         // A * y ^ challenge mod p
-        $first_check_right = $this->commitment->a->multiply($pk->y->modPow($this->challenge, $pk->parameterSet->p))
-            ->modPow(BI(1), $pk->parameterSet->p);
+        $first_check_right = mod(
+            $this->commitment->a->multiply($pk->y->powMod($this->challenge, $pk->parameterSet->p)),
+            $pk->parameterSet->p
+        );
         # check that g ^ response = A * big_g ^ challenge
         $first_check = $first_check_left->equals($first_check_right);
 
 
         # little_h ^ t mod p
-        $second_check_left = $ciphertext->alpha->modPow($this->response, $pk->parameterSet->p);
+        $second_check_left = $ciphertext->alpha->powMod($this->response, $pk->parameterSet->p);
         // B * big_h ^ challenge
         $subGroupM = $pk->parameterSet->mapMessageIntoSubgroup($plain->m); // TODO check!!!
-        $big_h = $ciphertext->beta->multiply($subGroupM->modInverse($pk->parameterSet->p))
-            ->modPow(BI(1), $pk->parameterSet->p);
+        $big_h = mod(
+            $ciphertext->beta->multiply($subGroupM->modInverse($pk->parameterSet->p)),
+            $pk->parameterSet->p
+        );
 
-        $second_check_right = $this->commitment->b->multiply($big_h->modPow($this->challenge, $pk->parameterSet->p))
-            ->modPow(BI(1), $pk->parameterSet->p);
+        $second_check_right = mod(
+            $this->commitment->b->multiply($big_h->powMod($this->challenge, $pk->parameterSet->p)),
+            $pk->parameterSet->p
+        );
         # check that little_h ^ response = B * big_h ^ challenge
         $second_check = $second_check_left->equals($second_check_right);
 

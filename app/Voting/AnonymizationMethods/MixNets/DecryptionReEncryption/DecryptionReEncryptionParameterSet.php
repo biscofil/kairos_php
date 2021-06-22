@@ -116,9 +116,10 @@ class DecryptionReEncryptionParameterSet extends MixNodeParameterSet
         // combine randomness
         $newReEncryptionFactor = array_map(
             function (BigInteger $primaryMixReEncryptionFactor, BigInteger $shadowMixReEncryptionFactor): BigInteger {
-                return $primaryMixReEncryptionFactor
-                    ->subtract($shadowMixReEncryptionFactor)
-                    ->modPow(BI1(), $this->pk->parameterSet->q); // TODO generalize!!!
+                return mod(
+                    $primaryMixReEncryptionFactor->subtract($shadowMixReEncryptionFactor),
+                    $this->pk->parameterSet->q
+                ); // TODO generalize!!!
             },
             $primaryMixPS->reEncryptionFactors,
             $this->reEncryptionFactors);

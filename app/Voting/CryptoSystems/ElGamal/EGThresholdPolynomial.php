@@ -4,7 +4,6 @@
 namespace App\Voting\CryptoSystems\ElGamal;
 
 
-use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\ThresholdPolynomial;
 use phpseclib3\Math\BigInteger;
 
@@ -76,7 +75,7 @@ class EGThresholdPolynomial implements ThresholdPolynomial
         $values = [];
         foreach ($this->factors as $a_i_k) {
             // this is the same as the public key generation
-            $A_i_k = $this->ps->g->modPow($a_i_k, $this->ps->p);
+            $A_i_k = $this->ps->g->powMod($a_i_k, $this->ps->p);
             $values[] = $A_i_k;
         }
         $tbClass = static::getCryptosystem()::getThresholdBroadcastClass();
@@ -89,7 +88,7 @@ class EGThresholdPolynomial implements ThresholdPolynomial
      */
     public function getShare(int $j): BigInteger
     {
-        return $this->compute(BI($j))->modPow(BI1(), $this->ps->q);
+        return mod($this->compute(BI($j)), $this->ps->q);
     }
 
     // #######################################################################################################

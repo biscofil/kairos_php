@@ -89,18 +89,16 @@ class DLogProof
         $w = $sk->pk->parameterSet->getReEncryptionFactor();
 
         // commitment = A = g ^ w mod p
-        $commitment = $sk->pk->parameterSet->g->modPow($w, $sk->pk->parameterSet->p);
+        $commitment = $sk->pk->parameterSet->g->powMod($w, $sk->pk->parameterSet->p);
 
         // challenge c = hash (A)
         /** @var BigInteger $challenge */
         $challenge = $challenge_generator($commitment);
         // challenge = challenge mod g
-        $challenge = $challenge->modPow(BI1(), $sk->pk->parameterSet->p);
+        $challenge = mod($challenge, $sk->pk->parameterSet->p);
 
         // t = w + x * challenge mod q, where x is the secret key.
-        $response = $w->add(
-            $sk->x->multiply($challenge)
-        )->powMod(BI1(), $sk->pk->parameterSet->p);
+        $response = mod($w->add($sk->x->multiply($challenge)), $sk->pk->parameterSet->p);
 
         return new static($commitment, $challenge, $response);
     }
@@ -115,16 +113,16 @@ class DLogProof
     {
 
         // g ^ t mod p
-        $left_side = $pk->parameterSet->g->modPow($this->response, $pk->parameterSet->p);
+        $left_side = $pk->parameterSet->g->powMod($this->response, $pk->parameterSet->p);
 
         // (A * y^c) mod p
-        $right_side = $this->commitment
-            ->multiply($pk->y->modPow($this->challenge, $pk->parameterSet->p))
-            ->modPow(BI1(), $pk->parameterSet->p);
+        $right_side = mod(
+            $this->commitment->multiply($pk->y->powMod($this->challenge, $pk->parameterSet->p)),
+            $pk->parameterSet->p
+        );
 
         // hash(A) mod g
-        /** @var BigInteger $expected_challenge */
-        $expected_challenge = $challenge_generator($this->commitment)->modPow(BI1(), $pk->parameterSet->p);
+        $expected_challenge = mod($challenge_generator($this->commitment), $pk->parameterSet->p);
 
         return $left_side->equals($right_side)
             && $this->challenge->equals($expected_challenge); // check c = hash(A)

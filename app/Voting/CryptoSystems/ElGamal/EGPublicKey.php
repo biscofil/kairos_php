@@ -112,7 +112,7 @@ class EGPublicKey implements PublicKey
     public function combine(?EGPublicKey $b): EGPublicKey
     {
 
-        if (is_null($b) || $b->y->equals(BI(0)) || $b->y->equals(BI1())) {
+        if (is_null($b) || $b->y->equals(BI(0)) || $b->y->equals(BI(1))) {
             return $this;
         }
 
@@ -120,7 +120,7 @@ class EGPublicKey implements PublicKey
 
         return new EGPublicKey(
             $this->parameterSet,
-            $this->y->multiply($b->y)->powMod(BI1(), $this->parameterSet->p)
+            mod($this->y->multiply($b->y), $this->parameterSet->p)
         );
 
     }
@@ -187,9 +187,10 @@ class EGPublicKey implements PublicKey
         $m = $this->getMToEncrypt($m);
 
         // alpha = g^r mod p
-        $alpha = $this->parameterSet->g->modPow($randomness, $this->parameterSet->p);
+        $alpha = $this->parameterSet->g->powMod($randomness, $this->parameterSet->p);
+
         // beta = m*(y^r) mod p
-        $beta = $m->multiply($this->y->modPow($randomness, $this->parameterSet->p))->modPow(BI1(), $this->parameterSet->p);
+        $beta = mod($m->multiply($this->y->powMod($randomness, $this->parameterSet->p)), $this->parameterSet->p);
 
         $ctClass = static::getCryptosystem()::getCipherTextClass();
         return new $ctClass($this, $alpha, $beta);

@@ -109,7 +109,7 @@ class Peer
         $str = $s->toString();
         foreach ($this->qualifiedPeers as $qualifiedPeerID) {
             $recSh = $this->receivedShares["$qualifiedPeerID"]; //->multiply($lambda)
-            $s = $s->add($recSh)->modPow(BI1(), $this->ps->p); // was q
+            $s = mod($s->add($recSh), $this->ps->p); // was q
             $str .= "+{$recSh->toString()}";
         }
         return new EGSecretKey($pk, $s);
@@ -128,7 +128,7 @@ class Peer
             $s = $_p->combine($s);
 //
 //            $s = $s->multiply($this->receivedBroadcasts[$qualifiedPeerID]->A_I_K_values[0]) // public key = factors[0], maybe not
-//            ->modPow(BI1(), $this->ps->p);
+//            ->powMod(BI(1), $this->ps->p);
         }
         return $s;
     }

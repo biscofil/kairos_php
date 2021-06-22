@@ -105,7 +105,7 @@ class EG_TL_ThresholdTest extends TestCase
         foreach ($peers as $peer) {
             $virtual_secret_x = $peer->sk->combine($virtual_secret_x);
         }
-        $virtual_secret_x->x = $virtual_secret_x->x->modPow(BI1(), $parameterSet->q);
+        $virtual_secret_x->x = mod($virtual_secret_x->x, $parameterSet->q);
         self::assertValidEGKeyPair($pk, $virtual_secret_x);
 
 
@@ -128,12 +128,12 @@ class EG_TL_ThresholdTest extends TestCase
             $lambda = getLagrangianCoefficientMod($I_IDS, $peer->id, $parameterSet->q);
 
             $x_j = $peer->skShare;
-            $x_j->x = $x_j->x->multiply($lambda)->modPow(BI1(), $parameterSet->q);
+            $x_j->x = mod($x_j->x->multiply($lambda), $parameterSet->q);
 
             $share_secret_x = $x_j->combine($share_secret_x);
 
         }
-        $share_secret_x->x = $share_secret_x->x->modPow(BI1(), $parameterSet->q);
+        $share_secret_x->x = mod($share_secret_x->x, $parameterSet->q);
         static::assertTrue($share_secret_x->x->equals($virtual_secret_x->x));
 
     }

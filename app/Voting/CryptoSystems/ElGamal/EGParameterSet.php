@@ -73,7 +73,7 @@ class EGParameterSet implements ParameterSet
         // find a prime p such that q is a factor of p-1
         $k = 2;
         do {
-            $p = $q->multiply(BI($k))->add(BI1());
+            $p = $q->multiply(BI($k))->add(BI(1));
             $k++;
         } while (!$p->isPrime());
 
@@ -81,7 +81,7 @@ class EGParameterSet implements ParameterSet
         $g = BI(1);
         do {
             $g = BigInteger::randomRange(BI(1), $p);
-        } while (!$g->modPow($q, $p)->equals(BI(1)));
+        } while (!$g->powMod($q, $p)->equals(BI(1)));
 
         return new static($g, $p, $q);
     }
@@ -140,9 +140,9 @@ class EGParameterSet implements ParameterSet
      */
     public function mapMessageIntoSubgroup(BigInteger $m): BigInteger
     {
-        $m = $m->add(BI1());
-        if (!$m->modPow($this->q, $this->p)->equals(BI1())) {
-            $m = $m->negate()->modPow(BI1(), $this->p); // m = -m mod p
+        $m = $m->add(BI(1));
+        if (!$m->powMod($this->q, $this->p)->equals(BI(1))) {
+            $m = mod($m->negate(), $this->p); // m = -m mod p
         }
         return $m;
     }
@@ -155,9 +155,9 @@ class EGParameterSet implements ParameterSet
     public function extractMessageFromSubgroup(BigInteger $m): BigInteger
     {
         if ($m >= $this->q) {
-            $m = $m->negate()->modPow(BI1(), $this->p); // m = -m mod p
+            $m = mod($m->negate(), $this->p); // m = -m mod p
         }
-        return $m->subtract(BI1());
+        return $m->subtract(BI(1));
     }
 
     // ############################################################
@@ -189,13 +189,13 @@ class EGParameterSet implements ParameterSet
         }
 
         // q has to be a factor of p-1
-        list($quotient, $remainder) = $this->p->subtract(BI1())->divide($this->q);
+        list($quotient, $remainder) = $this->p->subtract(BI(1))->divide($this->q);
         if (!$remainder->equals(BI(0))) {
             return false;
         }
 
         // g^q mod p must be 1
-        return $this->g->modPow($this->q, $this->p)->equals(BI(1));
+        return $this->g->powMod($this->q, $this->p)->equals(BI(1));
 
     }
 

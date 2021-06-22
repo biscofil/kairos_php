@@ -149,14 +149,16 @@ class EGCiphertext implements CipherText
     {
 
         // a = a * (g ^ r mod p) mod p
-        $alpha = $this->alpha
-            ->multiply($this->pk->parameterSet->g->modPow($randomness, $this->pk->parameterSet->p))
-            ->modPow(BI1(), $this->pk->parameterSet->p);
+        $alpha = mod(
+            $this->alpha->multiply($this->pk->parameterSet->g->powMod($randomness, $this->pk->parameterSet->p)),
+            $this->pk->parameterSet->p
+        );
 
         // b = b * (y ^ r mod p) mod p
-        $beta = $this->beta
-            ->multiply($this->pk->y->modPow($randomness, $this->pk->parameterSet->p))
-            ->modPow(BI1(), $this->pk->parameterSet->p);
+        $beta = mod(
+            $this->beta->multiply($this->pk->y->powMod($randomness, $this->pk->parameterSet->p)),
+            $this->pk->parameterSet->p
+        );
 
         return new static($this->pk, $alpha, $beta);
     }
@@ -171,14 +173,18 @@ class EGCiphertext implements CipherText
     {
 
         // a = a * (g ^ r mod p)^-1
-        $alphaOriginal = $this->alpha->multiply(
-            $this->pk->parameterSet->g->modPow($randomness, $this->pk->parameterSet->p)->modInverse($this->pk->parameterSet->p)
-        )->modPow(BI1(), $this->pk->parameterSet->p);
+        $alphaOriginal =
+            mod(
+                $this->alpha->multiply($this->pk->parameterSet->g->powMod($randomness, $this->pk->parameterSet->p)
+                    ->modInverse($this->pk->parameterSet->p)
+                ), $this->pk->parameterSet->p
+            );
 
         // b = b * (y ^ r mod p)^-1
-        $betaOriginal = $this->beta->multiply(
-            $this->pk->y->modPow($randomness, $this->pk->parameterSet->p)->modInverse($this->pk->parameterSet->p)
-        )->modPow(BI1(), $this->pk->parameterSet->p);
+        $betaOriginal = mod($this->beta->multiply(
+            $this->pk->y->powMod($randomness, $this->pk->parameterSet->p)->modInverse($this->pk->parameterSet->p)),
+            $this->pk->parameterSet->p
+        );
 
         return new static($this->pk, $alphaOriginal, $betaOriginal);
 

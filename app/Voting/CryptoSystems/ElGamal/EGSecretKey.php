@@ -83,7 +83,7 @@ class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
     public function decryptionFactor(EGCiphertext $ciphertext): BigInteger
     {
         // (alpha^x) mod p
-        return $ciphertext->alpha->modPow($this->x, $this->pk->parameterSet->p);
+        return $ciphertext->alpha->powMod($this->x, $this->pk->parameterSet->p);
     }
 
     /**
@@ -119,9 +119,10 @@ class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
         $dec_factor = $this->decryptionFactor($ciphertext);
 
         // ( [( alpha^x) mod p ] ^ -1 mod p * beta ) mod p
-        $m = $dec_factor->modInverse($this->pk->parameterSet->p)
-            ->multiply($ciphertext->beta)
-            ->modPow(BI1(), $this->pk->parameterSet->p);
+        $m = mod(
+            $dec_factor->modInverse($this->pk->parameterSet->p)->multiply($ciphertext->beta),
+            $this->pk->parameterSet->p
+        );
 
         $m = $this->pk->parameterSet->extractMessageFromSubgroup($m);
 
@@ -174,7 +175,7 @@ class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
 
         return new static(
             $this->pk,
-            $this->x->add($b->x->powMod(BI1(), $this->pk->parameterSet->p))
+            mod($this->x->add($b->x), $this->pk->parameterSet->p)
         );
     }
 
@@ -188,15 +189,17 @@ class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
         $inv = $cipher->alpha->powMod($this->x, $cipher->pk->parameterSet->p)
             ->modInverse($cipher->pk->parameterSet->p);
 
-        $beta = $inv->multiply($cipher->beta)->powMod(BI1(), $cipher->pk->parameterSet->p);
+        $beta = mod($inv->multiply($cipher->beta), $cipher->pk->parameterSet->p);
 
         // updates the public key by removing
         $pk = clone $cipher->pk;
-        $pk->y = $pk->y->multiply($this->pk->y->modInverse($cipher->pk->parameterSet->p))
-            ->powMod(BI1(), $cipher->pk->parameterSet->p); // update public key
+        $pk->y = mod(
+            $pk->y->multiply($this->pk->y->modInverse($cipher->pk->parameterSet->p)),
+            $cipher->pk->parameterSet->p
+        ); // update public key
 
         // if y = 1 then the output contains the plaintext in beta
-        if ($pk->y->equals(BI1())) {
+        if ($pk->y->equals(BI(1))) {
             // if this is the last partial decryption we must extract from the subgroup
             // $alpha = BI(0);
 //            $beta = $this->pk->parameterSet->extractMessageFromSubgroup($beta);
@@ -237,9 +240,7 @@ class EGSecretKey implements SecretKey, PartialDecryptionSecretKey
         $receivedSharesIndexes = array_keys($receivedShares);
         foreach ($receivedShares as $j => $receivedShare) {
             $lambda = getLagrangianCoefficientMod($receivedSharesIndexes, $j, $publicKey->parameterSet->q);
-            $x = $x->add(
-                $receivedShare->multiply($lambda)
-            )->modPow(BI1(), $publicKey->parameterSet->q); // TODO check p/q
+            $x = mod($x->add($receivedShare->multiply($lambda)), $publicKey->parameterSet->q); // TODO check p/q
         }
         return new static($publicKey, $x);
     }

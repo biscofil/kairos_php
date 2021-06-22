@@ -66,8 +66,8 @@ class ExpEGCiphertext extends EGCiphertext
     {
         return new static(
             $this->pk,
-            $this->alpha->multiply($b->alpha)->modPow(BI1(), $this->pk->parameterSet->p),
-            $this->beta->multiply($b->beta)->modPow(BI1(), $this->pk->parameterSet->p)
+            mod($this->alpha->multiply($b->alpha), $this->pk->parameterSet->p),
+            mod($this->beta->multiply($b->beta), $this->pk->parameterSet->p)
         );
     }
 

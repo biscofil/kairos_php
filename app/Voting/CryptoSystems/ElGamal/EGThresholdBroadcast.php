@@ -3,7 +3,6 @@
 
 namespace App\Voting\CryptoSystems\ElGamal;
 
-use App\Voting\CryptoSystems\BelongsToCryptoSystem;
 use App\Voting\CryptoSystems\ThresholdBroadcast;
 use phpseclib3\Math\BigInteger;
 
@@ -44,7 +43,7 @@ class EGThresholdBroadcast implements ThresholdBroadcast
         $mod = $this->ps->p;
 
         // left part
-        $left = $this->ps->g->modPow($share_i_j, $mod); // mod
+        $left = $this->ps->g->powMod($share_i_j, $mod); // mod
 
         // right part
         $right = BI(1);
@@ -52,8 +51,8 @@ class EGThresholdBroadcast implements ThresholdBroadcast
 
             $exp = BI(pow($j, $k));
 
-            $term = $A_i_k->modPow($exp, $mod);
-            $right = $right->multiply($term)->modPow(BI1(), $mod);
+            $term = $A_i_k->powMod($exp, $mod);
+            $right = mod($right->multiply($term), $mod);
 
         }
 

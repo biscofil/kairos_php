@@ -54,7 +54,7 @@ class EGCiphertextTest extends TestCase
 
         $shadowMixCipher = $keyPair->pk->encryptWithRandomness($plain, $shadowMixRandomness);
 
-        $diff = $mainMixRandomness->subtract($shadowMixRandomness)->modPow(BI1(), $keyPair->pk->parameterSet->p);
+        $diff = mod($mainMixRandomness->subtract($shadowMixRandomness), $keyPair->pk->parameterSet->p);
 
         $reEncryptedCipher = $shadowMixCipher->reEncryptWithRandomness($diff);
 

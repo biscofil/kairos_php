@@ -40,8 +40,8 @@ class ExpEGEncryptionTest extends TestCase
         $cipherB = $keyPair->pk->encrypt($plaintextB);
 
         $cipherC = clone $cipherA;
-        $cipherC->alpha = $cipherC->alpha->multiply($cipherB->alpha)->modPow(BI1(), $keyPair->pk->parameterSet->p);
-        $cipherC->beta = $cipherC->beta->multiply($cipherB->beta)->modPow(BI1(), $keyPair->pk->parameterSet->p);
+        $cipherC->alpha = mod($cipherC->alpha->multiply($cipherB->alpha), $keyPair->pk->parameterSet->p);
+        $cipherC->beta = mod($cipherC->beta->multiply($cipherB->beta), $keyPair->pk->parameterSet->p);
 
         $k = $keyPair->sk->decrypt($cipherC);
 //        dump($k->m->toString());

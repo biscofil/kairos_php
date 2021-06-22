@@ -38,15 +38,6 @@ function BI($i, int $base = 10): BigInteger
 }
 
 /**
- * Returns 1 as Big Integer
- * @return BigInteger
- */
-function BI1(): BigInteger
-{
-    return BI(1);
-}
-
-/**
  * Returns a random big integer in the range [ 1 , $gt - 1 ]
  * @param BigInteger $gt
  * @return BigInteger
