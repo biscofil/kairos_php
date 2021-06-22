@@ -109,6 +109,7 @@ class ElectionController extends Controller
      *
      * @param EditCreateElectionRequest $request
      * @return Election
+     * @throws \Exception
      */
     public function store(EditCreateElectionRequest $request): Election
     {
@@ -207,7 +208,7 @@ class ElectionController extends Controller
             foreach ($data['questions'] as $question_idx => $question) {
 
                 $qtClass = QuestionTypeEnum::getByIdentifier($question['question_type']);
-                $qtClass::validate($question);
+                $qtClass::validateQuestionCreation($question);
 
                 $q = new Question();
                 $q->election_id = $election->id;

@@ -17,7 +17,7 @@ use Throwable;
  * @package App\Voting\QuestionTypes
  * Ignores order
  */
-class MultipleChoice extends QuestionType
+class MultipleChoice extends QuestionType implements SupportsHomomorhpicEncryption
 {
 
     /**
@@ -113,6 +113,24 @@ class MultipleChoice extends QuestionType
             $out = array_merge($out, $permutations->toArray());
         }
         return $out;
+    }
+
+    /**
+     * check the given order matches the traditional order
+     * @param int[][] $ballot
+     * @return bool
+     */
+    public static function isDecryptedBallotValid(array $ballot) : bool
+    {
+        foreach ($ballot as $questionAnswers){
+            $sorted = $questionAnswers;
+            sort($sorted);
+            if($sorted !== $questionAnswers){
+                // if the user has submitted an invalid order to make the ballot recognizible, ignore the ballot
+                return false;
+            }
+        }
+        return true;
     }
 
 }

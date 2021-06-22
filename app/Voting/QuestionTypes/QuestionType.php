@@ -42,7 +42,7 @@ abstract class QuestionType
     /**
      * @throws \Illuminate\Validation\ValidationException
      */
-    public static function validate($data): array
+    public static function validateQuestionCreation($data): array
     {
         return Validator::make($data, [
             'question' => ['required', 'string'],
@@ -52,6 +52,16 @@ abstract class QuestionType
             'answers.*.answer' => ['required', 'string'],
             'answers.*.url' => ['nullable', 'url'],
         ])->validated();
+    }
+
+    /**
+     * check the given order matches the traditional order
+     * @param array $ballot
+     * @return bool
+     */
+    public static function isDecryptedBallotValid(array $ballot) : bool
+    {
+        return true;
     }
 
 }
