@@ -23,6 +23,8 @@ function getAuthUser(): User
     return auth('user_api')->user();
 }
 
+// ################################################################
+
 /**
  *
  * Returns a new Big Integer
@@ -51,8 +53,21 @@ function BI1(): BigInteger
  */
 function randomBIgt(BigInteger $gt): BigInteger
 {
-    return BigInteger::randomRange(BI1(), $gt->subtract(BI1()));
+    return BigInteger::randomRange(BI(1), $gt->subtract(BI(1)));
 }
+
+/**
+ * More efficient than modPow(1,p)
+ * @param \phpseclib3\Math\BigInteger $v
+ * @param \phpseclib3\Math\BigInteger $m
+ * @return \phpseclib3\Math\BigInteger
+ */
+function mod(BigInteger $v, BigInteger $m): BigInteger
+{
+    return ($v->divide($m))[1];
+}
+
+// ################################################################
 
 /**
  * TODO block IPs
