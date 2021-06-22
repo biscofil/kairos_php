@@ -2,11 +2,13 @@
 
 namespace Tests\Http\Controllers;
 
+use App\Enums\CryptoSystemEnum;
 use App\Models\CastVote;
 use App\Models\Election;
 use App\Models\User;
 use App\Models\Voter;
 use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
+use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\RSA\RSAKeyPair;
 use App\Voting\CryptoSystems\RSA\RSAPlaintext;
 use Tests\TestCase;
@@ -24,7 +26,7 @@ class CastVoteControllerTest extends TestCase
         $user = User::factory()->create();
 
         $election = Election::factory()->withAdmin($user)->frozen()->create();
-        $election->cryptosystem = 'rsa';
+        $election->cryptosystem = CryptoSystemEnum::RSA();
         $election->createPeerServerTrustee(getCurrentServer());
 
         // generate key
@@ -70,5 +72,32 @@ class CastVoteControllerTest extends TestCase
         $out = $keyPair->sk->decrypt($voteCast->vote);
         static::assertEquals($votePlain, Small_JSONBallotEncoding::decode($out));
 
+    }
+
+    /**
+     * @test
+     * @throws \Exception
+     */
+    public function fill_test_votes()
+    {
+        $user = User::factory()->create();
+
+        $election = Election::factory()->withAdmin($user)->frozen()->create();
+        $election->cryptosystem = CryptoSystemEnum::ElGamal();
+        $election->createPeerServerTrustee(getCurrentServer());
+
+        // generate key
+        $election->cryptosystem->getClass()::onElectionFreeze($election); // generateCombinedPublicKey
+        $keyPair = EGKeyPair::generate();
+
+        $election->public_key = $keyPair->pk;
+        $election->save();
+
+        self::createElectionQuestions($election);
+
+        $token = $user->getNewJwtToken();
+        $response = $this->withHeaders(['Authorization' => "Bearer $token"])
+            ->json('POST', "/api/elections/$election->slug/test_cast");
+        self::assertResponseStatusCode(200, $response);
     }
 }
