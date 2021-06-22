@@ -9,10 +9,21 @@
                 <span v-if="mix.previous_mix_id">
                     (previous mix: {{ mix.previous_mix_id }})
                 </span><br>
+
+                Created at: {{ mix.created_at | moment("MM/DD/YYYY HH:mm:ss") }}<br>
+
                 Round: {{ mix.round }}<br>
+
                 Trustee: # {{ mix.trustee_id }}<br>
+
                 Hash: <kbd>{{ mix.hash }}</kbd><br>
-                Valid:
+
+                Time required:
+                <span v-if="mix.mixes_generated_in" title="Mixes generated in N seconds">{{ mix.mixes_generated_in }} s</span> /
+                <span v-if="mix.proofs_generated_in" title="Proofs generated in N seconds">{{ mix.proofs_generated_in }} s</span> /
+                <span v-if="mix.verified_in" title="Proofs verified in N seconds">{{ mix.verified_in }} s</span><br>
+
+                Validity:
                 <span class="badge badge-success" v-if="mix.is_valid === true">Valid</span>
                 <span class="badge badge-danger" v-else-if="mix.is_valid === false">Invalid</span>
                 <span class="badge badge-warning" v-else>To validate</span>
