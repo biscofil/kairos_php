@@ -2,6 +2,7 @@
 
 /**
  * See https://github.com/horde/Pgp/blob/master/lib/Horde/Pgp/Crypt/Elgamal.php
+ * See https://datatracker.ietf.org/doc/html/rfc3447#page-32
  */
 
 namespace App\Voting\CryptoSystems\ElGamal;
@@ -42,10 +43,7 @@ class EG_EME_PKCS1_v1_5
                 $ps .= str_replace("\x00", '', $tmp);
             }
 
-            $em = new BigInteger(
-                chr(0) . chr(2) . $ps . chr(0) . $m,
-                256
-            );
+            $em = new BigInteger(chr(0) . chr(2) . $ps . chr(0) . $m, 256);
             // End EME-PKCS1-v1_5 encoding
 
             $pt = new EGPlaintext($em);
@@ -67,18 +65,12 @@ class EG_EME_PKCS1_v1_5
      */
     public function decrypt(EGSecretKey $sk, string $parts): string
     {
-        $out = '';
         $p_len = strlen($sk->pk->parameterSet->p->toBytes());
 
         $parts = str_split($parts, $p_len);
-        $parts[count($parts) - 1] = str_pad(
-            $parts[count($parts) - 1],
-            $p_len,
-            chr(0),
-            STR_PAD_LEFT
-        );
+        $parts[count($parts) - 1] = str_pad($parts[count($parts) - 1], $p_len, chr(0), STR_PAD_LEFT);
 
-
+        $out = '';
         for ($i = 0, $j = count($parts); $i < $j; $i += 2) {
             $alpha = new BigInteger($parts[$i], 256);
             $beta = new BigInteger($parts[$i + 1], 256);
@@ -86,12 +78,7 @@ class EG_EME_PKCS1_v1_5
             $ct = new EGCiphertext($sk->pk, $alpha, $beta);
             $m_prime = $sk->decrypt($ct)->m;
 
-            $em = str_pad(
-                $m_prime->toBytes(),
-                $p_len,
-                chr(0),
-                STR_PAD_LEFT
-            );
+            $em = str_pad($m_prime->toBytes(), $p_len, chr(0), STR_PAD_LEFT);
 
             // EME-PKCS1-v1_5 decoding
             if ((ord($em[0]) !== 0) || (ord($em[1]) !== 2)) {
