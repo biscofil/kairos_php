@@ -4,9 +4,9 @@
 namespace App\Voting\CryptoSystems\ExpElGamal;
 
 
-use App\Models\CastVote;
 use App\Models\Election;
 use App\Voting\CryptoSystems\CryptoSystem;
+use App\Voting\CryptoSystems\ElGamal\ElGamal;
 use App\Voting\CryptoSystems\SupportsTLThresholdEncryption;
 
 /**
@@ -89,9 +89,11 @@ class ExpElGamal implements CryptoSystem, SupportsTLThresholdEncryption
 
     /**
      * @param \App\Models\Election $election
+     * @throws \Exception
      */
     public static function onElectionFreeze(Election &$election): void
     {
+        ElGamal::onElectionFreeze($election);
         // TODO: Implement onElectionFreeze() method.
     }
 
