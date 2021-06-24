@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int id
  * @property string ip
  * @property string hash
+ * @property string signature
  *
  * @property int voter_id
  *
@@ -45,6 +46,7 @@ class CastVote extends Model
         'vote',
         'ip',
         'hash',
+        'signature',
         //
         'election_id',
         'answer_id',

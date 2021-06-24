@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Cast\PublicKeyCaster;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,6 +21,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @property int|null last_vote_cast_id
  * @property CastVote|null lastVoteCast
+ *
+ * @property null|\App\Voting\CryptoSystems\PublicKey public_key
+ * @property null|string secret_key
+ *
  * @method static self make()
  * @method static self findOrFail($id)
  */
@@ -27,10 +32,21 @@ class Voter extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'election_id',
+        'user_id',
+        'last_vote_cast_id',
+        'secret_key', 'public_key'
+    ];
+
+    protected $casts = [
+        'public_key' => PublicKeyCaster::class
+    ];
+
     // ############################################# RELATIONS
 
     /**
-     * @return BelongsTo
+     * @return BelongsTo|\App\Models\Election
      */
     public function election(): BelongsTo
     {
@@ -38,7 +54,7 @@ class Voter extends Model
     }
 
     /**
-     * @return BelongsTo
+     * @return BelongsTo|\App\Models\User
      */
     public function user(): BelongsTo
     {
@@ -46,7 +62,7 @@ class Voter extends Model
     }
 
     /**
-     * @return HasMany
+     * @return HasMany|\App\Models\CastVote
      */
     public function votes(): HasMany
     {
@@ -54,7 +70,7 @@ class Voter extends Model
     }
 
     /**
-     * @return BelongsTo
+     * @return BelongsTo|\App\Models\CastVote
      */
     public function lastVoteCast(): BelongsTo
     {
