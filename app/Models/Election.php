@@ -76,6 +76,7 @@ use Webpatser\Uuid\Uuid;
  * @property Collection|\App\Models\PeerServer[] peerServers
  *
  * @property-read array issues
+ * @see Election::getIssuesAttribute()
  *
  * @property bool use_voter_alias
  * @property bool use_advanced_audit_features
@@ -318,6 +319,13 @@ class Election extends Model
             $issues[] = [
                 'type' => 'trustees',
                 'action' => 'Add at least one peer server trustee that accepts ballots'
+            ];
+        }
+
+        if ($this->min_peer_count_t > $this->trustees()->peerServers()->count()) {
+            $issues[] = [
+                'type' => 'trustees',
+                'action' => 'min_peer_count_t is higher than the number of peer server trustees.'
             ];
         }
 
@@ -593,10 +601,16 @@ class Election extends Model
     // ############################################ Freeze
 
     /**
-     *
+     * @return bool
      */
     public function preFreeze(): bool
     {
+        if (count($this->issues) > 0) {
+            Log::error('PreFreeze failed:');
+            /** @noinspection PhpParamsInspection */
+            Log::debug($this->issues);
+            return false;
+        }
         return $this->anonymization_method->getClass()::preFreeze($this);
     }
 
@@ -757,7 +771,7 @@ class Election extends Model
     /**
      * @return bool
      */
-    public function deleteFiles() : bool
+    public function deleteFiles(): bool
     {
         return Storage::deleteDirectory($this->getElectionFolder());
     }
