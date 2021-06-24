@@ -45,7 +45,7 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
         }
 
         self::purgeJobs();
-        $election->anonymization_method->getClass()::afterVotingPhaseEnds($election);
+        $election->anonymization_method->getClass()::afterVotingPhaseEnds($election, $trustee);
         self::assertNotEquals(0, self::getPendingJobCount());
 
         self::runFirstPendingJob();
@@ -54,6 +54,7 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
 
         self::assertNotNull($election->tallying_finished_at);
 
+        self::assertNotEquals(0, $election->mixes()->count());
         /** @var \App\Models\Mix $lastMix */
         $lastMix = $election->mixes()->latest()->firstOrFail();
         $lastMix->verify();

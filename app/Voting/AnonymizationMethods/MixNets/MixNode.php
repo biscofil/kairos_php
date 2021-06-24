@@ -171,7 +171,7 @@ abstract class MixNode implements AnonymizationMethod
                 Log::debug('MixNode afterVotingPhaseEnds > dispatching GenerateMix');
 
                 // dispatch mix job
-                GenerateMix::dispatch($election);
+                GenerateMix::dispatch($election, null, $trusteeRunningCode);
             } else {
                 Log::debug('afterVotingPhaseEnds > Current server does not accept vallots');
             }
