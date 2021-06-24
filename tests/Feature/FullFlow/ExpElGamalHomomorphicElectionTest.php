@@ -7,6 +7,7 @@ namespace Tests\Feature\FullFlow;
 use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
+use App\Models\PeerServer;
 use App\Models\User;
 use App\Models\Voter;
 use App\Voting\CryptoSystems\ExpElGamal\ExpEGPlaintext;
@@ -28,22 +29,23 @@ class ExpElGamalHomomorphicElectionTest extends TestCase
         $election = Election::factory()->create();
         $election->cryptosystem = CryptoSystemEnum::ExponentialElGamal();
         $election->anonymization_method = AnonymizationMethodEnum::Homomorphic();
+        $election->min_peer_count_t = 1;
         $election->save();
 
-        $trustee = $election->createPeerServerTrustee(getCurrentServer());
-
-        $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
-        $ptClass = $election->cryptosystem->getClass()::getPlainTextClass();
-
-        $keyPair = $kpClass::generate();
-        $election->public_key = $keyPair->pk;
-        $election->private_key = $keyPair->sk;
-        $election->voting_started_at = Carbon::now();
-        $election->save();
-
-        $election->actualFreeze();
+        $peerServer = PeerServer::factory()->create();
+        $trustee = $election->createPeerServerTrustee($peerServer);
+        $trustee->generateKeyPair();
+        $trustee->accepts_ballots = true;
+        $trustee->save();
 
         self::createElectionQuestions($election, 1, 1);
+
+        self::assertTrue($election->preFreeze());
+        $election->actualFreeze();
+
+        // start voting phase
+        $election->voting_started_at = Carbon::now();
+        $election->save();
 
         // cast votes
         for ($i = 0; $i < 5; $i++) {
@@ -56,7 +58,7 @@ class ExpElGamalHomomorphicElectionTest extends TestCase
             $voter->save();
 
             $plaintext = new ExpEGPlaintext(BI(1));
-            $cipher = $keyPair->pk->encrypt($plaintext);
+            $cipher = $election->public_key->encrypt($plaintext);
 
             $v = $cipher->toArray(true);
             $v['answer_id'] = $election->questions()->first()->answers()->first()->id; // first
@@ -78,6 +80,7 @@ class ExpElGamalHomomorphicElectionTest extends TestCase
 
         // TODO secret key combination
 
+        $election->private_key = $trustee->private_key; // TODO check
         $election->anonymization_method->getClass()::afterVotingPhaseEnds($election);
 
         // TODO brute force

@@ -257,19 +257,24 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
         $election = Election::factory()->create();
         $election->cryptosystem = CryptoSystemEnum::ElGamal();
         $election->anonymization_method = AnonymizationMethodEnum::DecReEncMixNet();
+        $election->min_peer_count_t = 1;
         $election->save();
 
         $nQuestions = 3;
         self::createElectionQuestions($election, $nQuestions);
 
-        $election->createPeerServerTrustee(getCurrentServer());
-
-        $election->min_peer_count_t = 1;
-        $election->voting_started_at = Carbon::now();
-        $election->save();
+        $peerServer = PeerServer::factory()->create();
+        $trustee = $election->createPeerServerTrustee($peerServer);
+        $trustee->generateKeyPair();
+        $trustee->accepts_ballots = true;
+        $trustee->save();
 
         self::assertTrue($election->preFreeze());
         $election->actualFreeze();
+
+        // start voting phase
+        $election->voting_started_at = Carbon::now();
+        $election->save();
 
         // cast votes
         $ballots = [];

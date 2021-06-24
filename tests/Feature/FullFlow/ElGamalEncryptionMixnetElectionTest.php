@@ -7,6 +7,7 @@ namespace Tests\Feature\FullFlow;
 use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
+use App\Models\PeerServer;
 use Tests\TestCase;
 
 /**
@@ -27,7 +28,8 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
         $election->min_peer_count_t = 1;
         $election->save();
 
-        $trustee = $election->createPeerServerTrustee(getCurrentServer());
+        $peerServer = PeerServer::factory()->create();
+        $trustee = $election->createPeerServerTrustee($peerServer);
         $trustee->generateKeyPair();
         $trustee->accepts_ballots = true;
         $trustee->save();
@@ -44,7 +46,7 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
 
         self::purgeJobs();
         $election->anonymization_method->getClass()::afterVotingPhaseEnds($election);
-        self::assertEquals(1, self::getPendingJobCount());
+        self::assertNotEquals(0, self::getPendingJobCount());
 
         self::runFirstPendingJob();
 
