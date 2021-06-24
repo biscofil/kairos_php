@@ -6,6 +6,7 @@ use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
 use App\Models\Mix;
+use App\Models\PeerServer;
 use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGKeyPair;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
@@ -61,10 +62,15 @@ class ReEncryptionMixNodeTest extends TestCase
         $election->anonymization_method = AnonymizationMethodEnum::EncMixNet(); // TODO remove
         $election->save();
 
-        $trustee = $election->createPeerServerTrustee(getCurrentServer());
+        $peerServer = PeerServer::factory()->create();
+        $trustee = $election->createPeerServerTrustee($peerServer);
         $trustee->generateKeyPair();
+        $trustee->accepts_ballots = true;
+        $trustee->save();
 
-        $election->preFreeze();
+        self::createElectionQuestions($election);
+
+        self::assertTrue($election->preFreeze());
         $election->actualFreeze();
 
         for ($i = 0; $i < 5; $i++) {
@@ -109,10 +115,15 @@ class ReEncryptionMixNodeTest extends TestCase
         $election->anonymization_method = AnonymizationMethodEnum::EncMixNet();
         $election->save();
 
-        $trustee = $election->createPeerServerTrustee(getCurrentServer());
+        $peerServer = PeerServer::factory()->create();
+        $trustee = $election->createPeerServerTrustee($peerServer);
         $trustee->generateKeyPair();
+        $trustee->accepts_ballots = true;
+        $trustee->save();
 
-        $election->preFreeze();
+        self::createElectionQuestions($election);
+
+        self::assertTrue($election->preFreeze());
         $election->actualFreeze();
 
         for ($i = 0; $i < rand(5, 10); $i++) {

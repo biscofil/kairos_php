@@ -57,7 +57,7 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
         $election->min_peer_count_t = 3;
         $election->save();
 
-//        $election->preFreeze();
+//     self::assertTrue($election->preFreeze());
         $election->actualFreeze();
 
         // public key of election is the combination
@@ -165,7 +165,7 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
         $election->voting_started_at = Carbon::now();
         $election->save();
 
-//        $election->preFreeze();
+//      self::assertTrue($election->preFreeze());
         $election->actualFreeze();
 
         // public key of election is the combination
@@ -268,7 +268,7 @@ class ElGamalDecryptionReEncryptionMixnetElectionTest extends TestCase
         $election->voting_started_at = Carbon::now();
         $election->save();
 
-        $election->preFreeze();
+        self::assertTrue($election->preFreeze());
         $election->actualFreeze();
 
         // cast votes

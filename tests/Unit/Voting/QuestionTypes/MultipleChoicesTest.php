@@ -7,6 +7,7 @@ namespace Tests\Unit\Voting\QuestionTypes;
 use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
+use App\Models\PeerServer;
 use App\Models\Question;
 use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
 use App\Voting\CryptoSystems\ElGamal\EGPlaintext;
@@ -25,11 +26,16 @@ class MultipleChoicesTest extends TestCase
         $election = Election::factory()->create();
         $election->cryptosystem = CryptoSystemEnum::ElGamal();
         $election->anonymization_method = AnonymizationMethodEnum::EncMixNet();
-        $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
-        $keyPair = $kpClass::generate();
-        $election->public_key = $keyPair->pk;
-        $election->private_key = $keyPair->sk;
+        $election->min_peer_count_t = 1;
+        $election->save();
         self::createElectionQuestions($election);
+
+        $peerServer = PeerServer::factory()->create();
+        $trustee = $election->createPeerServerTrustee($peerServer);
+        $trustee->generateKeyPair();
+        $trustee->accepts_ballots = true;
+        $trustee->save();
+
         self::assertTrue($election->preFreeze());
         $election->actualFreeze();
 
@@ -39,9 +45,9 @@ class MultipleChoicesTest extends TestCase
             [3]  // third answer of third question
         ];
         $plaintext = Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
-        $cipher = $keyPair->pk->encrypt($plaintext);
+        $cipher = $election->public_key->encrypt($plaintext);
 
-        $plainVote = Small_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
+        $plainVote = Small_JSONBallotEncoding::decode($trustee->private_key->decrypt($cipher));
 
         $tallyDatabase = $election->getTallyDatabase();
         self::assertTrue($tallyDatabase->insertBallot($plainVote));
@@ -72,15 +78,18 @@ class MultipleChoicesTest extends TestCase
         $election = Election::factory()->create();
         $election->cryptosystem = CryptoSystemEnum::ElGamal();
         $election->anonymization_method = AnonymizationMethodEnum::EncMixNet();
-        $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
-        $keyPair = $kpClass::generate();
-        $election->public_key = $keyPair->pk;
-        $election->private_key = $keyPair->sk;
+        $election->min_peer_count_t = 1;
         $election->save();
+
+        $peerServer = PeerServer::factory()->create();
+        $trustee = $election->createPeerServerTrustee($peerServer);
+        $trustee->generateKeyPair();
+        $trustee->accepts_ballots = true;
+        $trustee->save();
 
         self::createElectionQuestions($election);
 
-        $election->preFreeze();
+        self::assertTrue($election->preFreeze());
         $election->actualFreeze();
 
         $votePlain = [
@@ -89,9 +98,9 @@ class MultipleChoicesTest extends TestCase
             []
         ];
         $plaintext = Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
-        $cipher = $keyPair->pk->encrypt($plaintext);
+        $cipher = $election->public_key->encrypt($plaintext);
 
-        $plainVote = Small_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
+        $plainVote = Small_JSONBallotEncoding::decode($trustee->private_key->decrypt($cipher));
         $tallyDatabase = $election->getTallyDatabase();
         self::assertTrue($tallyDatabase->insertBallot($plainVote));
         $tallyDatabase->tally();
@@ -107,15 +116,18 @@ class MultipleChoicesTest extends TestCase
         $election = Election::factory()->create();
         $election->cryptosystem = CryptoSystemEnum::ElGamal();
         $election->anonymization_method = AnonymizationMethodEnum::EncMixNet();
-        $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
-        $keyPair = $kpClass::generate();
-        $election->public_key = $keyPair->pk;
-        $election->private_key = $keyPair->sk;
+        $election->min_peer_count_t = 1;
         $election->save();
+
+        $peerServer = PeerServer::factory()->create();
+        $trustee = $election->createPeerServerTrustee($peerServer);
+        $trustee->generateKeyPair();
+        $trustee->accepts_ballots = true;
+        $trustee->save();
 
         self::createElectionQuestions($election); //rand(1, 3), rand(1, 3)
 
-        $election->preFreeze();
+        self::assertTrue($election->preFreeze());
         $election->actualFreeze();
 
         $votePlain = [
@@ -124,9 +136,9 @@ class MultipleChoicesTest extends TestCase
             [3] // third answer of third question
         ];
         $plaintext = Small_JSONBallotEncoding::encode($votePlain, EGPlaintext::class);
-        $cipher = $keyPair->pk->encrypt($plaintext);
+        $cipher = $election->public_key->encrypt($plaintext);
 
-        $plainVote = Small_JSONBallotEncoding::decode($election->private_key->decrypt($cipher));
+        $plainVote = Small_JSONBallotEncoding::decode($trustee->private_key->decrypt($cipher));
         $tallyDatabase = $election->getTallyDatabase();
         self::assertFalse($tallyDatabase->insertBallot($plainVote));
 

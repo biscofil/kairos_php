@@ -27,17 +27,15 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
         $election->min_peer_count_t = 1;
         $election->save();
 
-        $kpClass = $election->cryptosystem->getClass()::getKeyPairClass();
-
         $trustee = $election->createPeerServerTrustee(getCurrentServer());
-        $trusteeKeyPair = $kpClass::generate();
-        $trustee->public_key = $trusteeKeyPair->pk;
+        $trustee->generateKeyPair();
+        $trustee->accepts_ballots = true;
         $trustee->save();
 
-        $election->preFreeze();
-        $election->actualFreeze();
-
         self::createElectionQuestions($election);
+
+        self::assertTrue($election->preFreeze());
+        $election->actualFreeze();
 
         // cast votes
         for ($i = 0; $i < 5; $i++) {
@@ -50,8 +48,6 @@ class ElGamalEncryptionMixnetElectionTest extends TestCase
 
         self::runFirstPendingJob();
 
-        $trustee->private_key = $trusteeKeyPair->sk;
-        $trustee->save();
         $election->anonymization_method->getClass()::onSecretKeyReceived($election, $trustee);
 
         self::assertNotNull($election->tallying_finished_at);

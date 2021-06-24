@@ -5,6 +5,7 @@ namespace Tests\Feature\Models;
 use App\Enums\AnonymizationMethodEnum;
 use App\Enums\CryptoSystemEnum;
 use App\Models\Election;
+use App\Models\PeerServer;
 use App\Models\Trustee;
 use App\Models\User;
 use App\Voting\BallotEncodings\Small_JSONBallotEncoding;
@@ -176,6 +177,7 @@ class ElectionTest extends TestCase
         $election = Election::factory()->make();
         $election->cryptosystem = CryptoSystemEnum::ElGamal();
         $election->anonymization_method = AnonymizationMethodEnum::EncMixNet();
+        $election->min_peer_count_t = 1;
         $response = $this->actingAs($user)
             ->json('POST', 'api/elections', $election->toArray());
         self::assertResponseStatusCode(201, $response);
@@ -185,12 +187,16 @@ class ElectionTest extends TestCase
         $election->voting_started_at = Carbon::now();
         $election->voting_ends_at = Carbon::now();
 
-        $election->createPeerServerTrustee(getCurrentServer());
-
-        $election->preFreeze();
-        $election->actualFreeze();
+        $peerServer = PeerServer::factory()->create();
+        $trustee = $election->createPeerServerTrustee($peerServer);
+        $trustee->generateKeyPair();
+        $trustee->accepts_ballots = true;
+        $trustee->save();
 
         self::createElectionQuestions($election);
+
+        self::assertTrue($election->preFreeze());
+        $election->actualFreeze();
 
         for ($i = 0; $i < rand(3, 5); $i++) {
 
