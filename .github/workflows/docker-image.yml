@@ -6,10 +6,11 @@ on:
 
 jobs:
   php_test:
-    runs-on: biscofil/kairos_php:no_user
+    runs-on: ubuntu-latest
+    container: biscofil/kairos_php:no_user
     services:
       mysql:
-        image: mysql:8
+        image: biscofil/kairos_php:no_user
         env:
           MYSQL_DATABASE: laravel
           MYSQL_ROOT_PASSWORD: your_mysql_root_password
@@ -48,7 +49,8 @@ jobs:
       DB_USERNAME: root
 
   db_test:
-    runs-on: biscofil/kairos_php:no_user
+    runs-on: ubuntu-latest
+    container: biscofil/kairos_php:no_user
     steps:
     - name: test db
       run: |
@@ -68,7 +70,8 @@ jobs:
       DB_USERNAME: root
 
   npm_test:
-    runs-on: biscofil/kairos_php:no_user
+    runs-on: ubuntu-latest
+    container: biscofil/kairos_php:no_user
     # coverage: &cov '/^Statements\s*:\s*([^%]+)/'
     # Cache libraries in between jobs
     #cache:
