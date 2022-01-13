@@ -1,4 +1,4 @@
-## Thelios
+## Kairos Voting System
 
 [![.github/workflows/docker-image.yml](https://github.com/biscofil/kairos_php/actions/workflows/docker-image.yml/badge.svg)](https://github.com/biscofil/kairos_php/actions/workflows/docker-image.yml)
 
