@@ -1,6 +1,6 @@
 jobs:
   php_test:
-    runs-on: registry.gitlab.com/biscofil/thelios:no_user
+    runs-on: biscofil/kairos_php:no_user
     services:
       - mysql:8
     coverage: &cov '/^\s*Lines:\s*(\d+.\d+)\%/'
@@ -34,7 +34,7 @@ jobs:
       DB_USERNAME: root
 
   db_test:
-    runs-on: registry.gitlab.com/biscofil/thelios:no_user
+    runs-on: biscofil/kairos_php:no_user
     before_script:
       - cp .env.example .env
       - composer install
@@ -47,7 +47,7 @@ jobs:
       - php artisan db:seed
 
   npm_test:
-    runs-on: registry.gitlab.com/biscofil/thelios:no_user
+    runs-on: biscofil/kairos_php:no_user
     coverage: &cov '/^Statements\s*:\s*([^%]+)/'
     # Cache libraries in between jobs
     cache:
