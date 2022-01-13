@@ -4,6 +4,7 @@
 
 [![coverage report](https://gitlab.com/biscofil/thelios/badges/master/coverage.svg)](https://gitlab.com/biscofil/thelios/-/commits/master)
 
+[![.github/workflows/docker-image.yml](https://github.com/biscofil/kairos_php/actions/workflows/docker-image.yml/badge.svg)](https://github.com/biscofil/kairos_php/actions/workflows/docker-image.yml)
 
 ```shell
 # comment out the user part in DockerFile (gitlab)
