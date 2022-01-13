@@ -6,6 +6,14 @@
 
 [![.github/workflows/docker-image.yml](https://github.com/biscofil/kairos_php/actions/workflows/docker-image.yml/badge.svg)](https://github.com/biscofil/kairos_php/actions/workflows/docker-image.yml)
 
+Kairos is a Peer-2-Peer capable framework for end-to-end verifiable voting systems.
+
+Master's Thesis in PDF: http://hdl.handle.net/10579/19696
+
+Kairos implements a modular structure which allows to handle multiple question types, cryptosystems and anonymization methods.
+
+Kairos is a fork of Helios by Ben Adida (https://github.com/benadida/helios-server)
+
 ```shell
 # comment out the user part in DockerFile (gitlab)
 docker build -t registry.gitlab.com/biscofil/thelios:no_user .
