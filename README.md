@@ -2,7 +2,7 @@
 
 [![.github/workflows/docker-image.yml](https://github.com/biscofil/kairos_php/actions/workflows/docker-image.yml/badge.svg)](https://github.com/biscofil/kairos_php/actions/workflows/docker-image.yml)
 
-Kairos is a Peer-2-Peer capable framework for end-to-end verifiable voting systems.
+Kairos is a Peer-2-Peer capable framework for end-to-end verifiable voting systems. The website is a SPA with Vue taking care of the front-end.
 
 Master's Thesis in PDF: http://hdl.handle.net/10579/19696
 
@@ -70,8 +70,6 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
 # disable SSL commenting 000-default.conf
 mkdir helios
-
-docker login registry.gitlab.com
 
 U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose up -d
 docker pull certbot/certbot
