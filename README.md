@@ -1,9 +1,5 @@
 ## Thelios
 
-[![pipeline status](https://gitlab.com/biscofil/thelios/badges/master/pipeline.svg)](https://gitlab.com/biscofil/thelios/-/commits/master)
-
-[![coverage report](https://gitlab.com/biscofil/thelios/badges/master/coverage.svg)](https://gitlab.com/biscofil/thelios/-/commits/master)
-
 [![.github/workflows/docker-image.yml](https://github.com/biscofil/kairos_php/actions/workflows/docker-image.yml/badge.svg)](https://github.com/biscofil/kairos_php/actions/workflows/docker-image.yml)
 
 Kairos is a Peer-2-Peer capable framework for end-to-end verifiable voting systems.
