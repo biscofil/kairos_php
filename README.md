@@ -29,7 +29,7 @@ U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose build
 U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose up -d
 ```
 
-# on server peer20
+# Adding SSL to the server domain.xyz
 ```shell
 docker pull certbot/certbot
 U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose build
@@ -39,39 +39,8 @@ docker run -it --rm -v $(pwd)/letsencrypt/certs:/etc/letsencrypt -v $(pwd)/letse
     certbot/certbot certonly \
     --webroot \
     --webroot-path=/data/letsencrypt \
-    -d peer20.biscofil.it \
-    --email filippo.bisconcin@gmail.com \
-    --agree-tos
-```
-
-# on server peer21
-```shell
-docker pull certbot/certbot
-U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose build
-U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose up -d
-U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose down
-docker run -it --rm -v $(pwd)/letsencrypt/certs:/etc/letsencrypt -v $(pwd)/letsencrypt/data:/data/letsencrypt \
-    certbot/certbot certonly \
-    --webroot \
-    --webroot-path=/data/letsencrypt \
-    -d peer21.biscofil.it \
-    --email filippo.bisconcin@gmail.com \
-    --agree-tos
-```
-
-
-# on server peer22
-```shell
-docker pull certbot/certbot
-U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose build
-U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose up -d
-U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose down
-docker run -it --rm -v $(pwd)/letsencrypt/certs:/etc/letsencrypt -v $(pwd)/letsencrypt/data:/data/letsencrypt \
-    certbot/certbot certonly \
-    --webroot \
-    --webroot-path=/data/letsencrypt \
-    -d peer22.biscofil.it \
-    --email filippo.bisconcin@gmail.com \
+    -d domain.xyz \
+    --email your@email.com \
     --agree-tos
 ```
 
