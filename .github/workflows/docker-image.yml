@@ -1,0 +1,61 @@
+jobs:
+  php_test:
+    runs-on: registry.gitlab.com/biscofil/thelios:no_user
+    services:
+      - mysql:8
+    coverage: &cov '/^\s*Lines:\s*(\d+.\d+)\%/'
+    # Cache libraries in between jobs
+    cache:
+      key: composer_cache
+      paths:
+        - vendor/
+    steps:
+      - cp .env.example .env
+      - cp db.env.example db.env
+      - composer install
+      - rm bootstrap/cache/*
+      - php artisan config:clear
+      - php artisan cache:clear
+      - php artisan route:clear
+      - php artisan view:clear
+      - php artisan key:generate
+      - php artisan migrate
+      - php artisan db:seed
+      - php artisan generate:jwt-keypair
+      - php artisan config:cache
+      - php artisan route:cache
+      - echo PHPUNIT TEST
+      - vendor/phpunit/phpunit/phpunit tests/ --coverage-text --colors=never --configuration phpunit_gitlab.xml
+    variables:
+      # Configure mysql environment variables (https://hub.docker.com/_/mysql/)
+      MYSQL_DATABASE: laravel
+      MYSQL_ROOT_PASSWORD: your_mysql_root_password
+      DB_HOST: mysql
+      DB_USERNAME: root
+
+  db_test:
+    runs-on: registry.gitlab.com/biscofil/thelios:no_user
+    before_script:
+      - cp .env.example .env
+      - composer install
+      - php artisan key:generate
+      - php artisan config:cache
+    script:
+      - php artisan migrate
+      - php artisan db:seed
+      - php artisan migrate:refresh
+      - php artisan db:seed
+
+  npm_test:
+    runs-on: registry.gitlab.com/biscofil/thelios:no_user
+    coverage: &cov '/^Statements\s*:\s*([^%]+)/'
+    # Cache libraries in between jobs
+    cache:
+      key: npn_cache
+      paths:
+        - node_modules/
+    steps:
+      - echo NPM INSTALL
+      - npm i
+      - echo NPM TEST
+      - npm test
