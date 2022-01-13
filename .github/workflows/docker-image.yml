@@ -7,7 +7,14 @@ on:
 jobs:
   php_test:
     runs-on: ubuntu-latest
-    container: biscofil/kairos_php:no_user
+    container:
+      image: biscofil/kairos_php:no_user
+      env:
+        # Configure mysql environment variables (https://hub.docker.com/_/mysql/)
+        MYSQL_DATABASE: laravel
+        MYSQL_ROOT_PASSWORD: your_mysql_root_password
+        DB_HOST: mysql
+        DB_USERNAME: root
     services:
       mysql:
         image: biscofil/kairos_php:no_user
@@ -41,16 +48,17 @@ jobs:
         php artisan route:cache
         echo PHPUNIT TEST
         vendor/phpunit/phpunit/phpunit tests/ --coverage-text --colors=never --configuration phpunit_gitlab.xml
-    env:
-      # Configure mysql environment variables (https://hub.docker.com/_/mysql/)
-      MYSQL_DATABASE: laravel
-      MYSQL_ROOT_PASSWORD: your_mysql_root_password
-      DB_HOST: mysql
-      DB_USERNAME: root
 
   db_test:
     runs-on: ubuntu-latest
-    container: biscofil/kairos_php:no_user
+    container:
+      image: biscofil/kairos_php:no_user
+      env:
+        # Configure mysql environment variables (https://hub.docker.com/_/mysql/)
+        MYSQL_DATABASE: laravel
+        MYSQL_ROOT_PASSWORD: your_mysql_root_password
+        DB_HOST: mysql
+        DB_USERNAME: root
     steps:
     - name: test db
       run: |
@@ -62,22 +70,17 @@ jobs:
         php artisan db:seed
         php artisan migrate:refresh
         php artisan db:seed
-    env:
-      # Configure mysql environment variables (https://hub.docker.com/_/mysql/)
-      MYSQL_DATABASE: laravel
-      MYSQL_ROOT_PASSWORD: your_mysql_root_password
-      DB_HOST: mysql
-      DB_USERNAME: root
-
+   
   npm_test:
     runs-on: ubuntu-latest
-    container: biscofil/kairos_php:no_user
-    # coverage: &cov '/^Statements\s*:\s*([^%]+)/'
-    # Cache libraries in between jobs
-    #cache:
-    #  key: npn_cache
-    #  paths:
-    #    - node_modules/
+    container:
+      image: biscofil/kairos_php:no_user
+      env:
+        # Configure mysql environment variables (https://hub.docker.com/_/mysql/)
+        MYSQL_DATABASE: laravel
+        MYSQL_ROOT_PASSWORD: your_mysql_root_password
+        DB_HOST: mysql
+        DB_USERNAME: root
     steps:
     - name: test npm
       run: |
