@@ -14,7 +14,7 @@ jobs:
         DB_PASSWORD: your_mysql_root_password
         DB_HOST: mysql
         DB_USERNAME: root
-        
+
     services:
       mysql:
         image: mysql:8
@@ -23,19 +23,11 @@ jobs:
           MYSQL_ROOT_PASSWORD: your_mysql_root_password
           DB_HOST: mysql
           DB_USERNAME: root
-          
-    # coverage: &cov '/^\s*Lines:\s*(\d+.\d+)\%/'
-    # Cache libraries in between jobs
-    #cache:
-    #  key: composer_cache
-    #  paths:
-    #    - vendor/
-    
+
     steps:
-    - uses: actions/checkout@v1
-      with:
-         fetch-depth: 1
-    
+
+    - uses: actions/checkout@v2
+
     - name: test php
       run: |
         cp .env.example .env
@@ -64,7 +56,7 @@ jobs:
         DB_PASSWORD: your_mysql_root_password
         DB_HOST: mysql
         DB_USERNAME: root
-    
+
     services:
       mysql:
         image: mysql:8
@@ -73,13 +65,11 @@ jobs:
           MYSQL_ROOT_PASSWORD: your_mysql_root_password
           DB_HOST: mysql
           DB_USERNAME: root
-        
+
     steps:
-    
-    - uses: actions/checkout@v1
-      with:
-         fetch-depth: 1
-         
+
+    - uses: actions/checkout@v2
+
     - name: test db
       run: |
         cp .env.example .env
