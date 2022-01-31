@@ -90,20 +90,19 @@ jobs:
         php artisan db:seed
         php artisan migrate:refresh
         php artisan db:seed
-   
+
   npm_test:
     runs-on: ubuntu-latest
-    container:
-      image: biscofil/kairos_php:no_user
-        
+
     steps:
-    - uses: actions/checkout@v1
-      with:
-         fetch-depth: 1
-    
-    - name: test npm
-      run: |
-        echo NPM INSTALL
-        npm i
-        echo NPM TEST
-        npm test
+     - name: Checkout
+       uses: actions/checkout@v2
+     - name: Setup Node.js
+       uses: actions/setup-node@v2-beta
+       with:
+         node-version: '12'
+         check-latest: true
+     - name: Install NPM dependencies
+       run: npm install
+     - name: Test NPM compilation
+       run: npm run prod
