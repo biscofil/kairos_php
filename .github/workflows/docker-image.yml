@@ -10,9 +10,8 @@ jobs:
     container:
       image: biscofil/kairos_php:no_user
       env:
-        # Configure mysql environment variables (https://hub.docker.com/_/mysql/)
-        MYSQL_DATABASE: laravel
-        MYSQL_ROOT_PASSWORD: your_mysql_root_password
+        DB_DATABASE: laravel
+        DB_PASSWORD: your_mysql_root_password
         DB_HOST: mysql
         DB_USERNAME: root
         
@@ -61,9 +60,8 @@ jobs:
     container:
       image: biscofil/kairos_php:no_user
       env:
-        # Configure mysql environment variables (https://hub.docker.com/_/mysql/)
-        MYSQL_DATABASE: laravel
-        MYSQL_ROOT_PASSWORD: your_mysql_root_password
+        DB_DATABASE: laravel
+        DB_PASSWORD: your_mysql_root_password
         DB_HOST: mysql
         DB_USERNAME: root
     
@@ -97,12 +95,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: biscofil/kairos_php:no_user
-      env:
-        # Configure mysql environment variables (https://hub.docker.com/_/mysql/)
-        MYSQL_DATABASE: laravel
-        MYSQL_ROOT_PASSWORD: your_mysql_root_password
-        DB_HOST: mysql
-        DB_USERNAME: root
         
     steps:
     - uses: actions/checkout@v1
