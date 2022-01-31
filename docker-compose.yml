@@ -17,7 +17,7 @@ services:
 #    build:
 #      context: .
 #      dockerfile: Dockerfile
-    image: registry.gitlab.com/biscofil/thelios:user
+    image: biscofil/kairos_php:user
     restart: unless-stopped
     tty: true
     depends_on:
@@ -42,7 +42,7 @@ services:
 #    #    build:
 #    #      context: .
 #    #      dockerfile: Dockerfile
-#    image: registry.gitlab.com/biscofil/thelios:user
+#    image: biscofil/kairos_php:user
 #    restart: always
 #    command: php artisan run_web_socket_client_loop
 #    volumes:
@@ -52,7 +52,7 @@ services:
 #    build:
 #      context: .
 #      dockerfile: Dockerfile
-    image: registry.gitlab.com/biscofil/thelios:user
+    image: biscofil/kairos_php:user
     restart: always
     depends_on:
       - webserver
@@ -65,7 +65,7 @@ services:
 #    build:
 #      context: .
 #      dockerfile: Dockerfile
-    image: registry.gitlab.com/biscofil/thelios:user
+    image: biscofil/kairos_php:user
     depends_on:
       - webserver
       - database_server
