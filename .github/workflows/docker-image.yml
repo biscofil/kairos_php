@@ -5,7 +5,7 @@ on:
     - release/*
 
 jobs:
-  php_test:
+  php_db_test:
     runs-on: ubuntu-latest
     container:
       image: biscofil/kairos_php:no_user
@@ -41,45 +41,13 @@ jobs:
         php artisan key:generate
         php artisan migrate
         php artisan db:seed
+        php artisan migrate:refresh
+        php artisan db:seed
         php artisan generate:jwt-keypair
         php artisan config:cache
         php artisan route:cache
         echo PHPUNIT TEST
         vendor/phpunit/phpunit/phpunit tests/ --coverage-text --colors=never --configuration phpunit_gitlab.xml
-
-  db_test:
-    runs-on: ubuntu-latest
-    container:
-      image: biscofil/kairos_php:no_user
-      env:
-        DB_DATABASE: laravel
-        DB_PASSWORD: your_mysql_root_password
-        DB_HOST: mysql
-        DB_USERNAME: root
-
-    services:
-      mysql:
-        image: mysql:8
-        env:
-          MYSQL_DATABASE: laravel
-          MYSQL_ROOT_PASSWORD: your_mysql_root_password
-          DB_HOST: mysql
-          DB_USERNAME: root
-
-    steps:
-
-    - uses: actions/checkout@v2
-
-    - name: test db
-      run: |
-        cp .env.example .env
-        composer install
-        php artisan key:generate
-        php artisan config:cache
-        php artisan migrate
-        php artisan db:seed
-        php artisan migrate:refresh
-        php artisan db:seed
 
   npm_test:
     runs-on: ubuntu-latest
