@@ -14,6 +14,7 @@ jobs:
         DB_PASSWORD: your_mysql_root_password
         DB_HOST: mysql
         DB_USERNAME: root
+        QUEUE_CONNECTION: database
 
     services:
       mysql:
