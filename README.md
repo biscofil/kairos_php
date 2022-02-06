@@ -12,40 +12,7 @@ Kairos implements a modular structure which allows to handle multiple question t
 
 Kairos is a fork of Helios by Ben Adida (https://github.com/benadida/helios-server)
 
-```shell
-# comment out the user part in DockerFile (gitlab)
-docker build -t registry.gitlab.com/biscofil/thelios:no_user .
-# uncomment the user part in DockerFile (local)
-docker build -t registry.gitlab.com/biscofil/thelios:user .
-docker push -a registry.gitlab.com/biscofil/thelios
-```
-
-# local
-```shell
-docker pull certbot/certbot
-APP_NAME=Peer0 APP_URL=http://peer0.biscofil.it docker-compose build
-U_ID=${UID} G_ID=${GID} docker-compose up -d
-#export U_ID=$(id -u $USER)
-#export G_ID=$(id -u $USER)
-U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose build
-U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose up -d
-```
-
-# Adding SSL to the server domain.xyz
-```shell
-docker pull certbot/certbot
-U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose build
-U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose up -d
-U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose down
-docker run -it --rm -v $(pwd)/letsencrypt/certs:/etc/letsencrypt -v $(pwd)/letsencrypt/data:/data/letsencrypt \
-    certbot/certbot certonly \
-    --webroot \
-    --webroot-path=/data/letsencrypt \
-    -d domain.xyz \
-    --email your@email.com \
-    --agree-tos
-```
-
+# Install
 
 ```shell
 
@@ -83,3 +50,29 @@ php artisan key:generate
 php artisan generate:jwt-keypair
 php artisan storage:link
 ```
+
+# Adding SSL to the server domain.xyz
+```shell
+docker pull certbot/certbot
+U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose build
+U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose up -d
+U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose down
+docker run -it --rm -v $(pwd)/letsencrypt/certs:/etc/letsencrypt -v $(pwd)/letsencrypt/data:/data/letsencrypt \
+    certbot/certbot certonly \
+    --webroot \
+    --webroot-path=/data/letsencrypt \
+    -d domain.xyz \
+    --email your@email.com \
+    --agree-tos
+```
+
+# Docker changes
+
+```shell
+# comment out the user part in DockerFile (gitlab)
+docker build -t biscofil/kairos_php:no_user .
+# uncomment the user part in DockerFile (local)
+docker build -t biscofil/kairos_php:user .
+docker push -a biscofil/kairos_php
+```
+
