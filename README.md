@@ -10,7 +10,7 @@ Kairos implements a modular structure which allows to handle multiple question t
 
 [![.github/workflows/docker-image.yml](https://i0.wp.com/biscofil.it/wp-content/uploads/2021/08/modular_structure.png)](https://biscofil.it/kairos/)
 
-Kairos is a fork of Helios by Ben Adida (https://github.com/benadida/helios-server)
+Kairos started as a fork of Helios by Ben Adida (https://github.com/benadida/helios-server)
 
 # Install
 
