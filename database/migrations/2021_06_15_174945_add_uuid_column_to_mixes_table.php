@@ -16,9 +16,7 @@ class AddUuidColumnToMixesTable extends Migration
     public function up()
     {
         Schema::table('mixes', function (Blueprint $table) {
-
             $table->uuid('uuid')->nullable();
-
         });
 
         Mix::all()->each(function (Mix $mix) {
@@ -27,12 +25,8 @@ class AddUuidColumnToMixesTable extends Migration
         });
 
         Schema::table('mixes', function (Blueprint $table) {
-
             $table->uuid('uuid')->unique()->nullable(false)->change();
-
         });
-
-
     }
 
     /**
@@ -43,10 +37,10 @@ class AddUuidColumnToMixesTable extends Migration
     public function down()
     {
         Schema::table('mixes', function (Blueprint $table) {
-
             $table->dropUnique(['uuid']);
+        });
+        Schema::table('mixes', function (Blueprint $table) {
             $table->dropColumn('uuid');
-
         });
     }
 }

@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnused */
+<?php
+
+/** @noinspection PhpUnused */
 
 use App\Models\PeerServer;
 use Illuminate\Database\Migrations\Migration;
@@ -26,7 +28,6 @@ class AddSiteConfigsToPeerServersTable extends Migration
             $table->boolean('show_login_options')->default(true); // TODO check
 
             $table->text('welcome_message')->nullable();
-
         });
 
         $me = PeerServer::findOrFail(PeerServer::meID);
@@ -36,7 +37,6 @@ class AddSiteConfigsToPeerServersTable extends Migration
         $me->footer_logo_url = asset('favicon.ico');
         $me->welcome_message = 'Welcome to Kairos';
         $me->save();
-
     }
 
     /**
@@ -47,18 +47,25 @@ class AddSiteConfigsToPeerServersTable extends Migration
     public function down()
     {
         Schema::table('peer_servers', function (Blueprint $table) {
-
             $table->dropColumn('site_title');
+        });
+        Schema::table('peer_servers', function (Blueprint $table) {
             $table->dropColumn('help_email_address');
-
+        });
+        Schema::table('peer_servers', function (Blueprint $table) {
             $table->dropColumn('main_logo_url');
+        });
+        Schema::table('peer_servers', function (Blueprint $table) {
             $table->dropColumn('footer_logo_url');
-
+        });
+        Schema::table('peer_servers', function (Blueprint $table) {
             $table->dropColumn('show_user_info');
+        });
+        Schema::table('peer_servers', function (Blueprint $table) {
             $table->dropColumn('show_login_options');
-
+        });
+        Schema::table('peer_servers', function (Blueprint $table) {
             $table->dropColumn('welcome_message');
-
         });
     }
 }

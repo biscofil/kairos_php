@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnused */
+<?php
+
+/** @noinspection PhpUnused */
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -28,6 +30,8 @@ class AddChallengeBitsToMixesTable extends Migration
     {
         Schema::table('mixes', function (Blueprint $table) {
             $table->dropColumn('challenge_bits');
+        });
+        Schema::table('mixes', function (Blueprint $table) {
             $table->dropColumn('shadow_mix_count');
         });
     }

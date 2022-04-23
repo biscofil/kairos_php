@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnused */
+<?php
+
+/** @noinspection PhpUnused */
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -17,7 +19,6 @@ class AddPublicKeyToVotersTable extends Migration
 
             $table->text('secret_key')->comment('encrypted')->nullable();
             $table->text('public_key')->nullable();
-
         });
     }
 
@@ -29,10 +30,10 @@ class AddPublicKeyToVotersTable extends Migration
     public function down()
     {
         Schema::table('voters', function (Blueprint $table) {
-
             $table->dropColumn('secret_key');
+        });
+        Schema::table('voters', function (Blueprint $table) {
             $table->dropColumn('public_key');
-
         });
     }
 }

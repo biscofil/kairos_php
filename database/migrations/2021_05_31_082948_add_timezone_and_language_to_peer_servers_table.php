@@ -15,17 +15,14 @@ class AddTimezoneAndLanguageToPeerServersTable extends Migration
     public function up()
     {
         Schema::table('peer_servers', function (Blueprint $table) {
-
             $table->string('timezone')->nullable();
             $table->string('locale')->nullable();
-
         });
 
         $me = PeerServer::findOrFail(PeerServer::meID);
         $me->timezone = config('app.timezone');
         $me->locale = config('app.locale');
         $me->save();
-
     }
 
     /**
@@ -37,6 +34,8 @@ class AddTimezoneAndLanguageToPeerServersTable extends Migration
     {
         Schema::table('peer_servers', function (Blueprint $table) {
             $table->dropColumn('timezone');
+        });
+        Schema::table('peer_servers', function (Blueprint $table) {
             $table->dropColumn('locale');
         });
     }

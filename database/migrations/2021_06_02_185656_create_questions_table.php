@@ -51,7 +51,6 @@ class CreateQuestionsTable extends Migration
                     $q->save();
                 }
             }
-
         }
 
         Schema::table('elections', function (Blueprint $table) {

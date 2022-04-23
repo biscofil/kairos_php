@@ -10,7 +10,7 @@ use Illuminate\Support\ServiceProvider;
 class AppServiceProvider extends ServiceProvider
 {
 
-//    public const ActAsPeerServerKey = 'act_as_peer_server';
+    //    public const ActAsPeerServerKey = 'act_as_peer_server';
 
     /**
      * Register any application services.
@@ -32,18 +32,25 @@ class AppServiceProvider extends ServiceProvider
 
         Schema::defaultStringLength(191);
 
+        $connection = config('database.default');
+        $driver = config("database.connections.{$connection}.driver");
+        if ($driver === "sqlite") {
+            \Illuminate\Support\Facades\DB::getDoctrineSchemaManager()
+                ->getDatabasePlatform()->registerDoctrineTypeMapping('point', 'string');
+        }
+
         $me = null;
         try {
 
             // TODO if testing and if request contains "act_as_peer_server" then act as another peer
-//            if (in_array(config('app.env'), ['testing', 'local'])
-//                && $request->hasHeader(self::ActAsPeerServerKey)) {
-//                $peerID = intval($request->header(self::ActAsPeerServerKey));
-//                Log::warning("Acting as peer server $peerID");
-//                $me = PeerServer::findOrFail($peerID);
-//            } else {
+            //            if (in_array(config('app.env'), ['testing', 'local'])
+            //                && $request->hasHeader(self::ActAsPeerServerKey)) {
+            //                $peerID = intval($request->header(self::ActAsPeerServerKey));
+            //                Log::warning("Acting as peer server $peerID");
+            //                $me = PeerServer::findOrFail($peerID);
+            //            } else {
             $me = PeerServer::me(false);
-//            }
+            //            }
 
         } catch (\Exception $e) {
             Log::warning('Failed getCurrentServer() in AppServiceProvider');
@@ -52,7 +59,7 @@ class AppServiceProvider extends ServiceProvider
 
         if ($me) {
             config(['app.locale' => $me->locale]);
-//            config(['app.timezone' => $me->timezone]);
+            //            config(['app.timezone' => $me->timezone]);
             if ($me->jwt_public_key && $me->jwt_secret_key) {
                 config(['jwt.keys.private' => $me->jwt_secret_key->toString()]);
                 config(['jwt.keys.public' => $me->jwt_public_key->toString()]);
@@ -65,7 +72,5 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('peer_server_me', function ($app) use ($me) {
             return $me;
         });
-
-
     }
 }

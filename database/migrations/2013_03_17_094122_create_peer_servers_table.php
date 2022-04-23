@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnused */
+<?php
+
+/** @noinspection PhpUnused */
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -20,10 +22,10 @@ class CreatePeerServersTable extends Migration
 
             $table->string('name');
 
-            $table->string('domain',100)->unique();
+            $table->string('domain', 100)->unique();
 
             $table->point('gps')->nullable();
-            $table->string('country_code',5)->nullable();
+            $table->string('country_code', 5)->nullable();
 
             $table->text('jwt_secret_key')->nullable();
             $table->text('jwt_public_key')->nullable();
@@ -33,11 +35,9 @@ class CreatePeerServersTable extends Migration
             $table->text('token')->nullable();
 
             $table->timestamps();
-
         });
 
         Artisan::call('db:seed', ['--class' => 'PeerServersTableSeeder', '--force' => 1]);
-
     }
 
     /**

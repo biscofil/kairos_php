@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnused */
+<?php
+
+/** @noinspection PhpUnused */
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -29,7 +31,11 @@ class AddTimeMeasuresToMixesTable extends Migration
     {
         Schema::table('mixes', function (Blueprint $table) {
             $table->dropColumn('verified_in');
+        });
+        Schema::table('mixes', function (Blueprint $table) {
             $table->dropColumn('proofs_generated_in');
+        });
+        Schema::table('mixes', function (Blueprint $table) {
             $table->dropColumn('mixes_generated_in');
         });
     }

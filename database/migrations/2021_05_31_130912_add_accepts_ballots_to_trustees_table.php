@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnused */
+<?php
+
+/** @noinspection PhpUnused */
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -16,7 +18,6 @@ class AddAcceptsBallotsToTrusteesTable extends Migration
         Schema::table('trustees', function (Blueprint $table) {
 
             $table->boolean('accepts_ballots')->default(false);
-
         });
     }
 
@@ -28,9 +29,7 @@ class AddAcceptsBallotsToTrusteesTable extends Migration
     public function down()
     {
         Schema::table('trustees', function (Blueprint $table) {
-
             $table->dropColumn('accepts_ballots');
-
         });
     }
 }

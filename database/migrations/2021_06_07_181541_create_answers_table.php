@@ -32,7 +32,6 @@ class CreateAnswersTable extends Migration
             $table->text('attributes')->nullable(); // json array
 
             $table->timestamps();
-
         });
 
         // move answers from question table to current table
@@ -55,7 +54,6 @@ class CreateAnswersTable extends Migration
         Schema::table('questions', function (Blueprint $table) {
             $table->dropColumn('answers');
         });
-
     }
 
     /**
@@ -67,7 +65,7 @@ class CreateAnswersTable extends Migration
     {
 
         Schema::table('questions', function (Blueprint $table) {
-            $table->text('answers'); // json array
+            $table->text('answers')->default(""); // json array
         });
 
         // move answers from current table to question table

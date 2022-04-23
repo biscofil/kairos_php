@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnused */
+<?php
+
+/** @noinspection PhpUnused */
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -16,7 +18,6 @@ class AddSignatureToCastVotesTable extends Migration
         Schema::table('cast_votes', function (Blueprint $table) {
 
             $table->string('signature')->nullable();
-
         });
     }
 
@@ -28,9 +29,7 @@ class AddSignatureToCastVotesTable extends Migration
     public function down()
     {
         Schema::table('cast_votes', function (Blueprint $table) {
-
             $table->dropColumn('signature');
-
         });
     }
 }

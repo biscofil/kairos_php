@@ -17,7 +17,6 @@ class AddAnswerIdToCastVotesTable extends Migration
 
             $table->unsignedBigInteger('answer_id')->nullable();
             $table->foreign('answer_id')->references('id')->on('answers');
-
         });
     }
 
@@ -28,11 +27,15 @@ class AddAnswerIdToCastVotesTable extends Migration
      */
     public function down()
     {
+        $connection = config('database.default');
+        $driver = config("database.connections.{$connection}.driver");
+        if ($driver !== "sqlite") {
+            Schema::table('cast_votes', function (Blueprint $table) {
+                $table->dropForeign(['answer_id']);
+            });
+        }
         Schema::table('cast_votes', function (Blueprint $table) {
-
-            $table->dropForeign(['answer_id']);
             $table->dropColumn('answer_id');
-
         });
     }
 }

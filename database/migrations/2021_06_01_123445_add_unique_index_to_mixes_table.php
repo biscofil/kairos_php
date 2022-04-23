@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnused */
+<?php
+
+/** @noinspection PhpUnused */
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -16,7 +18,6 @@ class AddUniqueIndexToMixesTable extends Migration
         Schema::table('mixes', function (Blueprint $table) {
 
             $table->unique('hash');
-
         });
     }
 
@@ -28,9 +29,7 @@ class AddUniqueIndexToMixesTable extends Migration
     public function down()
     {
         Schema::table('mixes', function (Blueprint $table) {
-
             $table->dropUnique(['hash']);
-
         });
     }
 }

@@ -18,7 +18,6 @@ class AddLocalIdToQuestionsTable extends Migration
 
             $table->unsignedSmallInteger('local_id')->nullable();
             $table->unique(['id', 'local_id']);
-
         });
 
         Election::all()->each(function (Election $election) {
@@ -31,7 +30,6 @@ class AddLocalIdToQuestionsTable extends Migration
         Schema::table('questions', function (Blueprint $table) {
             $table->unsignedSmallInteger('local_id')->nullable(false)->change();
         });
-
     }
 
     /**
@@ -42,10 +40,10 @@ class AddLocalIdToQuestionsTable extends Migration
     public function down()
     {
         Schema::table('questions', function (Blueprint $table) {
-
             $table->dropUnique(['id', 'local_id']);
+        });
+        Schema::table('questions', function (Blueprint $table) {
             $table->dropColumn('local_id');
-
         });
     }
 }
