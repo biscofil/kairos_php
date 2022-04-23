@@ -67,7 +67,6 @@ class MultipleChoicesTest extends TestCase
         self::assertTrue($tallyDatabase->file_exists());
         $tallyDatabase->delete();
         self::assertFalse($tallyDatabase->file_exists());
-
     }
 
     /**
@@ -143,35 +142,84 @@ class MultipleChoicesTest extends TestCase
         self::assertFalse($tallyDatabase->insertBallot($plainVote));
 
         $tallyDatabase->delete();
+    }
+
+    /**
+     * @test
+     */
+    public function enumeration_min_0()
+    {
+        $election = Election::factory()->create();
+        $election->cryptosystem = CryptoSystemEnum::ElGamal();
+        $election->anonymization_method = AnonymizationMethodEnum::EncMixNet();
+        $nQuestions = 3;
+        $maxAnswers = 3;
+        $minAnswers = 0;
+        self::createElectionQuestions($election, $nQuestions, $maxAnswers, $minAnswers);
+
+        $enumerations = MultipleChoice::generateAllCombinations($election->questions()->first());
+
+        $expected = [
+            [], //
+            [1], [2], [3], //
+            [1, 2], [2, 1], [1, 3], [3, 1], [2, 3], [3, 2], //
+            [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]
+        ];
+        self::assertEquals($expected, $enumerations);
+
+        $pos = array_search([], $enumerations);
+        self::assertEquals(0, $pos); // empty array must exist, in first position
 
     }
 
     /**
      * @test
      */
-    public function enumeration()
+    public function enumeration_min_1()
     {
 
         $election = Election::factory()->create();
         $election->cryptosystem = CryptoSystemEnum::ElGamal();
         $election->anonymization_method = AnonymizationMethodEnum::EncMixNet();
         $nQuestions = 3;
-        self::createElectionQuestions($election, $nQuestions);
+        $maxAnswers = 3;
+        $minAnswers = 1;
+        self::createElectionQuestions($election, $nQuestions, $maxAnswers, $minAnswers);
+
+        // generate a set of answers, can be an empty array or a subset of [1,2,3]
+        $idxs = [1 => 1, 2 => 2, 3 => 3];
+        $randomQuestionAnswers = (array)array_rand($idxs, rand(1, 3));
+        if (rand(0, 3) === 0) {
+            // with a 33% chance, empty list
+            $randomQuestionAnswers = [];
+        } else {
+            shuffle($randomQuestionAnswers);
+        }
 
         $enumerations = MultipleChoice::generateAllCombinations($election->questions()->first());
+        self::assertFalse(array_search([], $enumerations)); // empty array must NOT exist
 
-        $idxs = [1 => 1, 2 => 2, 3 => 3];
-        $randomQuestionAnswers = rand(0, 3) === 0 ? [] : (array)array_rand($idxs, rand(1, 3));
+        $expected = [
+            // NO empty set []
+            [1], [2], [3], //
+            [1, 2], [2, 1], [1, 3], [3, 1], [2, 3], [3, 2], //
+            [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]
+        ];
+        self::assertEquals($expected, $enumerations);
+
+        self::assertFalse(array_search([], [1, 2, 3]));
+        self::assertEquals(0, array_search([], [[], 1, 2, 3]));
+        self::assertEquals([[], [1]], array_merge([[]], [[1]]));
+
         $pos = array_search($randomQuestionAnswers, $enumerations);
         self::assertNotEquals(false, $pos);
 
-//        dump($pos);
-//        dump(decbin($pos));
-//
-//        $ps = EGParameterSet::getDefault();
-//        dump(array_map(function (int $pos) {
-//
-//        }, $enumerations, range(0, count($enumerations))));
+        //        dump($pos);
+        //        dump(decbin($pos));
+        //
+        //        $ps = EGParameterSet::getDefault();
+        //        dump(array_map(function (int $pos) {
+        //
+        //        }, $enumerations, range(0, count($enumerations))));
     }
-
 }

@@ -104,13 +104,16 @@ class MultipleChoice extends QuestionType implements SupportsHomomorhpicEncrypti
     {
         $out = [];
         $list = $question->answers()->pluck('local_id')->toArray();
-        for ($i = $question->min; $i <= $question->max; $i++) { // max(1, $question->min)
-            if ($i === 0) {
+        if ($question->max > count($list)) {
+            throw new \Exception("Answer list is empty"); // TODO check
+        }
+        for ($i = intval($question->min); $i <= intval($question->max); $i++) {
+            if ($i == 0) {
                 $out[] = [];
-                continue;
-            }
+            } else {
             $permutations = new Permutations($list, $i);
             $out = array_merge($out, $permutations->toArray());
+            }
         }
         return $out;
     }
