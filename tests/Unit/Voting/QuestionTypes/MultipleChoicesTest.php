@@ -212,7 +212,7 @@ class MultipleChoicesTest extends TestCase
         self::assertEquals([[], [1]], array_merge([[]], [[1]]));
 
         $pos = array_search($randomQuestionAnswers, $enumerations);
-        self::assertNotEquals(false, $pos);
+        self::assertTrue(false !== $pos);
 
         //        dump($pos);
         //        dump(decbin($pos));
