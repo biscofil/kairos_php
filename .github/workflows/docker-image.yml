@@ -8,44 +8,49 @@ jobs:
   php_db_test:
     runs-on: ubuntu-latest
     container:
-      image: biscofil/kairos_php:no_user
+      image: kirschbaumdevelopment/laravel-test-runner:7.4
       env:
-        DB_DATABASE: laravel
+        DB_CONNECTION: sqlite
+        DB_DATABASE: database/database.sqlite
         DB_PASSWORD: your_mysql_root_password
         DB_HOST: mysql
         DB_USERNAME: root
         QUEUE_CONNECTION: database
-
-    services:
-      mysql:
-        image: mysql:8
-        env:
-          MYSQL_DATABASE: laravel
-          MYSQL_ROOT_PASSWORD: your_mysql_root_password
-          DB_HOST: mysql
-          DB_USERNAME: root
-
+   
     steps:
 
-    - uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
 
-    - name: test php
+    - name: Install composer dependencies
       run: |
+        composer install --no-scripts
+
+    - name: Prepare Laravel Application
+      run: |
+        rm -rf bootstrap/cache/*
         cp .env.example .env
         cp db.env.example db.env
-        composer install
-        rm bootstrap/cache/*
+        rm -rf database/database.sqlite
+        touch database/database.sqlite
         php artisan config:clear
         php artisan cache:clear
         php artisan route:clear
         php artisan view:clear
         php artisan key:generate
+        php artisan config:cache
+        php artisan route:cache
+
+    - name: Prepare Database
+      run: |
         php artisan migrate
         php artisan db:seed
         php artisan migrate:refresh
         php artisan db:seed
+
+    - name: Run Testsuite
+      run: |
         php artisan generate:jwt-keypair
-        php artisan config:cache
-        php artisan route:cache
-        echo PHPUNIT TEST
-        vendor/phpunit/phpunit/phpunit tests/ --coverage-text --colors=never --configuration phpunit_gitlab.xml
+        vendor/phpunit/phpunit/phpunit tests/ --colors=never --configuration phpunit_gitlab.xml
