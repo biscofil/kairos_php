@@ -1,4 +1,4 @@
 [submodule "resources/js/github/vuesocial"]
 	path = resources/js/github/vuesocial
 	url = https://github.com/LeCoupa/vuesocial
-    ignore = dirty
+	ignore = dirty

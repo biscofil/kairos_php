@@ -1,6 +1,13 @@
 /node_modules
+/public/js
+/public/css
 /public/hot
 /public/storage
+/public/vuesocial/
+/public/assets/
+/public/mix-manifest.json
+/public/mix-sri.json
+/public/.rnd
 /storage/*.key
 /vendor
 .env
@@ -18,11 +25,6 @@ yarn-error.log
 /db.env
 /_docker/
 /.env.testing
-/public/mix-manifest.json
-/public/mix-sri.json
-/public/.rnd
 /apache2.conf
 /resources/js/github/vuesocial/
-/public/vuesocial/
-/public/assets/
 /letsencrypt/
