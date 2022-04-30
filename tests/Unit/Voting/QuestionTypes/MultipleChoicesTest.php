@@ -189,12 +189,7 @@ class MultipleChoicesTest extends TestCase
         // generate a set of answers, can be an empty array or a subset of [1,2,3]
         $idxs = [1 => 1, 2 => 2, 3 => 3];
         $randomQuestionAnswers = (array)array_rand($idxs, rand(1, 3));
-        if (rand(0, 3) === 0) {
-            // with a 33% chance, empty list
-            $randomQuestionAnswers = [];
-        } else {
-            shuffle($randomQuestionAnswers);
-        }
+        shuffle($randomQuestionAnswers);
 
         $enumerations = MultipleChoice::generateAllCombinations($election->questions()->first());
         self::assertFalse(array_search([], $enumerations)); // empty array must NOT exist
