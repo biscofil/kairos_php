@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: kairos-database-db-env
+  name: kairos-database-db-env
+data:
+  MYSQL_DATABASE: laravel
+  MYSQL_ROOT_PASSWORD: your_mysql_root_password
+  SERVICE_NAME: mysql
+  SERVICE_TAGS: dev
