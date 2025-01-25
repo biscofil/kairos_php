@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    label: kairos-ingress
+  name: kairos-ingress
+spec:
+  ingressClassName: nginx
+  # tls:
+  # - hosts:
+  #   - {{ .Values.host }}
+  #   secretName: my-tls-secret
+  rules:
+  - host: "{{ .Values.host }}"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kairos-webserver-service
+            port:
+              number: 80

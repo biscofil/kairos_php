@@ -1,9 +1,8 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  creationTimestamp: null
   labels:
-    io.kompose.service: kairos-webserver-claim
+    label: kairos-webserver-claim
   name: kairos-webserver-claim
 spec:
   accessModes:

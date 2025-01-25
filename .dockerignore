@@ -1,0 +1,17 @@
+_docker/
+.github/
+.idea/
+.psysh/
+.vscode/
+bootstrap/cache/*
+helm/
+mysql-data/
+node_modules/
+storage
+*.env
+*.ini
+*.tgz
+db.env
+vendor/
+Dockerfile.*
+cluster-config.yaml

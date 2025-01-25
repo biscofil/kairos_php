@@ -54,8 +54,7 @@ class Kernel extends ConsoleKernel
             ->everyMinute()
             ->appendOutputTo($logFile);
 
-        // TODO
-//        $me = getCurrentServer();
+        $me = getCurrentServer();
 
         $minute = hexdec(substr(sha1($me->domain), 0, 5)) % 60;
 

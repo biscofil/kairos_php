@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kairos-run-database-migrations
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: init-cont
+        image: busybox:1.31
+        command: ['sh', '-c', 'echo -e "Checking for the availability of MySQL Server deployment"; while ! nc -z {{.Values.database.serviceName}} 3306; do sleep 1; printf "-"; done; echo -e "  >> MySQL DB Server has started";']
+      containers:
+      - image: "{{ .Values.image }}:{{ .Chart.AppVersion }}"
+        imagePullPolicy: Always
+        name: kairos-run-database-migrations
+        envFrom:
+          - configMapRef:
+              name: kairos-webserver-env
+          - secretRef:
+              name: kairos-secrets
+        command: ["/bin/sh"]
+        args:
+          - -c
+          - >-
+              php artisan migrate
+      restartPolicy: Never
+      volumes:
+        - name: kairos-webserver-claim
+          persistentVolumeClaim:
+            claimName: kairos-webserver-claim
+  backoffLimit: 1

@@ -10,9 +10,10 @@
 /public/.rnd
 /storage/*.key
 /vendor
-.env
+*.env
+*.ini
+*.tgz
 .env.backup
-_docker/
 .phpunit.result.cache
 docker-compose.override.yml
 Homestead.json
@@ -21,10 +22,9 @@ npm-debug.log
 yarn-error.log
 /mysql-data/
 /letsencrypt/
-/app.env
-/db.env
 /_docker/
 /.env.testing
 /apache2.conf
 /resources/js/github/vuesocial/
 /letsencrypt/
+.idea/

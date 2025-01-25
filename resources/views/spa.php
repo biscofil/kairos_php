@@ -86,12 +86,6 @@
     <footer class="footer bg-dark" v-if="settings">
         <div class="container">
             <span class="text-muted">Kairos</span>
-            -
-            <a class="text-muted" href="https://peer20.biscofil.it">Peer20</a>
-            -
-            <a class="text-muted" href="https://peer21.biscofil.it">Peer21</a>
-            -
-            <a class="text-muted" href="https://peer22.biscofil.it">Peer22</a>
         </div>
     </footer>
 

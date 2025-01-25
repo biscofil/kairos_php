@@ -1,16 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  creationTimestamp: null
   labels:
-    io.kompose.service: kairos-webserver
-  name: kairos-webserver
+    label: kairos-webserver-service
+  name: kairos-webserver-service
 spec:
   ports:
     - name: "80"
       port: 80
       targetPort: 80
   selector:
-    io.kompose.service: kairos-webserver
+    label: kairos-webserver
 status:
   loadBalancer: {}
