@@ -3,7 +3,7 @@
 
         <div v-if="election.use_advanced_audit_features" id="use_advanced_audit_features">
             <h4>
-                <a onclick="$('#auditbody').slideToggle(250);" href="#">Audit</a>
+                <a onclick="$('#auditbody').slideToggle(250);" href="javascript:void(0)">Audit</a>
                 <span style="font-size: 0.8em; color: #444">[optional]</span>
             </h4>
             <div id="auditbody" style="display:none;">

@@ -34,3 +34,5 @@ RUN chown -R www-data:www-data .
 # Install project dependencies
 RUN composer install
 RUN composer dump-autoload -o
+
+RUN php artisan storage:link

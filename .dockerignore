@@ -1,13 +1,14 @@
 _docker/
 .github/
+.composer/
 .idea/
 .psysh/
 .vscode/
 bootstrap/cache/*
+storage/
 helm/
 mysql-data/
 node_modules/
-storage
 *.env
 *.ini
 *.tgz
@@ -15,3 +16,5 @@ db.env
 vendor/
 Dockerfile.*
 cluster-config.yaml
+compile_js.sh
+compile_js_docker.sh

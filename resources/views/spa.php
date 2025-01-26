@@ -69,8 +69,7 @@
                     </span>
                     <span v-else>
                          <LoginBox :default_auth_system="$root.login_box.default_auth_system"
-                                   :enabled_auth_systems="$root.login_box.enabled_auth_systems"
-                                   color="white"/>
+                                   :enabled_auth_systems="$root.login_box.enabled_auth_systems"/>
                     </span>
                 </span>
 

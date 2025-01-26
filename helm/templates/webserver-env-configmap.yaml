@@ -10,7 +10,7 @@ data:
   APP_ENV: local
   # APP_KEY: from secret
   APP_DEBUG: "true"
-  APP_URL: "{{ .Values.host }}" # https:// prefix
+  APP_URL: "http://{{ .Values.host }}" # https:// prefix
 
   # JWT_SECRET: from secret
 

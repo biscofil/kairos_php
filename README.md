@@ -69,6 +69,9 @@ helm package helm
 # Deploy one node
 kubectl create ns node1
 # TODO generate random values in helm_secret.ini
+# php artisan key:generate
+# php artisan generate:jwt-keypair
+
 kubectl create secret generic kairos-secrets --from-env-file=helm_secret.ini --namespace node1
 helm install kairos Kairos-0.1.0.tgz --namespace node1 -f values.yaml
 helm upgrade kairos Kairos-0.1.0.tgz --namespace node1 -f values.yaml
@@ -82,6 +85,7 @@ helm upgrade kairos Kairos-0.1.0.tgz --namespace node1 -f values.yaml
   - use the same docker image for webserver and scheduler (done)
   - share storage between webserver, scheduler and migration_job
     - remove folder creation in docker image
+- adapt `php artisan generate:jwt-keypair` to kubernertes
 
 # Legacy (deprecated)
 
@@ -116,9 +120,9 @@ docker pull certbot/certbot
 # enable SSL commenting 000-default.conf
 U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose down
 U_ID=$(id -u $USER) G_ID=$(id -u $USER) docker-compose up -d
-php artisan key:generate
-php artisan generate:jwt-keypair
-php artisan storage:link
+# php artisan key:generate
+# php artisan generate:jwt-keypair
+# php artisan storage:link
 ```
 
 # Adding SSL to the server domain.xyz (deprecated)

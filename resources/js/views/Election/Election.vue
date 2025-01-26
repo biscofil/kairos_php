@@ -9,7 +9,7 @@
 
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="#">Elections</a></li>
+                        <li class="breadcrumb-item"><a href="javascript:void(0)">Elections</a></li>
                         <li class="breadcrumb-item active">
                             <router-link :to="{name:'election@view', params:{ slug: election.slug }}" >{{ election.name }}</router-link>
                         </li>
