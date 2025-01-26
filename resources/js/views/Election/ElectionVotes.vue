@@ -75,7 +75,7 @@
 
 <script>
 
-import Vuetable from 'vuetable-3'
+import Vuetable from 'vuetable-3/src/components/Vuetable';
 import VuetablePagination from "vuetable-3/src/components/VuetablePagination";
 import VuetablePaginationInfo from "vuetable-3/src/components/VuetablePaginationInfo";
 import Utils from "../../Models/Utils/Utils";

@@ -75,7 +75,7 @@
 
 import {FormWizard, TabContent} from 'vue-form-wizard'
 import Election from "../../../Models/Election";
-import CastingModal from "./CastingModal";
+// import CastingModal from "./CastingModal";
 import CountryFlag from 'vue-country-flag';
 import VueObjectView from "vue-object-view";
 import MultipleChoice from "./QuestionTypes/MultipleChoice";
@@ -91,7 +91,7 @@ export default {
         MultipleChoice,
         FormWizard,
         TabContent,
-        CastingModal,
+        // CastingModal,
         CountryFlag,
         VueObjectView
     },

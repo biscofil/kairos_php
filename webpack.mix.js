@@ -7,10 +7,12 @@ mix.webpackConfig({
             //vue: 'vue/dist/vue.js'
         },
         fallback: {
+            "vm": require.resolve("vm-browserify"),
             "crypto": require.resolve("crypto-browserify"),
             // "stream": false,
             "stream": require.resolve("stream-browserify"),
-            "constants": require.resolve("constants-browserify")
+            "constants": require.resolve("constants-browserify"),
+            'process/browser': require.resolve('process/browser')
         }
     },
     experiments: {
@@ -37,7 +39,7 @@ mix//.i18n()
     .sass('resources/sass/app.scss', 'public/css');
     // .generateIntegrityHash();
 
-mix.copyDirectory('resources/js/github/vuesocial/assets/networks', 'public/vuesocial');
+// mix.copyDirectory('resources/js/github/vuesocial/assets/networks', 'public/vuesocial');
 mix.copyDirectory('resources/assets', 'public/assets');
 
 mix.copy('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js', 'public/js');

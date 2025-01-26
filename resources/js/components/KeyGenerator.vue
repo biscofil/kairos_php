@@ -95,8 +95,8 @@
 <script>
 
 import Election from "../Models/Election";
-import ElgamalParams from "../Voting/CryptoSystems/Elgamal/ElgamalParams";
-import EGProof from "../Voting/CryptoSystems/Elgamal/EGProof";
+// import ElgamalParams from "../Voting/CryptoSystems/ElGamal/ElgamalParams";
+// import EGProof from "../Voting/CryptoSystems/ElGamal/EGProof";
 
 export default {
     name: "KeyGenerator",
@@ -179,10 +179,13 @@ export default {
         generate_keypair() {
             this.show_buttons = false;
 
-            let keypair = ElgamalParams.fromPublicKey(this.election.public_key).generate();
-            console.log(keypair);
-            this.public_key = JSON.stringify(keypair.pk.toJSONObject());
-            this.private_key = JSON.stringify(keypair.toJSONObject());
+            // TODO fix,ElgamalParams.fromPublicKey does not exist
+            // {
+            // let keypair = ElgamalParams.fromPublicKey(this.election.public_key).generate();
+            // console.log(keypair);
+            // this.public_key = JSON.stringify(keypair.pk.toJSONObject());
+            // this.private_key = JSON.stringify(keypair.toJSONObject());
+            // }
 
             // let proof = EGProof.generate(
             //     keypair.pk.g,
