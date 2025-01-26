@@ -39,12 +39,13 @@ kubectl -n default port-forward $POD_NAME 5050:5000 &
 
 ```shell
 
-docker build -t biscofil/kairos_php:webserver -f Dockerfile .
+docker build -t biscofil/kairos_php:webserver .
 docker tag biscofil/kairos_php:webserver biscofil/kairos_php:webserver-1.0.0
 docker push biscofil/kairos_php:webserver-1.0.0
 
 #docker tag biscofil/kairos_php:webserver localhost:5050/kairos_php:webserver
 #docker push localhost:5050/kairos_php:webserver
+
 #docker tag biscofil/kairos_php:webserver registry-docker-registry.127.0.0.1.nip.io/kairos_php:webserver
 #docker push registry-docker-registry.127.0.0.1.nip.io/kairos_php:webserver
 
