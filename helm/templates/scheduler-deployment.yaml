@@ -32,6 +32,9 @@ spec:
           - -c
           - >-
               while true; do php artisan schedule:run --verbose --no-interaction; sleep 5; done
+        resources:
+          requests:
+            ephemeral-storage: "100Mi"
       restartPolicy: Always
       volumes:
         - name: kairos-webserver-claim

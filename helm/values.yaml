@@ -1,6 +1,5 @@
-# host: "kairos-webserver.127.0.0.1.nip.io"
-# hostName: "Peer123"
-# https://peer20.biscofil.it
+host: "peer0.127.0.0.1.nip.io"
+hostName: "peer0"
 image: "biscofil/kairos_php"
 database:
   serviceName: "kairos-database-service"

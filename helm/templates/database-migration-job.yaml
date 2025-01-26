@@ -28,7 +28,9 @@ spec:
               php artisan down --refresh=15;
               php artisan migrate;
               php artisan up
-
+        resources:
+          requests:
+            ephemeral-storage: "100Mi"
       restartPolicy: Never
       volumes:
         - name: kairos-webserver-claim

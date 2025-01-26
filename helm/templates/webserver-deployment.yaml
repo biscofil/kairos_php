@@ -31,11 +31,13 @@ spec:
                 name: kairos-secrets
           ports:
             - containerPort: 80
-          resources: {}
           tty: true
           volumeMounts:
             - mountPath: /var/www/html/storage/app
               name: kairos-webserver-claim
+          resources:
+            requests:
+              ephemeral-storage: "100Mi"
       restartPolicy: Always
       volumes:
         - name: kairos-webserver-claim
