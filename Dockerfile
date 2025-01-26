@@ -11,12 +11,13 @@ RUN echo "zend_extension=$(find /usr/local/lib/php/extensions/ -name xdebug.so)"
     && echo "xdebug.remote_enable=on" >> /usr/local/etc/php/conf.d/xdebug.ini \
     && echo "xdebug.remote_autostart=off" >> /usr/local/etc/php/conf.d/xdebug.ini
 
-# Copy the application code
-COPY . /var/www/html
-
 # Set the working directory
 WORKDIR /var/www/html
 
+# Copy the application code
+COPY . /var/www/html
+
+# TODO use memcache for cache, session
 #RUN mkdir -p storage/app/public
 RUN mkdir -p storage/framework/cache/data
 RUN mkdir -p storage/framework/sessions
@@ -31,4 +32,5 @@ RUN chmod -R 777 .
 RUN chown -R www-data:www-data .
 
 # Install project dependencies
-RUN composer install --no-scripts --no-autoloader
+RUN composer install
+RUN composer dump-autoload -o
