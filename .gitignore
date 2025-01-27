@@ -28,3 +28,4 @@ yarn-error.log
 /resources/js/github/vuesocial/
 /letsencrypt/
 .idea/
+setup/registry/registry-creds

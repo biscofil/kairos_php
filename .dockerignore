@@ -18,3 +18,4 @@ Dockerfile.*
 cluster-config.yaml
 compile_js.sh
 compile_js_docker.sh
+setup/

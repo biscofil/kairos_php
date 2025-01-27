@@ -26,12 +26,12 @@ helm install ingress-nginx ingress-nginx/ingress-nginx
 # wait some time!
 
 # Install a private registry
-helm repo add twuni https://helm.twun.io
-helm install registry twuni/docker-registry --set ingress.enabled=true --set ingress.hosts={registry-docker-registry.127.0.0.1.nip.io}
-helm uninstall registry
-# helm upgrade registry twuni/docker-registry --set ingress.enabled=true --set ingress.hosts={registry-docker-registry.127.0.0.1.nip.io}
-export POD_NAME=$(kubectl get pods --namespace default -l "app=docker-registry,release=registry" -o jsonpath="{.items[0].metadata.name}")
-kubectl -n default port-forward $POD_NAME 5050:5000 &
+cd setup/registry
+./install.sh install
+# ./uninstall.sh
+
+# Create regcred in node namespace
+./setup/registry/install.sh regcred <namespace>
 
 ```
 
@@ -43,14 +43,9 @@ docker build -t biscofil/kairos_php:webserver .
 docker tag biscofil/kairos_php:webserver biscofil/kairos_php:webserver-1.0.0
 docker push biscofil/kairos_php:webserver-1.0.0
 
-#docker tag biscofil/kairos_php:webserver localhost:5050/kairos_php:webserver
-#docker push localhost:5050/kairos_php:webserver
-
-#docker tag biscofil/kairos_php:webserver registry-docker-registry.127.0.0.1.nip.io/kairos_php:webserver
-#docker push registry-docker-registry.127.0.0.1.nip.io/kairos_php:webserver
-
-# docker tag biscofil/kairos_php:webserver localhost:5050/kairos_php:webserver
-# docker push localhost:5050/kairos_php:webserver
+docker tag biscofil/kairos_php:webserver docker-registry.127.0.0.1.nip.io/kairos_php:webserver-1.0.0
+# echo registryPass | docker login -u admin docker-registry.127.0.0.1.nip.io --password-stdin
+docker push docker-registry.127.0.0.1.nip.io/kairos_php:webserver-1.0.0
 
 # SSL
 
