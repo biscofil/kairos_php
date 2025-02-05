@@ -18,18 +18,18 @@ jobs:
           node-version: "12"
           check-latest: true
 
-      - name: Cache node modules
-        uses: actions/cache@v4
-        id: cache
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+      # - name: Cache node modules
+      #   uses: actions/cache@v4
+      #   id: cache
+      #   env:
+      #     cache-name: cache-node-modules
+      #   with:
+      #     path: node_modules
+      #     key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-build-${{ env.cache-name }}-
+      #       ${{ runner.os }}-build-
+      #       ${{ runner.os }}-
 
       - name: Install NPM dependencies
         run: npm ci
@@ -39,6 +39,12 @@ jobs:
 
       - name: Test NPM compilation
         run: npm run prod
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm_artifact
+          path: public
 
   php_test_build:
     runs-on: ubuntu-latest
@@ -69,6 +75,12 @@ jobs:
         run: |
           composer install --no-scripts
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: php_artifact
+          path: vendor
+
       - name: Prepare Laravel Application
         run: |
           rm -rf bootstrap/cache/*
@@ -95,6 +107,32 @@ jobs:
         run: |
           php artisan generate:jwt-keypair
           vendor/phpunit/phpunit/phpunit tests/ --colors=never --configuration phpunit_gitlab.xml
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [npm_test_build, php_test_build]
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 0
+
+      - name: Download npn artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: npm_artifact
+
+      - name: Download php artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: php_artifact
+
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag biscofil/kairos:$(date +%s)
+
 
   # helm-build:
   #   runs-on: ubuntu-latest
