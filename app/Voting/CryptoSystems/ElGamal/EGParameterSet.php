@@ -48,7 +48,8 @@ class EGParameterSet implements ParameterSet
     }
 
     /**
-     *
+     * TODO these can change, from one peer to the other
+     * TODO share your parameter with others
      */
     public static function getDefault(): self
     {

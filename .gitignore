@@ -25,7 +25,6 @@ yarn-error.log
 /_docker/
 /.env.testing
 /apache2.conf
-/resources/js/github/vuesocial/
 /letsencrypt/
 .idea/
 setup/registry/registry-creds

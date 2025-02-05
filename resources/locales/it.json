@@ -1,3 +1,6 @@
 {
-    "log_in": "Accedi"
+    "log_in": "Accedi",
+    "election_editor_name" : "il nome carino per la tua elezione, ad esempio Elezione del Mio Club 2010",
+    "election_editor_slug" : "nessuno spazio, farà parte dell'URL per la tua elezione, ad esempio mio-club-2010",
+    "election_editor_use_voter_aslias" : "Se selezionato, le identità degli elettori saranno sostituite con alias, ad esempio \"V12\", nel centro di monitoraggio delle schede"
 }

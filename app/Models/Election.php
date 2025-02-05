@@ -173,7 +173,7 @@ class Election extends Model
         //
         'min_peer_count_t' => 'int',
         'anonymization_method' => AnonymizationMethodEnum::class,
-        'cryptosystem' => CryptoSystemEnum::class,
+        'cryptosystem' => CryptoSystemEnum::class, // TODO also store parameters (P,G,Q)
         'public_key' => PublicKeyCaster::class,
         'private_key' => SecretKeyCaster::class,
         //

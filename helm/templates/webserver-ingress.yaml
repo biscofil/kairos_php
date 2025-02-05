@@ -6,10 +6,10 @@ metadata:
   name: kairos-ingress
 spec:
   ingressClassName: nginx
-  # tls:
-  # - hosts:
-  #   - {{ .Values.host }}
-  #   secretName: my-tls-secret
+  tls:
+  - hosts:
+    - {{ .Values.host }}
+    secretName: docker-registry-tls-secret
   rules:
   - host: "{{ .Values.host }}"
     http:

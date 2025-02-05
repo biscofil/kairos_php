@@ -2,7 +2,8 @@
 # npm install
 
 # edit .env file
-npm ci
+# npm ci
+npm install
 # npm run test
 
 # export MIX_ENV_MODE="dev"
